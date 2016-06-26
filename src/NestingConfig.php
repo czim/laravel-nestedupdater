@@ -47,7 +47,7 @@ class NestingConfig implements NestingConfigInterface
             throw new RuntimeException("{$key} is not a nested relation, cannot gather data.");
         }
 
-        $parent = $this->makeParentModel();
+        $parent = $this->makeParentModel($parentModel);
 
         $relationMethod = $this->getRelationMethod($key, $parentModel);
         $relation       = $parent->{$relationMethod}();
@@ -104,10 +104,9 @@ class NestingConfig implements NestingConfigInterface
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
         
         if (true === $config) return true;
-        
         if ( ! is_array($config)) return false;
         
-        return (bool) Arr::get($config, 'link-only', false);
+        return ! (bool) Arr::get($config, 'link-only', false);
     }
 
     /**
@@ -123,29 +122,14 @@ class NestingConfig implements NestingConfigInterface
             return false;
         }
 
-        // todo: retrieve exceptions from config
+        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
+
+        if (is_array($config) && Arr::has($config, 'method')) {
+            return Arr::get($config, 'method');
+        }
 
         // if no exception set, the method is based on the key
         return Str::camel($key);
-    }
-
-    /**
-     * Returns the model FQN for a given (nested) relation key
-     *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return string|false
-     */
-    public function getModelClassForKey($key, $parentModel = null)
-    {
-        if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
-            return false;
-        }
-
-        // if no exception set, return a model name based on the model namespace
-        // and the key name.
-
-        return Config::get('nestedmodelupdater.model_namespace', Str::studly(Str::singular($key)));
     }
 
     /**
@@ -157,28 +141,38 @@ class NestingConfig implements NestingConfigInterface
      */
     public function getUpdaterClassForKey($key, $parentModel = null)
     {
-        // if no exception is set, return the normal updater
-        // todo
+        if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
+            return false;
+        }
 
+        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
+
+        if (is_array($config) && Arr::has($config, 'updater')) {
+            return Arr::get($config, 'updater');
+        }
+
+        // if no exception is set, return the normal updater
         return ModelUpdater::class;
     }
 
     /**
      * Returns a fresh instance of the parent model for the relation.
      *
+     * @param null|string $parentClass
      * @return Model
      */
-    protected function makeParentModel()
+    protected function makeParentModel($parentClass = null)
     {
-        if ( ! $this->parentModel) {
+        $parentClass = $parentClass ?: $this->parentModel;
+
+        if ( ! $parentClass) {
             throw new BadMethodCallException("Could not create parent model, no class name given.");
         }
 
-        $class = $this->parentModel;
-        $model = new $class;
+        $model = new $parentClass;
 
         if ( ! ($model instanceof Model)) {
-            throw new UnexpectedValueException("Expected Model for parentModel, got {$class} instead.");
+            throw new UnexpectedValueException("Expected Model for parentModel, got {$parentClass} instead.");
         }
 
         return $model;

@@ -1,10 +1,6 @@
 <?php
 
 return [
-
-    // Namespace to prepend for generated model FQNs. A nested relation with
-    // key 'comments' is by default assumed to correspond to App\Models\Comment
-    'model-namespace' => 'App\\Models\\',
     
     // List of FQNs of relation classes that are of the to One type. Every
     // other relation is considered plural.
