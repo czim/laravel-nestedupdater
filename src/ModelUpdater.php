@@ -38,6 +38,22 @@ class ModelUpdater implements ModelUpdaterInterface
     protected $parentModel;
 
     /**
+     * If available, the relation attribute on the parent model that may be used to
+     * look up the nested config relation info.
+     *
+     * @var null|string
+     */
+    protected $parentAttribute;
+
+    /**
+     * The information about the relation on the parent's attribute, based on
+     * parentModel & parentAttribute. Only set if not top-level.
+     *
+     * @var null|RelationInfo
+     */
+    protected $parentRelationInfo;
+
+    /**
      * Data passed in for the create or update process
      *
      * @var array
@@ -91,15 +107,17 @@ class ModelUpdater implements ModelUpdaterInterface
 
 
     /**
-     * @param string                      $modelClass   FQN for model
-     * @param null|string                 $nestedKey    dot-notation key for tree data (ex.: 'blog.comments.2.author')
-     * @param null|Model                  $parent       the parent model, if this is a recursive/nested call
+     * @param string                      $modelClass      FQN for model
+     * @param null|string                 $parentAttribute the name of the attribute on the parent's data array
+     * @param null|string                 $nestedKey       dot-notation key for tree data (ex.: 'blog.comments.2.author')
+     * @param null|Model                  $parentModel     the parent model, if this is a recursive/nested call
      * @param null|NestingConfigInterface $config
      */
     public function __construct(
         $modelClass,
+        $parentAttribute = null,
         $nestedKey = null,
-        Model $parent = null,
+        Model $parentModel = null,
         NestingConfigInterface $config = null
     ) {
         if (null === $config) {
@@ -107,10 +125,15 @@ class ModelUpdater implements ModelUpdaterInterface
             $config = app(NestingConfigInterface::class);
         }
 
-        $this->modelClass  = $modelClass;
-        $this->nestedKey   = $nestedKey;
-        $this->parentModel = $parent;
-        $this->config      = $config;
+        $this->modelClass      = $modelClass;
+        $this->parentAttribute = $parentAttribute;
+        $this->nestedKey       = $nestedKey;
+        $this->parentModel     = $parentModel;
+        $this->config          = $config;
+
+        if ($parentAttribute && $parentModel) {
+            $this->parentRelationInfo = $this->config->getRelationInfo($parentAttribute, get_class($parentModel));
+        }
     }
 
 
@@ -179,7 +202,7 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $this->handleBelongsToRelations();
 
-        $this->handleModelSaving();
+        $this->updatedAndPersistModel();
 
         $this->handleHasRelations();
 
@@ -232,7 +255,7 @@ class ModelUpdater implements ModelUpdaterInterface
      *
      * @throws ModelSaveFailureException
      */
-    protected function handleModelSaving()
+    protected function updatedAndPersistModel()
     {
         $modelData = $this->getDirectModelData();
 
@@ -249,14 +272,38 @@ class ModelUpdater implements ModelUpdaterInterface
         // the unpersisted model after comitted the other changes...
 
 
-        if ( ! $this->model->save()) {
+        // if we're saving a separate, top-level or belongs to related model,
+        // we can simply save it by itself; other models should be saved
+        // on their parent's relation.
+
+        if ($this->shouldSaveModelOnParentRelation()) {
+            $result = $this->parentModel->{$this->parentRelationInfo->relationMethod()}()->save(
+                $this->model
+            );
+        } else {
+            $result = $this->model->save();
+        }
+
+        if ( ! $result) {
             $this->rollbackTransaction();
 
             throw new ModelSaveFailureException(
-                "Failed persisting {$this->modelClass} instance ("
-                . ($this->isCreating ? 'create' : 'update') . ")"
+                "Failed persisting instance of {$this->modelClass} on "
+                . ($this->isCreating ? 'create' : 'update') . ' operation'
             );
         }
+    }
+
+    /**
+     * Returns whether the current model should be saved on the parent's relation method.
+     *
+     * @return bool
+     */
+    protected function shouldSaveModelOnParentRelation()
+    {
+        if ( ! $this->parentModel || ! $this->parentRelationInfo) return false;
+
+        return ! $this->parentRelationInfo->isBelongsTo();
     }
 
     /**
@@ -265,28 +312,28 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected function handleBelongsToRelations()
     {
-        $results = [];
-
         foreach ($this->relationInfo as $attribute => $info) {
             if ( ! $info->isBelongsTo()) continue;
 
             $result = $this->handleNestedSingleUpdateOrCreate(
                 Arr::get($this->data, $attribute),
                 $info,
-                $this->appendNestedKey($attribute)
+                $attribute
             );
 
-            $results[$attribute] = ($result instanceof UpdateResult)
+            $result = ($result instanceof UpdateResult)
                 ?   $result->model()
                 :   $result;
-        }
 
-        // apply results to the model, if appliccable
-        if ( ! count($results)) return;
+            // update model by associating or dissociating as necessary
+            if (    $result instanceof Model
+                ||  (false !== $result && null !== $result)
+            ) {
+                $this->model->{$info->relationMethod()}()->associate($result);
+                continue;
+            }
 
-        foreach ($results as $attribute => $result) {
-
-            // associate or dissociate as necessary
+            $this->model->{$info->relationMethod()}()->dissociate();
         }
     }
 
@@ -312,10 +359,32 @@ class ModelUpdater implements ModelUpdaterInterface
 
             foreach (Arr::get($this->data, $attribute, []) as $index => $data) {
 
-                $data = $this->normalizeNestedSingularData($data);
+                $data   = $this->normalizeNestedSingularData($data);
+                $result = $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute, $index);
 
+                if ($result instanceof UpdateResult) {
+                    $childKey = $result->model()->getKey();
+                } else {
+                    $childKey = $result;
+                }
 
+                if ($childKey) {
+                    $keys[] = $childKey;
+                }
             }
+
+            // sync relation, detaching anything not specifically listed in the dataset
+            // unless we shouldn't
+            // todo: consider and make this optional
+            //if ($info->detachMissing()) {}
+
+            // todo: finish
+            // $keys are present, get difference of the current keys and this,
+            // and detach the others if they are belongs to many.
+            // if they are hasmany, then leave them be for now
+            // they might be disconnected, but only if the key is nullable...
+            // deletion should be configured and always assumed disallowed!
+
         }
     }
 
@@ -325,16 +394,25 @@ class ModelUpdater implements ModelUpdaterInterface
      *
      * @param mixed        $data
      * @param RelationInfo $info
-     * @param string       $nestedKey
+     * @param string       $attribute
+     * @param null|int     $index       optional, for to-many list indexes to append after attribute
      * @return bool|UpdateResult|mixed false if no model available
      *                                  mixed/scalar if just linked to this primary key value
+     * @internal param string $nestedKey
      */
-    protected function handleNestedSingleUpdateOrCreate($data, RelationInfo $info, $nestedKey)
+    protected function handleNestedSingleUpdateOrCreate($data, RelationInfo $info, $attribute, $index = null)
     {
         // handle model before, use results to save foreign key on the model later
         $data     = $this->normalizeNestedSingularData($data);
-        $updater  = $this->makeModelUpdater($info->updater(), $info->model(), $nestedKey);
         $updateId = Arr::get($data, $info->modelPrimaryKey());
+
+        $updater = $this->makeModelUpdater($info->updater(), [
+            $info->model(),
+            $attribute,
+            $this->appendNestedKey($attribute, $index),
+            $this->model,
+            $this->config
+        ]);
 
         // if the key is present, but the data is empty, the relation should be dissociated
         if (empty($data)) {
@@ -343,6 +421,12 @@ class ModelUpdater implements ModelUpdaterInterface
 
         // if we're not allowed to perform creates or updates, only handle the link
         if ( ! $info->isUpdateAllowed()) {
+            return $updateId;
+        }
+
+        // if we are allowed to update, but only the key is provided, treat this as
+        // a link-only operation
+        if (count($data) == 1 && ! empty($updateId)) {
             return $updateId;
         }
 
@@ -456,21 +540,13 @@ class ModelUpdater implements ModelUpdaterInterface
 
     /**
      * @param string $class         FQN of updater
-     * @param string $modelClass    FQN of related model
-     * @param string $nestedKey
+     * @param array  $parameters    parameters for model updater constructor
      * @return ModelUpdaterInterface
      */
-    protected function makeModelUpdater($class, $modelClass, $nestedKey)
+    protected function makeModelUpdater($class, array $parameters)
     {
         /** @var ModelUpdaterInterface $updater */
-        $updater = App::make(
-            $class,
-            [
-                $modelClass,
-                $nestedKey,
-                $this->model
-            ]
-        );
+        $updater = App::make($class, $parameters);
 
         if ( ! ($updater instanceof ModelUpdaterInterface)) {
             throw new UnexpectedValueException(
@@ -484,13 +560,15 @@ class ModelUpdater implements ModelUpdaterInterface
     /**
      * Returns nested key for the current full-depth nesting.
      *
-     * @param string $key
+     * @param string   $key
+     * @param null|int $index
      * @return string
      */
-    protected function appendNestedKey($key)
+    protected function appendNestedKey($key, $index = null)
     {
         return ($this->nestedKey ? $this->nestedKey . '.' : '')
-             . $key;
+             . $key
+             . (null !== $index ? '.' . $index : '');
     }
 
     // ------------------------------------------------------------------------------
