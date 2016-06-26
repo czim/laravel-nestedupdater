@@ -71,9 +71,13 @@ class BasicModelUpdaterTest extends TestCase
         $updater->update($data, $post);
 
         $this->seeInDatabase('posts', [
-            'id'    => $post->id,
-            'title' => 'updated aswell',
+            'id'       => $post->id,
+            'title'    => 'updated aswell',
         ]);
+
+        $post = Post::find($post->id);
+
+        $this->assertEquals(1, $post->genre_id, "New Genre should be associated with Post");
 
         $this->seeInDatabase('genres', [
             'name' => 'New Genre',
@@ -152,7 +156,7 @@ class BasicModelUpdaterTest extends TestCase
 
 
     /**
-     * test
+     * @test
      */
     function it_creates_and_updates_a_nested_hasmany_relation()
     {
@@ -173,10 +177,7 @@ class BasicModelUpdaterTest extends TestCase
         ];
         
         $updater = new ModelUpdater(Post::class);
-
         $updater->update($data, $post);
-
-        //dd( \DB::table('comments')->get() );
 
         $this->seeInDatabase('comments', [
             'id'    => $comment->id,
