@@ -1,0 +1,67 @@
+<?php
+namespace Czim\NestedModelUpdater\Data;
+
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Class UpdateResult
+ *
+ * Container for the results of a nested update or create operation
+ */
+class UpdateResult
+{
+
+    /**
+     * @var null|Model
+     */
+    protected $model;
+
+    /**
+     * Wether the operation was succesful.
+     * If no model is set, but the operation is succesful, no exceptions should
+     * be thrown, the relation should be assumed deliberately discarded.
+     *
+     * @var bool
+     */
+    protected $success = true;
+
+
+    /**
+     * @param Model|null $model
+     * @return $this
+     */
+    public function setModel($model)
+    {
+        $this->model = $model;
+
+        return $this;
+    }
+
+    /**
+     * @return Model|null
+     */
+    public function model()
+    {
+        return $this->model;
+    }
+
+    /**
+     * @param boolean $success
+     * @return $this
+     */
+    public function setSuccess($success)
+    {
+        $this->success = (bool) $success;
+
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function success()
+    {
+        return $this->success;
+    }
+
+}
