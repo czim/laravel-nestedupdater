@@ -2,9 +2,6 @@
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
-[![Build Status](https://travis-ci.org/czim/laravel-nestedupdater.svg?branch=master)](https://travis-ci.org/czim/laravel-nestedupdater)
-[![Latest Stable Version](http://img.shields.io/packagist/v/czim/laravel-nestedupdater.svg)](https://packagist.org/packages/czim/laravel-nestedupdater)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/b916d372-6e69-4179-9e76-513f1ecda9ed/mini.png)](https://insight.sensiolabs.com/projects/b916d372-6e69-4179-9e76-513f1ecda9ed)
 
 
 Package for allowing updating of nested eloquent model relations using a single data array.
@@ -12,6 +9,9 @@ Package for allowing updating of nested eloquent model relations using a single 
 ## To Do
 
 - Validation setup, rules 'framework'
+- Config documentation, test all configurables
+- Test with non-standard primary key attribute names
+
 
 ## Install
 
@@ -21,6 +21,17 @@ Via Composer
 $ composer require czim/laravel-nestedupdater
 ```
 
+Add this line of code to the providers array located in your `config/app.php` file:
+
+```php
+    Czim\NestedModelUpdater\NestedModelUpdaterServiceProvider::class,
+```
+
+Publish the configuration:
+
+``` bash
+$ php artisan vendor:publish
+```
 
 ## Usage
 
