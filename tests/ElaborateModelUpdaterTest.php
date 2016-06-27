@@ -131,6 +131,68 @@ class ElaborateModelUpdaterTest extends TestCase
         ]);
     }
 
+    // ------------------------------------------------------------------------------
+    //      Special Operations
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @test
+     */
+    function it_deletes_omitted_nested_belongsto_relations_on_replacement_and_dissociation_if_configured_to()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.genre.delete-detached', true);
+
+        $post  = $this->createPost();
+        $genre = $this->createGenre();
+        $post->genre()->associate($genre);
+        $post->save();
+
+        $oldGenreId = $genre->id;
+
+        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
+
+        // check if it is deleted after dissociation
+
+        $data = [
+            'genre' => null,
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => null ]);
+        $this->notSeeInDatabase('genres', [ 'id' => $oldGenreId ]);
+
+        // reset
+
+        $post->delete();
+        $post  = $this->createPost();
+        $genre = $this->createGenre();
+        $post->genre()->associate($genre);
+        $post->save();
+
+        $oldGenreId = $genre->id;
+
+        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
+
+        // check if it is deleted after replacement
+
+        $data = [
+            'genre' => [
+                'name' => 'replacement genre'
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $genre = Genre::where('name', 'replacement genre')->first();
+        $this->assertInstanceOf(Genre::class, $genre);
+
+        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => $genre->id ]);
+        $this->notSeeInDatabase('genres', [ 'id' => $oldGenreId ]);
+    }
+
     /**
      * @test
      */

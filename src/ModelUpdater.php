@@ -337,6 +337,10 @@ class ModelUpdater implements ModelUpdaterInterface
 
             $this->belongsTosWereUpdated = true;
 
+            /** @var Model|null $formerlyAssociatedModel */
+            $formerlyAssociatedModel = $this->model->{$info->relationMethod()}()->first();
+
+
             $result = $this->handleNestedSingleUpdateOrCreate(
                 Arr::get($this->data, $attribute),
                 $info,
@@ -351,8 +355,20 @@ class ModelUpdater implements ModelUpdaterInterface
             if (    $result instanceof Model
                 ||  (false !== $result && null !== $result)
             ) {
+                // if the model associated now is different from the one before, delete if we should
+                if (    $info->isDeleteDetached()
+                    &&  $formerlyAssociatedModel
+                    &&  $formerlyAssociatedModel->getKey() !== $result->getKey()
+                ) {
+                    $this->deleteFormerlyRelatedModel($formerlyAssociatedModel, $info);
+                }
+
                 $this->model->{$info->relationMethod()}()->associate($result);
                 continue;
+            }
+
+            if ($info->isDeleteDetached() && $formerlyAssociatedModel) {
+                $this->deleteFormerlyRelatedModel($formerlyAssociatedModel, $info);
             }
 
             $this->model->{$info->relationMethod()}()->dissociate();
@@ -444,6 +460,34 @@ class ModelUpdater implements ModelUpdaterInterface
         // if they are hasmany, then leave them be for now
         // they might be disconnected, but only if the key is nullable...
         // deletion should be configured and always assumed disallowed!
+    }
+
+
+    /**
+     * Deletes a model that was formerly related to this model.
+     * This performs a check to see if the model is at least not being used
+     * for the same type of relation by another model. Note that this is not
+     * safe by any means -- use on your own risk.
+     *
+     * @param Model        $model
+     * @param RelationInfo $info
+     */
+    protected function deleteFormerlyRelatedModel(Model $model, RelationInfo $info)
+    {
+        $class = $this->modelClass;
+
+        /** @var Model $class */
+        $inUse = $class::whereHas($info->relationMethod(),
+            function ($query) use ($model, $info) {
+                /** @var \Illuminate\Database\Eloquent\Builder $query */
+                $query->where($info->modelPrimaryKey(), $model->id);
+            })
+            ->where($model->getKey(), '!=', $model->id)
+            ->count();
+
+        if ($inUse) return;
+
+        $model->delete();
     }
 
     /**
