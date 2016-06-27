@@ -1,6 +1,9 @@
 <?php
 
 return [
+
+    // Enable database transactions for top-level create/update operations.
+    'database-transactions' => true,
     
     // List of FQNs of relation classes that are of the to One type. Every
     // other relation is considered plural.

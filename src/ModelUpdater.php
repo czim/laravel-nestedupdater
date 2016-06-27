@@ -603,7 +603,7 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected function shouldUseTransaction()
     {
-        if ($this->noDatabaseTransaction) {
+        if ($this->noDatabaseTransaction || ! Config::get('nestedmodelupdater.database-transactions')) {
             return false;
         }
 
