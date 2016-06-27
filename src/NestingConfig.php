@@ -44,7 +44,10 @@ class NestingConfig implements NestingConfigInterface
     public function getRelationInfo($key, $parentModel = null)
     {
         if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
-            throw new RuntimeException("{$key} is not a nested relation, cannot gather data.");
+            throw new RuntimeException(
+                "{$key} is not a nested relation, cannot gather data"
+                . " for model " . ($parentModel ?: $this->parentModel)
+            );
         }
 
         $parent = $this->makeParentModel($parentModel);

@@ -5,14 +5,15 @@ use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
 use Czim\NestedModelUpdater\Data\UpdateResult;
+use Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException;
 use Czim\NestedModelUpdater\Exceptions\ModelSaveFailureException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
-use DB;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
 
 class ModelUpdater implements ModelUpdaterInterface
@@ -105,6 +106,13 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected $relationsAnalyzed = false;
 
+    /**
+     * Whether any belongs to relations were updated so far
+     *
+     * @var bool
+     */
+    protected $belongsTosWereUpdated = false;
+
 
     /**
      * @param string                      $modelClass      FQN for model
@@ -184,12 +192,35 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected function createOrUpdate()
     {
-        $this->relationsAnalyzed = false;
+        $this->relationsAnalyzed     = false;
+        $this->belongsTosWereUpdated = false;
 
         $this->normalizeData();
 
-        $this->beginTransaction();
+        if ($this->shouldUseTransaction()) {
 
+            $result = null;
+            DB::transaction(function () use (&$result) {
+                $result = $this->performCreateOrUpdateProcess();
+            });
+
+        } else {
+
+            $result = $this->performCreateOrUpdateProcess();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Performs that actual create or update action processing; separated
+     * so it may be performed in a database transaction;
+     *
+     * @return UpdateResult
+     * @throws ModelSaveFailureException
+     */
+    protected function performCreateOrUpdateProcess()
+    {
         $this->config->setParentModel($this->modelClass);
         $this->analyzeNestedRelationsData();
 
@@ -206,11 +237,7 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $this->handleHasRelations();
 
-        $result = (new UpdateResult())->setModel($this->model);
-
-        $this->commitTransaction();
-
-        return $result;
+        return (new UpdateResult())->setModel($this->model);
     }
 
     /**
@@ -260,7 +287,7 @@ class ModelUpdater implements ModelUpdaterInterface
         $modelData = $this->getDirectModelData();
 
         // if we have nothing to update, skip it
-        if ( ! $this->isCreating && empty($modelData)) {
+        if ( ! $this->isCreating && empty($modelData) && ! $this->belongsTosWereUpdated) {
             return;
         }
 
@@ -285,12 +312,10 @@ class ModelUpdater implements ModelUpdaterInterface
         }
 
         if ( ! $result) {
-            $this->rollbackTransaction();
-
-            throw new ModelSaveFailureException(
+            throw (new ModelSaveFailureException(
                 "Failed persisting instance of {$this->modelClass} on "
                 . ($this->isCreating ? 'create' : 'update') . ' operation'
-            );
+            ))->setNestedKey($this->nestedKey);
         }
     }
 
@@ -314,6 +339,8 @@ class ModelUpdater implements ModelUpdaterInterface
     {
         foreach ($this->relationInfo as $attribute => $info) {
             if ( ! $info->isBelongsTo()) continue;
+
+            $this->belongsTosWereUpdated = true;
 
             $result = $this->handleNestedSingleUpdateOrCreate(
                 Arr::get($this->data, $attribute),
@@ -348,7 +375,15 @@ class ModelUpdater implements ModelUpdaterInterface
 
             // may be singular or plural in this case
             if ($info->isSingular()) {
-                $data = $this->normalizeNestedSingularData(Arr::get($this->data, $attribute));
+
+                $data = $this->normalizeNestedSingularData(
+                    Arr::get($this->data, $attribute),
+                    $info->modelPrimaryKey(),
+                    $this->appendNestedKey($attribute)
+                );
+
+                $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute);
+
                 continue;
             }
 
@@ -359,18 +394,22 @@ class ModelUpdater implements ModelUpdaterInterface
 
             foreach (Arr::get($this->data, $attribute, []) as $index => $data) {
 
-                $data   = $this->normalizeNestedSingularData($data);
+                $data = $this->normalizeNestedSingularData(
+                    $data,
+                    $info->modelPrimaryKey(),
+                    $this->appendNestedKey($attribute, $index)
+                );
+
                 $result = $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute, $index);
 
-                if ($result instanceof UpdateResult) {
-                    $childKey = $result->model()->getKey();
-                } else {
-                    $childKey = $result;
+                if (    ! ($result instanceof UpdateResult)
+                    ||  ! $result->model()
+                    ||  ! $result->model()->getKey()
+                ) {
+                    continue;
                 }
 
-                if ($childKey) {
-                    $keys[] = $childKey;
-                }
+                $keys[] = $result->model()->getKey();
             }
 
             // sync relation, detaching anything not specifically listed in the dataset
@@ -398,36 +437,60 @@ class ModelUpdater implements ModelUpdaterInterface
      * @param null|int     $index       optional, for to-many list indexes to append after attribute
      * @return bool|UpdateResult|mixed false if no model available
      *                                  mixed/scalar if just linked to this primary key value
-     * @internal param string $nestedKey
+     * @throws DisallowedNestedActionException
      */
     protected function handleNestedSingleUpdateOrCreate($data, RelationInfo $info, $attribute, $index = null)
     {
         // handle model before, use results to save foreign key on the model later
-        $data     = $this->normalizeNestedSingularData($data);
-        $updateId = Arr::get($data, $info->modelPrimaryKey());
+        $nestedKey = $this->appendNestedKey($attribute, $index);
+
+        $data = $this->normalizeNestedSingularData(
+            $data,
+            $info->modelPrimaryKey(),
+            $nestedKey
+        );
+
+        $updateId  = Arr::get($data, $info->modelPrimaryKey());
+
+
+        // if we are allowed to update, but only the key is provided, treat this as a link-only operation
+        $onlyLink = ( ! $info->isUpdateAllowed() || count($data) == 1 && ! empty($updateId) );
 
         $updater = $this->makeModelUpdater($info->updater(), [
             $info->model(),
             $attribute,
-            $this->appendNestedKey($attribute, $index),
+            $nestedKey,
             $this->model,
             $this->config
         ]);
 
         // if the key is present, but the data is empty, the relation should be dissociated
         if (empty($data)) {
-            return false;
+            return $this->makeEmptyUpdateResult();
         }
 
         // if we're not allowed to perform creates or updates, only handle the link
+        // -- and this is not possible, stop the process or make sure it is handled right
         if ( ! $info->isUpdateAllowed()) {
-            return $updateId;
+
+            // if we cannot create it
+            if (empty($updateId)) {
+                throw (new DisallowedNestedActionException("Not allowed to create new for link-only nested relation"))
+                    ->setNestedKey($nestedKey);
+            }
+
+            // strip everything but the key, so it is treated as a link-only operation
+            $data = [ $info->modelPrimaryKey() => $updateId ];
         }
 
-        // if we are allowed to update, but only the key is provided, treat this as
-        // a link-only operation
-        if (count($data) == 1 && ! empty($updateId)) {
-            return $updateId;
+        if ($onlyLink) {
+            // test if the model exists, and return it
+            return $this->getModelByLookupAtribute(
+                $updateId,
+                $info->modelPrimaryKey(),
+                $info->model(),
+                $nestedKey
+            );
         }
 
         // otherwise, create or update, depending on whether the primary key is
@@ -439,7 +502,7 @@ class ModelUpdater implements ModelUpdaterInterface
         // if for some reason the update or create was not succesful or
         // did not return a model, dissociate the relationship
         if ( ! $updateResult->model()) {
-            return false;
+            return $this->makeEmptyUpdateResult();
         }
 
         return $updateResult;
@@ -449,11 +512,12 @@ class ModelUpdater implements ModelUpdaterInterface
      * Normalizes data for a singular relationship;
      * assuming validation has already been passed.
      *
-     * @param mixed  $data
-     * @param string $keyAttribute
+     * @param mixed       $data
+     * @param string      $keyAttribute
+     * @param null|string $nestedKey        child nested key that the data is for
      * @return array
      */
-    protected function normalizeNestedSingularData($data, $keyAttribute = 'id')
+    protected function normalizeNestedSingularData($data, $keyAttribute = 'id', $nestedKey = null)
     {
         // data may be a scalar, in which case it is assumed
         // to be the primary key
@@ -467,22 +531,28 @@ class ModelUpdater implements ModelUpdaterInterface
         }
 
         if ( ! is_array($data)) {
-            throw new UnexpectedValueException("Nested data should be key (scalar) or array data");
+            throw new UnexpectedValueException(
+                "Nested data should be key (scalar) or array data"
+                . ($nestedKey ? " (nesting: {$nestedKey})" : '')
+            );
         }
 
         return $data;
     }
 
-
     /**
      * @param int         $id
      * @param null|string $attribute
+     * @param null|string $modelClass   optional, if not looking up the main model
+     * @param null|string $nestedKey    optional, if not looking up the main model
      * @return Model
+     * @throws NestedModelNotFoundException
      */
-    protected function getModelByLookupAtribute($id, $attribute = null)
+    protected function getModelByLookupAtribute($id, $attribute = null, $modelClass = null, $nestedKey = null)
     {
-        $class = $this->modelClass;
-        $model = new $class;
+        $class     = $modelClass ?: $this->modelClass;
+        $model     = new $class;
+        $nestedKey = $nestedKey ?: $this->nestedKey;
 
         if ( ! ($model instanceof Model)) {
             throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
@@ -498,7 +568,7 @@ class ModelUpdater implements ModelUpdaterInterface
         if ( ! $model) {
             throw (new NestedModelNotFoundException())
                 ->setModel($class)
-                ->setNestedKey($this->nestedKey);
+                ->setNestedKey($nestedKey);
         }
 
         return $model;
@@ -571,29 +641,16 @@ class ModelUpdater implements ModelUpdaterInterface
              . (null !== $index ? '.' . $index : '');
     }
 
-    // ------------------------------------------------------------------------------
-    //      Database Transaction
-    // ------------------------------------------------------------------------------
-
-    protected function beginTransaction()
+    /**
+     * Returns UpdateResult instance for standard precluded responses.
+     *
+     * @param bool $success
+     * @return UpdateResult
+     */
+    protected function makeEmptyUpdateResult($success = true)
     {
-        if ( ! $this->shouldUseTransaction()) return;
-
-        DB::beginTransaction();
-    }
-
-    protected function rollbackTransaction()
-    {
-        if ( ! $this->shouldUseTransaction()) return;
-
-        DB::rollBack();
-    }
-
-    protected function commitTransaction()
-    {
-        if ( ! $this->shouldUseTransaction()) return;
-
-        DB::beginTransaction();
+        return (new UpdateResult())
+            ->setSuccess($success);
     }
 
     /**
@@ -610,6 +667,30 @@ class ModelUpdater implements ModelUpdaterInterface
         // if not explicitly disabled, transactions are used only for the top
         // level, so when no nested key has been set at all.
         return null === $this->nestedKey;
+    }
+
+    // ------------------------------------------------------------------------------
+    //      Getters / Setters
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @return $this
+     */
+    public function enableDatabaseTransaction()
+    {
+        $this->noDatabaseTransaction = false;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function disableDatabaseTransaction()
+    {
+        $this->noDatabaseTransaction = true;
+
+        return $this;
     }
 
 }
