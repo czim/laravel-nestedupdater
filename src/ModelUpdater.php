@@ -235,7 +235,7 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $this->updatedAndPersistModel();
 
-        $this->handleHasRelations();
+        $this->handleHasAndBelongsToManyRelations();
 
         return (new UpdateResult())->setModel($this->model);
     }
@@ -368,7 +368,7 @@ class ModelUpdater implements ModelUpdaterInterface
      * Handles the relations that should be updated only after the model
      * is persisted.
      */
-    protected function handleHasRelations()
+    protected function handleHasAndBelongsToManyRelations()
     {
         foreach ($this->relationInfo as $attribute => $info) {
             if ($info->isBelongsTo()) continue;
