@@ -293,12 +293,6 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $this->model->fill($modelData);
 
-
-        // todo: consider whether it will be useful to stop here optionally
-        // and just make the model without persisting it. If so, we should return
-        // the unpersisted model after comitted the other changes...
-
-
         // if we're saving a separate, top-level or belongs to related model,
         // we can simply save it by itself; other models should be saved
         // on their parent's relation.
@@ -412,17 +406,9 @@ class ModelUpdater implements ModelUpdaterInterface
                 $keys[] = $result->model()->getKey();
             }
 
+            
             // sync relation, detaching anything not specifically listed in the dataset
             // unless we shouldn't
-            // todo: consider and make this optional
-            //if ($info->detachMissing()) {}
-
-            // todo: finish
-            // $keys are present, get difference of the current keys and this,
-            // and detach the others if they are belongs to many.
-            // if they are hasmany, then leave them be for now
-            // they might be disconnected, but only if the key is nullable...
-            // deletion should be configured and always assumed disallowed!
 
         }
     }
