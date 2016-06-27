@@ -10,6 +10,7 @@ use Czim\NestedModelUpdater\Exceptions\ModelSaveFailureException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
@@ -410,7 +411,41 @@ class ModelUpdater implements ModelUpdaterInterface
             // sync relation, detaching anything not specifically listed in the dataset
             // unless we shouldn't
 
+            if (is_a($info->relationClass(), BelongsToMany::class, true)) {
+                $this->syncKeysForBelongsToManyRelation($info, $keys);
+            } else {
+                $this->syncKeysForHasManyRelation($info, $keys);
+            }
         }
+    }
+
+    /**
+     * Synchronizes the keys for a BelongsToMany relation.
+     *
+     * @param RelationInfo $info
+     * @param array        $keys
+     */
+    protected function syncKeysForBelongsToManyRelation(RelationInfo $info, array $keys)
+    {
+        $this->model->{$info->relationMethod()}()->sync($keys);
+    }
+
+    /**
+     * Synchronizes the keys for a HasMany relation. This is a special case,
+     * since the actual new relations should already be linked after the
+     * update/create handling recursive call.
+     *
+     * @param RelationInfo $info
+     * @param array        $keys
+     */
+    protected function syncKeysForHasManyRelation(RelationInfo $info, array $keys)
+    {
+        //if ( ! $info->detachMissing()) return;
+
+        // and detach the others if they are belongs to many.
+        // if they are hasmany, then leave them be for now
+        // they might be disconnected, but only if the key is nullable...
+        // deletion should be configured and always assumed disallowed!
     }
 
     /**
