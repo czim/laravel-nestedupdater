@@ -10,4 +10,6 @@ use Exception;
  */
 class ModelSaveFailureException extends Exception
 {
+    use StoresNestedKeyTrait;
+
 }
