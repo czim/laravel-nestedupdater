@@ -421,8 +421,7 @@ class ModelUpdater implements ModelUpdaterInterface
      * @param RelationInfo $info
      * @param string       $attribute
      * @param null|int     $index       optional, for to-many list indexes to append after attribute
-     * @return bool|UpdateResult|mixed false if no model available
-     *                                  mixed/scalar if just linked to this primary key value
+     * @return UpdateResult|false       false if no model available
      * @throws DisallowedNestedActionException
      */
     protected function handleNestedSingleUpdateOrCreate($data, RelationInfo $info, $attribute, $index = null)
@@ -438,7 +437,6 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $updateId  = Arr::get($data, $info->modelPrimaryKey());
 
-
         // if we are allowed to update, but only the key is provided, treat this as a link-only operation
         $onlyLink = ( ! $info->isUpdateAllowed() || count($data) == 1 && ! empty($updateId) );
 
@@ -452,7 +450,7 @@ class ModelUpdater implements ModelUpdaterInterface
 
         // if the key is present, but the data is empty, the relation should be dissociated
         if (empty($data)) {
-            return $this->makeEmptyUpdateResult();
+            return $this->makeUpdateResult();
         }
 
         // if we're not allowed to perform creates or updates, only handle the link
@@ -471,11 +469,13 @@ class ModelUpdater implements ModelUpdaterInterface
 
         if ($onlyLink) {
             // test if the model exists, and return it
-            return $this->getModelByLookupAtribute(
-                $updateId,
-                $info->modelPrimaryKey(),
-                $info->model(),
-                $nestedKey
+            return $this->makeUpdateResult(
+                $this->getModelByLookupAtribute(
+                    $updateId,
+                    $info->modelPrimaryKey(),
+                    $info->model(),
+                    $nestedKey
+                )
             );
         }
 
@@ -488,7 +488,7 @@ class ModelUpdater implements ModelUpdaterInterface
         // if for some reason the update or create was not succesful or
         // did not return a model, dissociate the relationship
         if ( ! $updateResult->model()) {
-            return $this->makeEmptyUpdateResult();
+            return $this->makeUpdateResult();
         }
 
         return $updateResult;
@@ -630,12 +630,14 @@ class ModelUpdater implements ModelUpdaterInterface
     /**
      * Returns UpdateResult instance for standard precluded responses.
      *
-     * @param bool $success
+     * @param Model $model
+     * @param bool  $success
      * @return UpdateResult
      */
-    protected function makeEmptyUpdateResult($success = true)
+    protected function makeUpdateResult(Model $model = null, $success = true)
     {
         return (new UpdateResult())
+            ->setModel($model)
             ->setSuccess($success);
     }
 
