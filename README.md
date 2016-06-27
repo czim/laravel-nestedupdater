@@ -35,6 +35,61 @@ $ php artisan vendor:publish
 
 ## Usage
 
+Note that this package will not do any nested updates without setting up at least a
+configuration for the relations that you want to allow nested updates for. See the 
+configuration section below.
+
+
+## Configuration
+
+In the `nestedmodelupdater.php` config, configure your relations per model under the `relations` key.
+Add keys of the fully qualified namespace of each model that you want to allow nested updates for.
+Under each, add keys for the attribute names that you want your nested structure to have for each relation's data. 
+Finally, for each of those, either add `true` to enable nested updates with all default settings, or override settings in an array.
+
+As a simple example, if you wish to add comments when creating a post, your setup might look like the following.
+
+The updating data would be, something like this:
+
+```php
+$data = [
+    'title' => 'new post title',
+    'comments' => [
+        [
+            'body' => 'new comment body text',
+            'author' => $existingAuthorId
+        ],
+        $existingCommentId
+    ]
+],
+```
+
+The `relations`-configuration to make this work would look like this:
+
+```php
+'relations' => [
+    // The model class:
+    App\Models\Post::class => [
+        // the data nested relation attribute
+        // with a value of true to allow updates with default settings
+        'comments' => true
+    ],
+    
+    App\Models\Comment::class => [
+        // this time, the defaults are overruled to only allow linking,
+        // not direct updates of authors through nesting
+        'author' => [
+            'link-only' => true
+        ]
+    ]
+],
+```
+
+Note that any relation not present in the config will be ignored for nesting, and passed as fill data into the main model on which the create or update action is performed.
+
+More [information on relation configuration](CONFIG.md). 
+Also check out [the configuration file](https://github.com/czim/laravel-nestedupdater/blob/master/src/config/nestedmodelupdater.php) for further notes.
+
 
 
 ## Contributing
