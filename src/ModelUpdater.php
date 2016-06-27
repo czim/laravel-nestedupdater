@@ -468,10 +468,7 @@ class ModelUpdater implements ModelUpdaterInterface
             $nestedKey
         );
 
-        $updateId  = Arr::get($data, $info->modelPrimaryKey());
-
-        // if we are allowed to update, but only the key is provided, treat this as a link-only operation
-        $onlyLink = ( ! $info->isUpdateAllowed() || count($data) == 1 && ! empty($updateId) );
+        $updateId = Arr::get($data, $info->modelPrimaryKey());
 
         $updater = $this->makeModelUpdater($info->updater(), [
             $info->model(),
@@ -490,7 +487,7 @@ class ModelUpdater implements ModelUpdaterInterface
         // -- and this is not possible, stop the process or make sure it is handled right
         if ( ! $info->isUpdateAllowed()) {
 
-            // if we cannot create it
+            // if we cannot create it, we cannot proceed
             if (empty($updateId)) {
                 throw (new DisallowedNestedActionException("Not allowed to create new for link-only nested relation"))
                     ->setNestedKey($nestedKey);
@@ -500,7 +497,9 @@ class ModelUpdater implements ModelUpdaterInterface
             $data = [ $info->modelPrimaryKey() => $updateId ];
         }
 
-        if ($onlyLink) {
+        // if this is a link-only operation...
+        // if we are allowed to update, but only the key is provided, treat this as a link-only operation
+        if ( ! $info->isUpdateAllowed() || count($data) == 1 && ! empty($updateId)) {
             // test if the model exists, and return it
             return $this->makeUpdateResult(
                 $this->getModelByLookupAtribute(
@@ -512,8 +511,13 @@ class ModelUpdater implements ModelUpdaterInterface
             );
         }
 
-        // otherwise, create or update, depending on whether the primary key is
-        // present in the data
+        // otherwise, create or update, depending on whether the primary key is present in the data
+        // if it is a create operation, make sure we're allowed to
+        if (empty($updateId) && ! $info->isCreateAllowed()) {
+            throw (new DisallowedNestedActionException("Not allowed to create new for update-only nested relation"))
+                ->setNestedKey($nestedKey);
+        }
+        
         $updateResult = (empty($updateId))
             ?   $updater->create($data)
             :   $updater->update($data, $updateId, $info->modelPrimaryKey());

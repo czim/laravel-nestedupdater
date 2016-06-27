@@ -31,6 +31,7 @@ return [
     //
     // This may store:
     //      link-only       boolean     true if we're not allowed to update through nesting (default: false)
+    //      update-only     boolean     true if we're not allowed to create through nesting (default: false)
     //      detach-empty    boolean     true if providing empty data will detach/dissociate (default: true)
     //      updater         string      FQN of ModelUpdaterInterface class that should handle things
     //      method          string      method name for the relation, if not camelcased attribute key

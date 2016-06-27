@@ -69,6 +69,13 @@ class RelationInfo
      */
     protected $updateAllowed = false;
 
+    /**
+     * Whether it is allowed to create nested records for this relation.
+     *
+     * @var boolean
+     */
+    protected $createAllowed = false;
+
 
     /**
      * @return string
@@ -218,6 +225,25 @@ class RelationInfo
     public function setUpdateAllowed($updateAllowed)
     {
         $this->updateAllowed = (bool) $updateAllowed;
+
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isCreateAllowed()
+    {
+        return $this->createAllowed;
+    }
+
+    /**
+     * @param boolean $createAllowed
+     * @return $this
+     */
+    public function setCreateAllowed($createAllowed)
+    {
+        $this->createAllowed = (bool) $createAllowed;
 
         return $this;
     }

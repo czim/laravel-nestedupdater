@@ -53,5 +53,15 @@ interface NestingConfigInterface
      * @return boolean
      */
     public function isKeyUpdatableNestedRelation($key, $parentModel = null);
+
+    /**
+     * Returns whether a key, for the given model, is a nested relation for which
+     * new models may be created.
+     *
+     * @param string      $key
+     * @param null|string $parentModel the FQN for the parent model
+     * @return boolean
+     */
+    public function isKeyCreatableNestedRelation($key, $parentModel = null);
     
 }

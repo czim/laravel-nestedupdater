@@ -63,7 +63,8 @@ class NestingConfig implements NestingConfigInterface
             ->setSingular($this->isRelationSingular($relation))
             ->setBelongsTo($this->isRelationBelongsTo($relation))
             ->setUpdater($this->getUpdaterClassForKey($key, $parentModel))
-            ->setUpdateAllowed($this->isKeyUpdatableNestedRelation($key, $parentModel));
+            ->setUpdateAllowed($this->isKeyUpdatableNestedRelation($key, $parentModel))
+            ->setCreateAllowed($this->isKeyCreatableNestedRelation($key, $parentModel));
     }
 
     /**
@@ -110,6 +111,28 @@ class NestingConfig implements NestingConfigInterface
         if ( ! is_array($config)) return false;
         
         return ! (bool) Arr::get($config, 'link-only', false);
+    }
+
+    /**
+     * Returns whether a key, for the given model, is a nested relation for which
+     * new models may be created.
+     *
+     * @param string      $key
+     * @param null|string $parentModel the FQN for the parent model
+     * @return boolean
+     */
+    public function isKeyCreatableNestedRelation($key, $parentModel = null)
+    {
+        if ( ! $this->isKeyUpdatableNestedRelation($key, $parentModel)) {
+            return false;
+        }
+
+        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
+
+        if (true === $config) return true;
+        if ( ! is_array($config)) return false;
+
+        return ! (bool) Arr::get($config, 'update-only', false);
     }
 
     /**
