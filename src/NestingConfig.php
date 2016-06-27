@@ -65,8 +65,8 @@ class NestingConfig implements NestingConfigInterface
             ->setUpdater($this->getUpdaterClassForKey($key, $parentModel))
             ->setUpdateAllowed($this->isKeyUpdatableNestedRelation($key, $parentModel))
             ->setCreateAllowed($this->isKeyCreatableNestedRelation($key, $parentModel))
-            ->setDeleteDetached($this->isKeyDetachingNestedRelation($key, $parentModel))
-            ->setDetachMissing($this->isKeyDeletingNestedRelation($key, $parentModel));
+            ->setDetachMissing($this->isKeyDetachingNestedRelation($key, $parentModel))
+            ->setDeleteDetached($this->isKeyDeletingNestedRelation($key, $parentModel));
     }
 
     /**

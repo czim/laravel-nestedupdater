@@ -38,6 +38,9 @@ class NestingConfigTest extends TestCase
         $this->assertTrue($info->isBelongsTo(), "genre should have belongsTo = true");
         $this->assertTrue($info->isSingular(), "genre should have singular = true");
         $this->assertTrue($info->isUpdateAllowed(), "genre should be allowed updates");
+        $this->assertNull($info->getDetachMissing(), "genre should have detach missing null");
+        $this->assertFalse($info->isDeleteDetached(), "genre should not delete detached");
+
         $this->assertEquals(Genre::class, $info->model());
         $this->assertEquals('id', $info->modelPrimaryKey(), "genre primary key should be id");
         $this->assertEquals('genre', $info->relationMethod());
