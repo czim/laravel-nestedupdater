@@ -4,6 +4,7 @@ namespace Czim\NestedModelUpdater\Test;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
+use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 
 class ElaborateModelUpdaterTest extends TestCase
@@ -130,6 +131,84 @@ class ElaborateModelUpdaterTest extends TestCase
      */
     function it_creates_deeply_nested_structure_of_all_new_models()
     {
+        // allow creating authors through posts
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors', [
+            'link-only' => false,
+        ]);
+        
+        $data = [
+            'title' => 'new title',
+            'body' => 'new body',
+            'genre' => [
+                'name' => 'new genre',
+            ],
+            'comments' => [
+                [
+                    'title'  => 'title 1',
+                    'body'   => 'body 1',
+                    'author' => [
+                        'name' => 'Author B',
+                    ],
+                ],
+                [
+                    'title'  => 'title 2',
+                    'body'   => 'body 2',
+                    'author' => [
+                        'name' => 'Author C',
+                    ],
+                ]
+            ],
+            'authors' => [
+                [
+                    'name'   => 'Author A',
+                    'gender' => 'f',
+                ],
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->create($data);
+
+        // check the whole structure
+
+        $post = Post::latest()->first();
+        $this->assertInstanceOf(Post::class, $post);
+
+        $genre = Genre::latest()->first();
+        $this->assertInstanceOf(Genre::class, $genre);
+
+        $commentAuthorB = Author::where('name', 'Author B')->first();
+        $this->assertInstanceOf(Author::class, $commentAuthorB);
+        $commentAuthorC = Author::where('name', 'Author C')->first();
+        $this->assertInstanceOf(Author::class, $commentAuthorC);
+
+        $this->seeInDatabase('posts', [
+            'id'       => $post->id,
+            'title'    => 'new title',
+            'body'     => 'new body',
+            'genre_id' => $genre->id,
+        ]);
+
+        $this->seeInDatabase('genres', [
+            'id'   => $genre->id,
+            'name' => 'new genre',
+        ]);
+
+        $this->seeInDatabase('comments', [
+            'title'     => 'title 1',
+            'body'      => 'body 1',
+            'author_id' => $commentAuthorB->id,
+        ]);
+
+        $this->seeInDatabase('comments', [
+            'title'     => 'title 2',
+            'body'      => 'body 2',
+            'author_id' => $commentAuthorC->id,
+        ]);
+
+        $this->seeInDatabase('authors', [
+            'name' => 'Author A',
+        ]);
     }
     
     /**
@@ -137,6 +216,72 @@ class ElaborateModelUpdaterTest extends TestCase
      */
     function it_creates_a_deeply_nested_structure_with_linked_models()
     {
+        $genre  = $this->createGenre();
+        $authorA = $this->createAuthor();
+        $authorB = $this->createAuthor();
+
+        $data = [
+            'title' => 'new title',
+            'body' => 'new body',
+            'genre' => $genre->id,
+            'comments' => [
+                [
+                    'title'  => 'title 1',
+                    'body'   => 'body 1',
+                    'author' => [
+                        'id' => $authorA->id,
+                    ],
+                ],
+                [
+                    'title'  => 'title 2',
+                    'body'   => 'body 2',
+                    'author' => $authorB->id,
+                ]
+            ],
+            'authors' => [
+                $authorA->id,
+                [
+                    'id' => $authorB->id,
+                ],
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->create($data);
+
+        // check the whole structure
+
+        $post = Post::latest()->first();
+        $this->assertInstanceOf(Post::class, $post);
+
+        $this->seeInDatabase('posts', [
+            'id'       => $post->id,
+            'title'    => 'new title',
+            'body'     => 'new body',
+            'genre_id' => $genre->id,
+        ]);
+
+        $this->seeInDatabase('comments', [
+            'title'     => 'title 1',
+            'body'      => 'body 1',
+            'author_id' => $authorA->id,
+        ]);
+
+        $this->seeInDatabase('comments', [
+            'title'     => 'title 2',
+            'body'      => 'body 2',
+            'author_id' => $authorB->id,
+        ]);
+
+        $this->seeInDatabase('author_post', [
+            'post_id'   => $post->id,
+            'author_id' => $authorA->id,
+        ]);
+
+        $this->seeInDatabase('author_post', [
+            'post_id'   => $post->id,
+            'author_id' => $authorB->id,
+        ]);
     }
-    
+
 }
