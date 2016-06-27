@@ -124,6 +124,11 @@ class ElaborateModelUpdaterTest extends TestCase
             'title' => 'very new title',
             'body'  => 'very new body',
         ]);
+
+        $this->seeInDatabase('author_post', [
+            'post_id'   => $post->id,
+            'author_id' => $author->id,
+        ]);
     }
 
     /**
