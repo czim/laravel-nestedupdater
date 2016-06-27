@@ -440,8 +440,6 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected function syncKeysForHasManyRelation(RelationInfo $info, array $keys)
     {
-        //if ( ! $info->detachMissing()) return;
-
         // and detach the others if they are belongs to many.
         // if they are hasmany, then leave them be for now
         // they might be disconnected, but only if the key is nullable...
