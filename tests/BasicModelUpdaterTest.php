@@ -193,6 +193,29 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
+    function it_normalizes_nested_data_for_null_value()
+    {
+        $post  = $this->createPost();
+        $genre = $this->createGenre('original name');
+        $post->genre()->associate($post);
+        $post->save();
+
+        $data = [
+            'genre' => null,
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('posts', [
+            'id'       => $post->id,
+            'genre_id' => null,
+        ]);
+    }
+
+    /**
+     * @test
+     */
     function it_normalizes_nested_data_for_scalar_link_value()
     {
         $post  = $this->createPost();

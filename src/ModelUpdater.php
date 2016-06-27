@@ -545,6 +545,10 @@ class ModelUpdater implements ModelUpdaterInterface
         // data may be a scalar, in which case it is assumed
         // to be the primary key
 
+        if (null === $data) {
+            return [];
+        }
+
         if (is_scalar($data)) {
             return [ $keyAttribute => $data ];
         }
