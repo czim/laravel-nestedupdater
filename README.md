@@ -4,6 +4,7 @@
 [![Software License][ico-license]](LICENSE.md)
 [![Build Status](https://travis-ci.org/czim/laravel-nestedupdater.svg?branch=master)](https://travis-ci.org/czim/laravel-nestedupdater)
 [![Latest Stable Version](http://img.shields.io/packagist/v/czim/laravel-nestedupdater.svg)](https://packagist.org/packages/czim/laravel-nestedupdater)
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/cb05e233-afac-486e-b276-2765d1461cd6/mini.png)](https://insight.sensiolabs.com/projects/cb05e233-afac-486e-b276-2765d1461cd6)
 
 Package for allowing updating of nested eloquent model relations using a single data array.
 
