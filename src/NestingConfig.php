@@ -64,7 +64,9 @@ class NestingConfig implements NestingConfigInterface
             ->setBelongsTo($this->isRelationBelongsTo($relation))
             ->setUpdater($this->getUpdaterClassForKey($key, $parentModel))
             ->setUpdateAllowed($this->isKeyUpdatableNestedRelation($key, $parentModel))
-            ->setCreateAllowed($this->isKeyCreatableNestedRelation($key, $parentModel));
+            ->setCreateAllowed($this->isKeyCreatableNestedRelation($key, $parentModel))
+            ->setDeleteDetached($this->isKeyDetachingNestedRelation($key, $parentModel))
+            ->setDetachMissing($this->isKeyDeletingNestedRelation($key, $parentModel));
     }
 
     /**
@@ -133,6 +135,38 @@ class NestingConfig implements NestingConfigInterface
         if ( ! is_array($config)) return false;
 
         return ! (bool) Arr::get($config, 'update-only', false);
+    }
+
+    /**
+     * Returns whether a nested relation detaches missing records in update data.
+     *
+     * @param string      $key
+     * @param null|string $parentModel the FQN for the parent model
+     * @return null|boolean
+     */
+    public function isKeyDetachingNestedRelation($key, $parentModel = null)
+    {
+        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
+
+        if (true === $config || ! is_array($config)) return null;
+
+        return ! (bool) Arr::get($config, 'detach', null);
+    }
+
+    /**
+     * Returns whether a nested relation deletes detached missing records in update data.
+     *
+     * @param string      $key
+     * @param null|string $parentModel the FQN for the parent model
+     * @return boolean
+     */
+    public function isKeyDeletingNestedRelation($key, $parentModel = null)
+    {
+        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
+
+        if (true === $config || ! is_array($config)) return false;
+
+        return ! (bool) Arr::get($config, 'deleted-detached', false);
     }
 
     /**

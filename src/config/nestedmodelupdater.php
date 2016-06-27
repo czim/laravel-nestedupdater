@@ -30,12 +30,18 @@ return [
     // an update data array (typically snake cased).
     //
     // This may store:
-    //      link-only       boolean     true if we're not allowed to update through nesting (default: false)
-    //      update-only     boolean     true if we're not allowed to create through nesting (default: false)
-    //      detach-empty    boolean     true if providing empty data will detach/dissociate (default: true)
-    //      updater         string      FQN of ModelUpdaterInterface class that should handle things
-    //      method          string      method name for the relation, if not camelcased attribute key
-    //      rules           ...
+    //
+    //      link-only       boolean     true if we're not allowed to update through nesting (default: false).
+    //      update-only     boolean     true if we're not allowed to create through nesting (default: false).
+    //      updater         string      FQN of ModelUpdaterInterface class that should handle things.
+    //      method          string      method name for the relation, if not camelcased attribute key.
+    //      detach          boolean     if true, performs detaching sync for BelongsToMany, dissociates
+    //                                  children in HasMany, relations not present in the update data.
+    //                                  (default: true for BelongsToMany, false for HasMany)
+    //      delete-detached boolean     if true, deletes instead of detaching. for HasMany relations this
+    //                                  means that instead of setting the foreign key NULL, for BelongsToMany
+    //                                  related models are deleted if they are not related to anything else
+    //                                  (default: false).
     //
     //          'Some\Model\Class' => [
     //              'relation_key' => [ 'link-only' => true, 'updater' => 'Some\Updater\Class' ]

@@ -76,6 +76,22 @@ class RelationInfo
      */
     protected $createAllowed = false;
 
+    /**
+     * Whether missing records in a set of nested data should be detached.
+     * If null, default is true for BelongsToMany and false for everything else.
+     *
+     * @var null|boolean
+     */
+    protected $detachMissing;
+
+    /**
+     * Whether, if detachMissing is true, detached models should be deleted
+     * instead of merely dissociated.
+     *
+     * @var boolean
+     */
+    protected $deleteDetached = false;
+
 
     /**
      * @return string
@@ -247,5 +263,43 @@ class RelationInfo
 
         return $this;
     }
-    
+
+    /**
+     * @return boolean
+     */
+    public function isDeleteDetached()
+    {
+        return $this->deleteDetached;
+    }
+
+    /**
+     * @param boolean $deleteDetached
+     * @return $this
+     */
+    public function setDeleteDetached($deleteDetached)
+    {
+        $this->deleteDetached = $deleteDetached;
+
+        return $this;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getDetachMissing()
+    {
+        return $this->detachMissing;
+    }
+
+    /**
+     * @param bool|null $detachMissing
+     * @return $this
+     */
+    public function setDetachMissing($detachMissing)
+    {
+        $this->detachMissing = $detachMissing;
+
+        return $this;
+    }
+
 }
