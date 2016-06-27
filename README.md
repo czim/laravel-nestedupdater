@@ -64,6 +64,8 @@ $data = [
 ],
 ```
 
+This could be used to update a post (or create a new post) with a title, create a new comment (which is linked to an existing author) and link an existing comment, and link both to the post model.
+
 The `relations`-configuration to make this work would look like this:
 
 ```php
