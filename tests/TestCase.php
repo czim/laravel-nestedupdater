@@ -59,6 +59,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
                 'exceptional_attribute_name' => [
                     'method' => 'someOtherRelationMethod',
                 ],
+                'comment_has_one' => true,
             ],
         ]);
     }
@@ -104,6 +105,20 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
     protected function seedDatabase()
     {
+    }
+
+
+    /**
+     * @param string $name
+     * @param string $gender
+     * @return Author
+     */
+    protected function createAuthor($name = 'Test Author', $gender = 'm')
+    {
+        return Author::create([
+            'name'   => $name,
+            'gender' => $gender,
+        ]);
     }
 
     /**

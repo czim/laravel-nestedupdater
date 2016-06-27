@@ -2,12 +2,18 @@
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\Data\UpdateResult;
+use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\ModelUpdater;
+use Czim\NestedModelUpdater\Test\Helpers\ArrayableData;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 
 class BasicModelUpdaterTest extends TestCase
 {
-    
+
+    // ------------------------------------------------------------------------------
+    //      Basics
+    // ------------------------------------------------------------------------------
+
     /**
      * @test
      */
@@ -89,9 +95,49 @@ class BasicModelUpdaterTest extends TestCase
      */
     function it_updates_a_new_nested_model_related_as_belongs_to_without_updating_parent()
     {
-        $post = $this->createPost();
+        $post  = $this->createPost();
+        $genre = $this->createGenre('original name');
+        $post->genre()->associate($genre);
+        $post->save();
+
+        // disallow full updates
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.genre', [
+            'link-only' => true,
+        ]);
+
+        $originalPostData = [
+            'id'    => $post->id,
+            'title' => $post->title,
+            'body'  => $post->body,
+        ];
+
+        $data = [
+            'genre' => [
+                'id'   => $genre->id,
+                'name' => 'updated name',
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('posts', $originalPostData);
+
+        $this->seeInDatabase('genres', [
+            'id'   => $genre->id,
+            'name' => 'original name',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_only_links_a_related_model_if_no_update_is_allowed()
+    {
+        $post  = $this->createPost();
         $genre = $this->createGenre();
         $post->genre()->associate($genre);
+        $post->save();
 
         $originalPostData = [
             'id'    => $post->id,
@@ -119,6 +165,104 @@ class BasicModelUpdaterTest extends TestCase
 
     /**
      * @test
+     */
+    function it_dissociates_a_belongs_to_relation_if_empty_data_is_passed_in()
+    {
+        $post  = $this->createPost();
+        $genre = $this->createGenre();
+        $post->genre()->associate($genre);
+        $post->save();
+
+        $data = [
+            'genre' => [],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('posts', [
+            'id'       => $post->id,
+            'genre_id' => null,
+        ]);
+    }
+
+    // ------------------------------------------------------------------------------
+    //      Normalization
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @test
+     */
+    function it_normalizes_nested_data_for_scalar_link_value()
+    {
+        $post  = $this->createPost();
+        $genre = $this->createGenre('original name');
+
+        $data = [
+            'genre' => $genre->id,
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('posts', [
+            'id'       => $post->id,
+            'genre_id' => $genre->id,
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_normalizes_nested_data_for_arrayable_content()
+    {
+        $post  = $this->createPost();
+        $genre = $this->createGenre('original name');
+
+        $data = [
+            'genre' => new ArrayableData([
+                'id'   => $genre->id,
+                'name' => 'updated',
+            ])
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('posts', [
+            'id'       => $post->id,
+            'genre_id' => $genre->id,
+        ]);
+
+        $this->seeInDatabase('genres', [
+            'id'   => $genre->id,
+            'name' => 'updated',
+        ]);
+    }
+
+    // ------------------------------------------------------------------------------
+    //      Problems and exceptions
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @test
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessageRegExp #genre\)#i
+     */
+    function it_throws_an_exception_if_nested_relation_data_is_of_incorrect_type()
+    {
+        $post  = $this->createPost();
+
+        $data = [
+            'genre' => (object) [ 'incorrect' => 'data' ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+    }
+
+    /**
+     * @test
      * @expectedException \Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException
      * @expectedExceptionMessageRegExp #Czim\\NestedModelUpdater\\Test\\Helpers\\Models\\Post#
      */
@@ -137,7 +281,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      * @expectedException \Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException
-     * @expectedExceptionMessageRegExp #Czim\\NestedModelUpdater\\Test\\Helpers\\Models\\Genre.*\(nesting: genre\)#
+     * @expectedExceptionMessageRegExp #Czim\\NestedModelUpdater\\Test\\Helpers\\Models\\Genre.*\(nesting: genre\)#i
      */
     function it_throws_an_exception_with_nested_key_if_it_cannot_find_a_nested_model_by_id()
     {
@@ -154,55 +298,100 @@ class BasicModelUpdaterTest extends TestCase
         $updater->update($data, $post);
     }
 
-
     /**
      * @test
+     * @expectedException \Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException
+     * @expectedExceptionMessageRegExp #authors\.0#i
      */
-    function it_creates_and_updates_a_nested_hasmany_relation()
+    function it_throws_an_exception_if_not_allowed_to_create_a_nested_model_record_that_has_no_id()
     {
-        $post = $this->createPost();
-        $comment = $this->createComment($post);
-        
         $data = [
-            'comments' => [
-                [
-                    'id'    => $comment->id,
-                    'title' => 'updated title',
-                ],
-                [
-                    'title' => 'new title',
-                    'body'  => 'new body',
-                ]
+            'title' => 'Problem Post',
+            'body'  => 'Body',
+            'authors' => [
+                [ 'name' => 'New Name' ]
             ]
         ];
-        
+
         $updater = new ModelUpdater(Post::class);
-        $updater->update($data, $post);
+        $updater->create($data);
+    }
 
-        $this->seeInDatabase('comments', [
-            'id'    => $comment->id,
-            'title' => 'updated title',
-        ]);
+    /**
+     * @test
+     */
+    function it_rolls_back_changes_if_exception_is_thrown()
+    {
+        $post = $this->createPost();
 
-        $this->seeInDatabase('comments', [
-            'title' => 'new title',
-            'body'  => 'new body',
+        $data = [
+            'title' => 'this should be',
+            'body'  => 'rolled back',
+            // comments is a HasMany relation, so the model is
+            // updated and persisted before this is parsed
+            'comments' => [
+                [
+                    'id' => 999,  // does not exist
+                ]
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+
+        try {
+            $updater->update($data, $post);
+
+            // should never get here
+            $this->fail('Exception should have been thrown while attempting update');
+
+        } catch (NestedModelNotFoundException $e) {
+            // expected
+        }
+
+        // unchanged data
+        $this->notSeeInDatabase('posts', [
+            'title' => 'this should be',
+            'body'  => 'rolled back',
         ]);
     }
 
     /**
      * @test
      */
-    function it_creates_nested_structure_of_all_new_models()
+    function it_can_be_configured_not_to_use_database_transactions()
     {
+        $post = $this->createPost();
+
+        $data = [
+            'title' => 'this should be',
+            'body'  => 'rolled back',
+            // comments is a HasMany relation, so the model is
+            // updated and persisted before this is parsed
+            'comments' => [
+                [
+                    'id' => 999,  // does not exist
+                ]
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->disableDatabaseTransaction();
+
+        try {
+            $updater->update($data, $post);
+
+            // should never get here
+            $this->fail('Exception should have been thrown while attempting update');
+
+        } catch (NestedModelNotFoundException $e) {
+            // expected
+        }
+
+        // unchanged data
+        $this->seeInDatabase('posts', [
+            'title' => 'this should be',
+            'body'  => 'rolled back',
+        ]);
     }
-    
-    /**
-     * @test
-     */
-    function it_creates_a_nested_structure_with_linked_models()
-    {
-    }
-    
-    
+
 }

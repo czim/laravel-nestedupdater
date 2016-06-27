@@ -27,5 +27,10 @@ class Post extends Model
     {
         return $this->belongsTo(Genre::class);
     }
+
+    public function commentHasOne()
+    {
+        return $this->hasOne(Comment::class);
+    }
     
 }
