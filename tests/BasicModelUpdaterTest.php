@@ -319,6 +319,30 @@ class BasicModelUpdaterTest extends TestCase
 
     /**
      * @test
+     * @expectedException \Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException
+     * @expectedExceptionMessageRegExp #authors\.0#i
+     */
+    function it_throws_an_exception_if_not_allowed_to_create_an_update_only_nested_model_record()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors', [
+            'link-only'   => false,
+            'update-only' => true,
+        ]);
+
+        $data = [
+            'title' => 'Problem Post',
+            'body'  => 'Body',
+            'authors' => [
+                [ 'name' => 'New Name' ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->create($data);
+    }
+
+    /**
+     * @test
      */
     function it_rolls_back_changes_if_exception_is_thrown()
     {
