@@ -16,4 +16,10 @@ class Comment extends Model
     {
         return $this->belongsTo(Author::class);
     }
+
+    public function tags()
+    {
+        return $this->morphMany(Tag::class, 'taggable');
+    }
+    
 }
