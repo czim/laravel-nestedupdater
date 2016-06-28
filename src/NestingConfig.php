@@ -166,7 +166,7 @@ class NestingConfig implements NestingConfigInterface
 
         if (true === $config || ! is_array($config)) return false;
 
-        return ! (bool) Arr::get($config, 'deleted-detached', false);
+        return (bool) Arr::get($config, 'delete-detached', false);
     }
 
     /**
