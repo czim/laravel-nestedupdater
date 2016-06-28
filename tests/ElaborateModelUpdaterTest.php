@@ -168,8 +168,9 @@ class ElaborateModelUpdaterTest extends TestCase
         ]);
     }
 
+
     // ------------------------------------------------------------------------------
-    //      Special Operations
+    //      Detaching and Deleting Omitted
     // ------------------------------------------------------------------------------
 
     /**
@@ -229,6 +230,86 @@ class ElaborateModelUpdaterTest extends TestCase
         $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => $genre->id ]);
         $this->notSeeInDatabase('genres', [ 'id' => $oldGenreId ]);
     }
+
+    /**
+     * @test
+     */
+    function it_detaches_omitted_nested_belongstomany_relations()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.link-only', false);
+
+        // setup
+
+        $post    = $this->createPost();
+        $authorA = $this->createAuthor();
+        $authorB = $this->createAuthor();
+        $post->authors()->sync([ $authorA->id, $authorB->id ]);
+
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+
+        $data = [
+            'authors' => [
+                $authorA->id,
+                [
+                    'name'   => 'New Author',
+                    'gender' => 'f',
+                ]
+            ],
+        ];
+
+        // test
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $authorC = Author::latest()->first();
+        $this->assertInstanceOf(Author::class, $authorC);
+
+        $this->seeInDatabase('authors', [ 'id' => $authorB->id ]);
+        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorC->id ]);
+        $this->notSeeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_does_not_detach_omitted_nested_belongstomany_relations_if_configured_not_to()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.detach', true);
+
+        // setup
+
+        $post    = $this->createPost();
+        $authorA = $this->createAuthor();
+        $authorB = $this->createAuthor();
+        $post->authors()->sync([ $authorA->id, $authorB->id ]);
+
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+
+        $data = [
+            'authors' => [
+                $authorA->id,
+            ],
+        ];
+
+        // test
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('authors', [ 'id' => $authorB->id ]);
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+    }
+
+
+
+    // ------------------------------------------------------------------------------
+    //      Full Stack
+    // ------------------------------------------------------------------------------
 
     /**
      * @test

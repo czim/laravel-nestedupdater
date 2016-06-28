@@ -11,6 +11,8 @@ use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
@@ -384,7 +386,10 @@ class ModelUpdater implements ModelUpdaterInterface
         foreach ($this->relationInfo as $attribute => $info) {
             if ($info->isBelongsTo()) continue;
 
-            // may be singular or plural in this case
+            // collect keys for (newly) connected models
+            $keys = [];
+
+
             if ($info->isSingular()) {
 
                 $data = $this->normalizeNestedSingularData(
@@ -393,25 +398,7 @@ class ModelUpdater implements ModelUpdaterInterface
                     $this->appendNestedKey($attribute)
                 );
 
-                $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute);
-
-                continue;
-            }
-
-            // plural: an array with updates or links by primary key for
-            // the related records, and syncs the relation
-
-            $keys = [];
-
-            foreach (Arr::get($this->data, $attribute, []) as $index => $data) {
-
-                $data = $this->normalizeNestedSingularData(
-                    $data,
-                    $info->modelPrimaryKey(),
-                    $this->appendNestedKey($attribute, $index)
-                );
-
-                $result = $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute, $index);
+                $result = $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute);
 
                 if (    ! ($result instanceof UpdateResult)
                     ||  ! $result->model()
@@ -421,6 +408,30 @@ class ModelUpdater implements ModelUpdaterInterface
                 }
 
                 $keys[] = $result->model()->getKey();
+
+            } else {
+                // plural: an array with updates or links by primary key for
+                // the related records, and syncs the relation
+
+                foreach (Arr::get($this->data, $attribute, []) as $index => $data) {
+
+                    $data = $this->normalizeNestedSingularData(
+                        $data,
+                        $info->modelPrimaryKey(),
+                        $this->appendNestedKey($attribute, $index)
+                    );
+
+                    $result = $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute, $index);
+
+                    if (    ! ($result instanceof UpdateResult)
+                        ||  ! $result->model()
+                        ||  ! $result->model()->getKey()
+                    ) {
+                        continue;
+                    }
+
+                    $keys[] = $result->model()->getKey();
+                }
             }
 
             
@@ -443,7 +454,12 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected function syncKeysForBelongsToManyRelation(RelationInfo $info, array $keys)
     {
-        $this->model->{$info->relationMethod()}()->sync($keys);
+
+        // detach by default (for belongs to many), unless configured otherwise
+        $detaching = (null === $info->getDetachMissing()) ? true : $info->getDetachMissing();
+
+        $this->model->{$info->relationMethod()}()->sync($keys, $detaching);
+
     }
 
     /**
@@ -456,10 +472,18 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected function syncKeysForHasManyRelation(RelationInfo $info, array $keys)
     {
-        // and detach the others if they are belongs to many.
-        // if they are hasmany, then leave them be for now
-        // they might be disconnected, but only if the key is nullable...
-        // deletion should be configured and always assumed disallowed!
+        // the relations might be disconnected, but only if the key is nullable
+        // if deletion is not configured, we should attempt setting the key to
+        // null
+
+        // if it is a has-one relation, has a different default for detaching
+        $isNotHasOne = is_a($info->relationClass(), HasOne::class, true);
+
+        // do not detach by default (for hasmany), unless configured otherwise
+        $detaching = (null === $info->getDetachMissing()) ? $isNotHasOne : $info->getDetachMissing();
+
+        if ( ! $detaching && ! $info->isDeleteDetached()) return;
+
     }
 
 
@@ -612,8 +636,8 @@ class ModelUpdater implements ModelUpdaterInterface
     }
 
     /**
-     * @param int         $id
-     * @param null|string $attribute
+     * @param mixed       $id           primary model key or lookup value
+     * @param null|string $attribute    primary model key name or lookup column, if null, uses find() method
      * @param null|string $modelClass   optional, if not looking up the main model
      * @param null|string $nestedKey    optional, if not looking up the main model
      * @return Model
