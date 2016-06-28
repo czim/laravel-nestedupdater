@@ -7,6 +7,8 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
+use Czim\NestedModelUpdater\Test\Helpers\Models\Tag;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Mockery;
 
@@ -49,13 +51,15 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             Comment::class => [
                 // post left out deliberately
                 'author' => true,
+                'tags'   => true,
             ],
             Post::class => [
                 'comments' => true,
-                'genre' => true,
-                'authors' => [
+                'genre'    => true,
+                'authors'  => [
                     'link-only' => true,
                 ],
+                'tags' => true,
                 'exceptional_attribute_name' => [
                     'method' => 'someOtherRelationMethod',
                 ],
@@ -100,6 +104,14 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->increments('id');
             $table->integer('author_id')->unsigned();
             $table->integer('post_id')->unsigned();
+        });
+
+        Schema::create('tags', function($table) {
+            $table->increments('id');
+            $table->integer('taggable_id')->unsigned()->nullable();
+            $table->string('taggable_type', 255)->nullable();
+            $table->string('name', 50);
+            $table->timestamps();
         });
     }
 
@@ -164,6 +176,28 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         }
 
         return $post->comments()->save($comment);
+    }
+
+
+    /**
+     * @param Model|null $taggable
+     * @param string     $name
+     * @return Tag
+     */
+    protected function createTag(Model $taggable = null, $name = 'test tag')
+    {
+        $tag = new Tag([
+            'name'  => $name,
+        ]);
+
+        if ($taggable) {
+            $tag->taggable_id   = $taggable->getKey();
+            $tag->taggable_type = get_class($taggable);
+        }
+
+        $tag->save();
+        
+        return $tag;
     }
 
 }

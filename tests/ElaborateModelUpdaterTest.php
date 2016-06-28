@@ -131,6 +131,43 @@ class ElaborateModelUpdaterTest extends TestCase
         ]);
     }
 
+    /**
+     * @test
+     */
+    function it_creates_and_updates_a_nested_morphmany_relation()
+    {
+        $post = $this->createPost();
+        $tag  = $this->createTag();
+
+        $data = [
+            'tags' => [
+                [
+                    'id'   => $tag->id,
+                    'name' => 'updated tag',
+                ],
+                [
+                    'name' => 'new tag',
+                ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('tags', [
+            'id'            => $tag->id,
+            'taggable_id'   => $post->id,
+            'taggable_type' => get_class($post),
+            'name'          => 'updated tag',
+        ]);
+
+        $this->seeInDatabase('tags', [
+            'taggable_id'   => $post->id,
+            'taggable_type' => get_class($post),
+            'name'          => 'new tag',
+        ]);
+    }
+
     // ------------------------------------------------------------------------------
     //      Special Operations
     // ------------------------------------------------------------------------------

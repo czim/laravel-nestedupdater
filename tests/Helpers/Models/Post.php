@@ -22,6 +22,11 @@ class Post extends Model
         return $this->belongsTo(Genre::class);
     }
 
+    public function tags()
+    {
+        return $this->morphMany(Tag::class, 'taggable');
+    }
+
     
     public function someOtherRelationMethod()
     {
