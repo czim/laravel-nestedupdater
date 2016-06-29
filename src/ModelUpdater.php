@@ -547,23 +547,41 @@ class ModelUpdater implements ModelUpdaterInterface
             $data = [ $info->model()->getKeyName() => $updateId ];
         }
 
-        // if this is a link-only operation...
-        // if we are allowed to update, but only the key is provided, treat this as a link-only operation
-        if ( ! $info->isUpdateAllowed() || count($data) == 1 && ! empty($updateId)) {
-            // test if the model exists, and return it
-            return $this->makeUpdateResult(
-                $this->getModelByLookupAtribute(
-                    $updateId,
-                    $info->model()->getKeyName(),
-                    get_class($info->model()),
-                    $nestedKey
-                )
+        // get the existing model, if we have an update ID, or null if no match exists
+        if ( ! empty($updateId)) {
+            $existingModel = $this->getModelByLookupAtribute(
+                $updateId,
+                $info->model()->getKeyName(),
+                get_class($info->model()),
+                $nestedKey,
+                false
             );
+        } else {
+            $existingModel = null;
+        }
+
+        // if a model for a given 'updateId' does not exist yet, and the model's key is
+        // not an incrementing key, this should be treated as an attempt to create a record
+        $creatingWithKey = ( ! $info->model()->incrementing && ! empty($updateId) && ! $existingModel);
+
+        // if this is a link-only operation, mark it
+        $onlyLinking = (count($data) == 1 && ! empty($updateId) && ! $creatingWithKey);
+
+        // if we are allowed to update, but only the key is provided, treat this as a link-only operation
+        // throw an exception if we couldn't find the model
+        if ( ! $info->isUpdateAllowed() || $onlyLinking) {
+            if ( ! $existingModel) {
+                throw (new NestedModelNotFoundException())
+                    ->setModel(get_class($info->model()))
+                    ->setNestedKey($nestedKey);
+            }
+
+            return $this->makeUpdateResult($existingModel);
         }
 
         // otherwise, create or update, depending on whether the primary key is present in the data
         // if it is a create operation, make sure we're allowed to
-        if (empty($updateId) && ! $info->isCreateAllowed()) {
+        if ((empty($updateId) || $creatingWithKey) && ! $info->isCreateAllowed()) {
             throw (new DisallowedNestedActionException("Not allowed to create new for update-only nested relation"))
                 ->setNestedKey($nestedKey);
         }
@@ -576,7 +594,7 @@ class ModelUpdater implements ModelUpdaterInterface
             $this->config
         ]);
         
-        $updateResult = (empty($updateId))
+        $updateResult = (empty($updateId) || $creatingWithKey)
             ?   $updater->create($data)
             :   $updater->update($data, $updateId, $info->model()->getKeyName());
 
@@ -626,15 +644,21 @@ class ModelUpdater implements ModelUpdaterInterface
     }
 
     /**
-     * @param mixed       $id           primary model key or lookup value
-     * @param null|string $attribute    primary model key name or lookup column, if null, uses find() method
-     * @param null|string $modelClass   optional, if not looking up the main model
-     * @param null|string $nestedKey    optional, if not looking up the main model
-     * @return Model
+     * @param mixed       $id         primary model key or lookup value
+     * @param null|string $attribute  primary model key name or lookup column, if null, uses find() method
+     * @param null|string $modelClass optional, if not looking up the main model
+     * @param null|string $nestedKey  optional, if not looking up the main model
+     * @param bool        $exceptionIfNotFound
+     * @return Model|null
      * @throws NestedModelNotFoundException
      */
-    protected function getModelByLookupAtribute($id, $attribute = null, $modelClass = null, $nestedKey = null)
-    {
+    protected function getModelByLookupAtribute(
+        $id,
+        $attribute = null,
+        $modelClass = null,
+        $nestedKey = null,
+        $exceptionIfNotFound = true
+    ) {
         $class     = $modelClass ?: $this->modelClass;
         $model     = new $class;
         $nestedKey = $nestedKey ?: $this->nestedKey;
@@ -650,7 +674,7 @@ class ModelUpdater implements ModelUpdaterInterface
             $model = $model::where($attribute, $id)->first();
         }
 
-        if ( ! $model) {
+        if ( ! $model && $exceptionIfNotFound) {
             throw (new NestedModelNotFoundException())
                 ->setModel($class)
                 ->setNestedKey($nestedKey);
