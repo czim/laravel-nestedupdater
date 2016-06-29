@@ -41,8 +41,7 @@ class NestingConfigTest extends TestCase
         $this->assertNull($info->getDetachMissing(), "genre should have detach missing null");
         $this->assertFalse($info->isDeleteDetached(), "genre should not delete detached");
 
-        $this->assertEquals(Genre::class, $info->model());
-        $this->assertEquals('id', $info->modelPrimaryKey(), "genre primary key should be id");
+        $this->assertInstanceOf(Genre::class, $info->model());
         $this->assertEquals('genre', $info->relationMethod());
         $this->assertEquals(BelongsTo::class, $info->relationClass());
         $this->assertEquals(ModelUpdater::class, $info->updater());

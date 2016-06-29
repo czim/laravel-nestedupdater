@@ -1,5 +1,6 @@
 <?php
 namespace Czim\NestedModelUpdater\Data;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class RelationInfo
@@ -40,18 +41,11 @@ class RelationInfo
     protected $belongsTo = false;
 
     /**
-     * The FQN of the child model for the relation
+     * An instance of the child model for the relation
      *
-     * @var string|null
+     * @var Model|null
      */
     protected $model;
-
-    /**
-     * The attribute name of the primary key of the related model
-     *
-     * @var string
-     */
-    protected $modelPrimaryKey = 'id';
 
     /**
      * The FQN of the ModelUpdater that should handle update or create process
@@ -170,7 +164,7 @@ class RelationInfo
     }
     
     /**
-     * @return null|string
+     * @return null|Model
      */
     public function model()
     {
@@ -178,31 +172,12 @@ class RelationInfo
     }
 
     /**
-     * @param null|string $model
+     * @param null|Model $model
      * @return $this
      */
     public function setModel($model)
     {
         $this->model = $model;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function modelPrimaryKey()
-    {
-        return $this->modelPrimaryKey;
-    }
-
-    /**
-     * @param string $modelPrimaryKey
-     * @return $this
-     */
-    public function setModelPrimaryKey($modelPrimaryKey)
-    {
-        $this->modelPrimaryKey = $modelPrimaryKey;
 
         return $this;
     }

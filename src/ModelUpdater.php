@@ -495,7 +495,7 @@ class ModelUpdater implements ModelUpdaterInterface
         $inUse = $class::whereHas($info->relationMethod(),
             function ($query) use ($model, $info) {
                 /** @var \Illuminate\Database\Eloquent\Builder $query */
-                $query->where($info->modelPrimaryKey(), $model->id);
+                $query->where($info->model()->getKeyName(), $model->id);
             })
             ->where($model->getKey(), '!=', $model->id)
             ->count();
@@ -523,11 +523,11 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $data = $this->normalizeNestedSingularData(
             $data,
-            $info->modelPrimaryKey(),
+            $info->model()->getKeyName(),
             $nestedKey
         );
 
-        $updateId = Arr::get($data, $info->modelPrimaryKey());
+        $updateId = Arr::get($data, $info->model()->getKeyName());
 
         // if the key is present, but the data is empty, the relation should be dissociated
         if (empty($data)) {
@@ -545,7 +545,7 @@ class ModelUpdater implements ModelUpdaterInterface
             }
 
             // strip everything but the key, so it is treated as a link-only operation
-            $data = [ $info->modelPrimaryKey() => $updateId ];
+            $data = [ $info->model()->getKeyName() => $updateId ];
         }
 
         // if this is a link-only operation...
@@ -555,8 +555,8 @@ class ModelUpdater implements ModelUpdaterInterface
             return $this->makeUpdateResult(
                 $this->getModelByLookupAtribute(
                     $updateId,
-                    $info->modelPrimaryKey(),
-                    $info->model(),
+                    $info->model()->getKeyName(),
+                    get_class($info->model()),
                     $nestedKey
                 )
             );
@@ -570,7 +570,7 @@ class ModelUpdater implements ModelUpdaterInterface
         }
 
         $updater = $this->makeModelUpdater($info->updater(), [
-            $info->model(),
+            get_class($info->model()),
             $attribute,
             $nestedKey,
             $this->model,
@@ -579,7 +579,7 @@ class ModelUpdater implements ModelUpdaterInterface
         
         $updateResult = (empty($updateId))
             ?   $updater->create($data)
-            :   $updater->update($data, $updateId, $info->modelPrimaryKey());
+            :   $updater->update($data, $updateId, $info->model()->getKeyName());
 
         // if for some reason the update or create was not succesful or
         // did not return a model, dissociate the relationship

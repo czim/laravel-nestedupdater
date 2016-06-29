@@ -58,8 +58,7 @@ class NestingConfig implements NestingConfigInterface
         return (new RelationInfo())
             ->setRelationMethod($relationMethod)
             ->setRelationClass(get_class($relation))
-            ->setModel($this->determineModelForRelation($relation))
-            ->setModelPrimaryKey($this->determinePrimaryKeyForRelation($relation))
+            ->setModel($this->getModelForRelation($relation))
             ->setSingular($this->isRelationSingular($relation))
             ->setBelongsTo($this->isRelationBelongsTo($relation))
             ->setUpdater($this->getUpdaterClassForKey($key, $parentModel))
@@ -268,11 +267,11 @@ class NestingConfig implements NestingConfigInterface
      * Returns FQN for related model.
      *
      * @param Relation $relation
-     * @return string
+     * @return Model
      */
-    protected function determineModelForRelation(Relation $relation)
+    protected function getModelForRelation(Relation $relation)
     {
-        return get_class($relation->getRelated());
+        return $relation->getRelated();
     }
 
     /**
@@ -283,7 +282,7 @@ class NestingConfig implements NestingConfigInterface
      */
     protected function determinePrimaryKeyForRelation(Relation $relation)
     {
-        return $relation->getRelated()->getKeyName();
+        return $this->getModelForRelation($relation)->getKeyName();
     }
 
     /**
