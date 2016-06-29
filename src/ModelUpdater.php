@@ -342,7 +342,6 @@ class ModelUpdater implements ModelUpdaterInterface
             /** @var Model|null $formerlyAssociatedModel */
             $formerlyAssociatedModel = $this->model->{$info->relationMethod()}()->first();
 
-
             $result = $this->handleNestedSingleUpdateOrCreate(
                 Arr::get($this->data, $attribute),
                 $info,
@@ -392,13 +391,11 @@ class ModelUpdater implements ModelUpdaterInterface
 
             if ($info->isSingular()) {
 
-                $data = $this->normalizeNestedSingularData(
+                $result = $this->handleNestedSingleUpdateOrCreate(
                     Arr::get($this->data, $attribute),
-                    $info->modelPrimaryKey(),
-                    $this->appendNestedKey($attribute)
+                    $info,
+                    $attribute
                 );
-
-                $result = $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute);
 
                 if (    ! ($result instanceof UpdateResult)
                     ||  ! $result->model()
@@ -414,12 +411,6 @@ class ModelUpdater implements ModelUpdaterInterface
                 // the related records, and syncs the relation
 
                 foreach (Arr::get($this->data, $attribute, []) as $index => $data) {
-
-                    $data = $this->normalizeNestedSingularData(
-                        $data,
-                        $info->modelPrimaryKey(),
-                        $this->appendNestedKey($attribute, $index)
-                    );
 
                     $result = $this->handleNestedSingleUpdateOrCreate($data, $info, $attribute, $index);
 
@@ -538,14 +529,6 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $updateId = Arr::get($data, $info->modelPrimaryKey());
 
-        $updater = $this->makeModelUpdater($info->updater(), [
-            $info->model(),
-            $attribute,
-            $nestedKey,
-            $this->model,
-            $this->config
-        ]);
-
         // if the key is present, but the data is empty, the relation should be dissociated
         if (empty($data)) {
             return $this->makeUpdateResult();
@@ -585,6 +568,14 @@ class ModelUpdater implements ModelUpdaterInterface
             throw (new DisallowedNestedActionException("Not allowed to create new for update-only nested relation"))
                 ->setNestedKey($nestedKey);
         }
+
+        $updater = $this->makeModelUpdater($info->updater(), [
+            $info->model(),
+            $attribute,
+            $nestedKey,
+            $this->model,
+            $this->config
+        ]);
         
         $updateResult = (empty($updateId))
             ?   $updater->create($data)
