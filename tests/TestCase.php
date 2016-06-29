@@ -118,6 +118,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
         Schema::create('specials', function($table) {
             $table->string('special', 20)->unique();
+            $table->integer('post_id')->unsigned()->nullable();
             $table->string('name', 50);
             $table->timestamps();
             $table->primary(['special']);
