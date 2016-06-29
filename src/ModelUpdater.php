@@ -168,7 +168,7 @@ class ModelUpdater implements ModelUpdaterInterface
      * Updates an existing model with (potential) nested update data
      *
      * @param array     $data
-     * @param int|Model $model      either an existing model or its ID
+     * @param mixed|Model $model    either an existing model or its ID
      * @param string    $attribute  lookup column, if not primary key, only if $model is int
      * @return UpdateResult
      * @throws ModelSaveFailureException
@@ -176,7 +176,7 @@ class ModelUpdater implements ModelUpdaterInterface
     public function update(array $data, $model, $attribute = null)
     {
         if ( ! ($model instanceof Model)) {
-            $model = $this->getModelByLookupAtribute( (int) $model, $attribute);
+            $model = $this->getModelByLookupAtribute($model, $attribute);
         }
 
         $this->isCreating = false;
