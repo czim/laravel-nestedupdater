@@ -168,6 +168,56 @@ class ElaborateModelUpdaterTest extends TestCase
         ]);
     }
 
+    /**
+     * @test
+     */
+    function it_updates_a_nested_related_record_with_nonstandard_primary_key()
+    {
+        $post    = $this->createPost();
+        $special = $this->createSpecial('special-1');
+
+        $data = [
+            'specials' => [
+                [
+                    'special' => $special->getKey(),
+                    'name'    => 'updated special',
+                ],
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('specials', [
+            'special' => $special->getKey(),
+            'name'    => 'updated special',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_creates_a_nested_related_record_with_nonincrementing_primary_key_if_the_key_does_not_exist()
+    {
+        $post = $this->createPost();
+
+        $data = [
+            'specials' => [
+                [
+                    'special' => 'special-new',
+                    'name'    => 'new special',
+                ],
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('specials', [
+            'special' => 'special-new',
+            'name'    => 'new special',
+        ]);
+    }
 
     // ------------------------------------------------------------------------------
     //      Detaching and Deleting Omitted
