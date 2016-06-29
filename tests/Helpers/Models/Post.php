@@ -37,5 +37,9 @@ class Post extends Model
     {
         return $this->hasOne(Comment::class);
     }
-    
+
+    public function specials()
+    {
+        return $this->hasMany(Special::class);
+    }
 }

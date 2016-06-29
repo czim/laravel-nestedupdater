@@ -7,6 +7,7 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
+use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Tag;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
@@ -64,6 +65,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
                     'method' => 'someOtherRelationMethod',
                 ],
                 'comment_has_one' => true,
+                'specials' => true,
             ],
         ]);
     }
@@ -112,6 +114,13 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->string('taggable_type', 255)->nullable();
             $table->string('name', 50);
             $table->timestamps();
+        });
+
+        Schema::create('specials', function($table) {
+            $table->string('special', 20)->unique();
+            $table->string('name', 50);
+            $table->timestamps();
+            $table->primary(['special']);
         });
     }
 
@@ -200,4 +209,16 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $tag;
     }
 
+    /**
+     * @param string $key
+     * @param string $name
+     * @return Genre
+     */
+    protected function createSpecial($key, $name = 'testing special')
+    {
+        return Special::create([
+            'special' => $key,
+            'name'    => $name,
+        ]);
+    }
 }
