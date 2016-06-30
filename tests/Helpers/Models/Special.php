@@ -10,7 +10,7 @@ class Special extends Model
 
     protected $fillable = [ 'special', 'name' ];
 
-    public function posts()
+    public function post()
     {
         return $this->belongsTo(Post::class);
     }

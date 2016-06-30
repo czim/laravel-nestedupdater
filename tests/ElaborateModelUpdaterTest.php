@@ -6,6 +6,7 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
+use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
 
 class ElaborateModelUpdaterTest extends TestCase
 {
@@ -216,6 +217,36 @@ class ElaborateModelUpdaterTest extends TestCase
         $this->seeInDatabase('specials', [
             'special' => 'special-new',
             'name'    => 'new special',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_links_a_nested_related_record_with_nonincrementing_primary_key_if_it_exists()
+    {
+        $post    = $this->createPost();
+        $special = $this->createSpecial('special-exists', 'original name');
+        $special->post()->associate($post);
+        $special->save();
+
+        $data = [
+            'specials' => [
+                [
+                    'special' => 'special-exists',
+                    'name'    => 'updated name',
+                ],
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->assertEquals(1, Special::count(), "There should be only 1 Special record");
+
+        $this->seeInDatabase('specials', [
+            'special' => 'special-exists',
+            'name'    => 'updated name',
         ]);
     }
 
