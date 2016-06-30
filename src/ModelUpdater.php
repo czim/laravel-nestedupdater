@@ -492,6 +492,37 @@ class ModelUpdater implements ModelUpdaterInterface
 
         if ( ! $detaching && ! $info->isDeleteDetached()) return;
 
+        // find keys for all models that are linked to the model but omitted in nested data
+        $oldKeys = $this->model->{$info->relationMethod()}()
+            ->pluck($info->model()->getKeyName())
+            ->toArray();
+
+        $oldKeys = array_diff($oldKeys, $keys);
+
+        if ( ! count($oldKeys)) return;
+
+
+        if ($info->isDeleteDetached()) {
+
+            foreach ($oldKeys as $oldKey) {
+                $this->deleteFormerlyRelatedModel($info->model()->find($oldKey), $info);
+            }
+            return;
+        }
+
+        if ($detaching) {
+
+            foreach ($oldKeys as $oldKey) {
+                /** @var Model $model */
+                $detachModel = $info->model()->find($oldKey);
+                if ( ! $detachModel) continue;
+
+                $foreignKey = $this->model->{$info->relationMethod()}()->getPlainForeignKey();
+
+                $detachModel->{$foreignKey} = null;
+                $detachModel->save();
+            }
+        }
     }
 
 
