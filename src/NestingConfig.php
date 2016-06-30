@@ -149,7 +149,9 @@ class NestingConfig implements NestingConfigInterface
 
         if (true === $config || ! is_array($config)) return null;
 
-        return ! (bool) Arr::get($config, 'detach', null);
+        $detach = Arr::get($config, 'detach', null);
+
+        return null === $detach ? null : (bool) $detach;
     }
 
     /**
