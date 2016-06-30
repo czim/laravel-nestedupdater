@@ -455,6 +455,71 @@ class ElaborateModelUpdaterTest extends TestCase
         $this->seeInDatabase('authors', [ 'id' => $authorB->id ]);
     }
 
+    /**
+     * @test
+     */
+    function it_detaches_omitted_nested_hasmany_and_hasone_relations()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Author::class . '.comments.detach', true);
+
+        // setup
+
+        $author   = $this->createAuthor();
+        $post     = $this->createPost();
+        $commentA = $this->createComment($post);
+        $commentB = $this->createComment($post);
+
+        $author->comments()->save($commentA);
+        $author->comments()->save($commentB);
+
+        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'author_id' => $author->id ]);
+
+        $data = [
+            'comments' => [
+                $commentB->id,
+            ],
+        ];
+
+
+        // test
+
+        $updater = new ModelUpdater(Author::class);
+        $updater->update($data, $author);
+
+
+        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'author_id' => null ]);
+        $this->seeInDatabase('comments', [ 'id' => $commentB->id, 'author_id' => $author->id ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_deletes_detached_hasmany_and_hasone_related_records_if_configured_to()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.comments.detach', true);
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.comments.delete-detached', true);
+
+        // setup
+
+        $post     = $this->createPost();
+        $commentA = $this->createComment($post);
+        $commentB = $this->createComment($post);
+
+        $data = [
+            'comments' => [
+                $commentB->id,
+            ],
+        ];
+
+        // test
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->notSeeInDatabase('comments', [ 'id' => $commentA->id ]);
+        $this->seeInDatabase('comments',    [ 'id' => $commentB->id, 'post_id' => $post->id ]);
+    }
+    
     // ------------------------------------------------------------------------------
     //      Full Stack
     // ------------------------------------------------------------------------------
