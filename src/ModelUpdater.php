@@ -444,12 +444,30 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected function syncKeysForBelongsToManyRelation(RelationInfo $info, array $keys)
     {
+        // if we should delete detached models, gather the model ids to delete
+        if ($info->isDeleteDetached()) {
+            $deleteKeys = $this->model->{$info->relationMethod()}()
+                ->pluck($info->model()->getTable() . '.' . $info->model()->getKeyName())
+                ->toArray();
+
+            $deleteKeys = array_diff($deleteKeys, $keys);
+        }
 
         // detach by default (for belongs to many), unless configured otherwise
         $detaching = (null === $info->getDetachMissing()) ? true : $info->getDetachMissing();
 
         $this->model->{$info->relationMethod()}()->sync($keys, $detaching);
 
+        // delete models now detached, if configured to
+        if ($info->isDeleteDetached() && isset($deleteKeys) && count($deleteKeys)) {
+
+            foreach ($deleteKeys as $key) {
+                $model = $this->getModelByLookupAtribute($key, null, get_class($info->model()));
+                if ( ! $model) continue;
+
+                $this->deleteFormerlyRelatedModel($model, $info);
+            }
+        }
     }
 
     /**
@@ -490,14 +508,19 @@ class ModelUpdater implements ModelUpdaterInterface
     {
         $class = $this->modelClass;
 
+        // To see if we can safely delete the child model, attempt to find a different
+        // model of the same type as the parent model, that has a relation to the child model.
+        // If one exists, it's still in use and should not be deleted.
+
         /** @var Model $class */
         $inUse = $class::whereHas($info->relationMethod(),
             function ($query) use ($model, $info) {
                 /** @var \Illuminate\Database\Eloquent\Builder $query */
-                $query->where($info->model()->getKeyName(), $model->id);
+                $query->where($info->model()->getTable() . '.' . $info->model()->getKeyName(), $model->id);
             })
-            ->where($model->getKey(), '!=', $model->id)
+            ->where($this->model->getTable() . '.' . $this->model->getKeyName(), '!=', $this->model->id)
             ->count();
+
 
         if ($inUse) return;
 
