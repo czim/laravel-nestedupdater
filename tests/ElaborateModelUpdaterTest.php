@@ -358,7 +358,7 @@ class ElaborateModelUpdaterTest extends TestCase
      */
     function it_does_not_detach_omitted_nested_belongstomany_relations_if_configured_not_to()
     {
-        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.detach', true);
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.detach', false);
 
         // setup
 
