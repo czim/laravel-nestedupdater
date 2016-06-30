@@ -387,6 +387,73 @@ class ElaborateModelUpdaterTest extends TestCase
     }
 
 
+    /**
+     * @test
+     */
+    function it_deletes_detached_belongstomany_related_records_if_configured_to()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.delete-detached', true);
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.link-only', false);
+
+        // setup
+
+        $post    = $this->createPost();
+        $authorA = $this->createAuthor();
+        $authorB = $this->createAuthor();
+        $post->authors()->sync([ $authorA->id, $authorB->id ]);
+
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+
+        $data = [
+            'authors' => [
+                $authorA->id,
+            ],
+        ];
+
+        // test
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->notSeeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->notSeeInDatabase('authors', [ 'id' => $authorB->id ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_does_not_delete_detached_belongstomany_related_records_if_they_are_related_to_other_models()
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.delete-detached', true);
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.link-only', false);
+
+        // setup
+
+        $post    = $this->createPost();
+        $authorA = $this->createAuthor();
+        $authorB = $this->createAuthor();
+        $post->authors()->sync([ $authorA->id, $authorB->id ]);
+
+        $otherPost = $this->createPost();
+        $otherPost->authors()->sync([ $authorB->id ]);
+
+        $data = [
+            'authors' => [
+                $authorA->id,
+            ],
+        ];
+
+        // test
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->notSeeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->seeInDatabase('authors', [ 'id' => $authorB->id ]);
+    }
 
     // ------------------------------------------------------------------------------
     //      Full Stack
