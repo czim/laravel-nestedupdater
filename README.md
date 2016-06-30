@@ -11,9 +11,6 @@ Package for allowing updating of nested eloquent model relations using a single 
 ## To Do
 
 - Validation setup, rules 'framework'
-- Config documentation, test all configurables
-- Test with non-standard primary key attribute names
-
 
 ## Install
 
@@ -38,8 +35,8 @@ $ php artisan vendor:publish
 ## Usage
 
 Note that this package will not do any nested updates without setting up at least a
-configuration for the relations that you want to allow nested updates for. See the 
-configuration section below.
+configuration for the relations that you want to allow nested updates for. 
+Configuration must be set before this can be used at all. See the configuration section below.
 
 
 ## Configuration
@@ -94,6 +91,23 @@ Note that any relation not present in the config will be ignored for nesting, an
 More [information on relation configuration](CONFIG.md). 
 Also check out [the configuration file](https://github.com/czim/laravel-nestedupdater/blob/master/src/config/nestedmodelupdater.php) for further notes.
 
+
+## Non-incrementing primary keys
+
+The behavior for dealing with models that have non-incrementing primary keys is slightly different.
+Normally, the presence of a primary key attribute in a data set will make the model updater assume that an existing record needs to be linked or updated, and it will throw an exception if it cannot find the model. Instead, for non-incrementing keys, it is assumed that any key that does not already exist is to be added to the database.
+
+If you do not want this, you will have to filter out these occurrences before passing in data to the updater,
+or make your own configuration option to make this an optional setting.
+
+
+## Extending functionality
+
+The `ModelUpdater` class should be considered a prime candidate for customization.
+The `normalizeData()` method may be overridden to manipulate the data array passed in before it is parsed.
+Additionally check out `deleteFormerlyRelatedModel()`, which may be useful to set up in cases where conditions for deleting need to be refined.
+
+Note that it is your own ModelUpdater extension may be set for specific relations by using the `updater` attribute.
 
 
 ## Contributing
