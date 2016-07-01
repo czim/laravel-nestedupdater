@@ -115,6 +115,13 @@ class ModelUpdater implements ModelUpdaterInterface
      */
     protected $belongsTosWereUpdated = false;
 
+    /**
+     * Save options array to pass to Eloquent's save() method
+     *
+     * @var array
+     */
+    protected $saveOptions = [];
+
 
     /**
      * @param string                      $modelClass      FQN for model
@@ -166,21 +173,23 @@ class ModelUpdater implements ModelUpdaterInterface
     /**
      * Updates an existing model with (potential) nested update data
      *
-     * @param array     $data
-     * @param mixed|Model $model    either an existing model or its ID
-     * @param string    $attribute  lookup column, if not primary key, only if $model is int
+     * @param array       $data
+     * @param mixed|Model $model        either an existing model or its ID
+     * @param string      $attribute    lookup column, if not primary key, only if $model is int
+     * @param array       $saveOptions  options to pass on to the save() Eloquent method
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function update(array $data, $model, $attribute = null)
+    public function update(array $data, $model, $attribute = null, array $saveOptions = [])
     {
         if ( ! ($model instanceof Model)) {
             $model = $this->getModelByLookupAtribute($model, $attribute);
         }
 
-        $this->isCreating = false;
-        $this->data       = $data;
-        $this->model      = $model;
+        $this->isCreating  = false;
+        $this->data        = $data;
+        $this->model       = $model;
+        $this->saveOptions = $saveOptions;
         
         return $this->createOrUpdate();
     }
@@ -304,7 +313,7 @@ class ModelUpdater implements ModelUpdaterInterface
                 $this->model
             );
         } else {
-            $result = $this->model->save();
+            $result = $this->model->save($this->saveOptions);
         }
 
         if ( ! $result) {
