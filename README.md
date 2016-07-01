@@ -8,9 +8,41 @@
 
 Package for allowing updating of nested eloquent model relations using a single data array.
 
-## To Do
+This package will make it easy to create or update a group of nested, related models through a single method call.
+For example, when passing in the following data for an update of a Post model ...
 
-- Validation setup, rules 'framework'
+```php
+<?php
+
+$data = [
+    'title' => 'updated title',
+    'comments' => [
+        17,
+        [
+            'id' => 18,
+            'body' => 'updated comment body',
+            'author' => [
+                'name' => 'John',
+            ],
+        ],
+        [
+            'body' => 'totally new comment',
+            'author' => 512,
+        ],
+    ],
+];
+
+```
+
+... this would set a new title for Post model being updated, but in additionally:
+
+- link comment #17 to the post,
+- link and/or update comment #18 to the post, setting a new body text for the comment,
+- create a new author named 'John' and linking it to comment #18,
+- create a new comment for the post and linking author #512 to it
+
+Any combination of nested creates and updates is supported.
+
 
 ## Install
 
@@ -64,7 +96,7 @@ class YourCustomizedModel extends Model
     
     /**
      * You can refer to any class, as long as it implements the
-     * ModelUpdaterInterface.
+     * \Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface.
      *
      * @var string
      */
@@ -74,10 +106,13 @@ class YourCustomizedModel extends Model
      * Additionally, optionally, you can set a class to be used
      * for the configuration, if you need to override how relation
      * configuration is determined.
+     *
+     * This class must implement
+     * \Czim\NestedModelUpdater\Contracts\NestingConfigurationInterface
      * 
      * @var string
      */
-    protected $modelUpdaterClass = \Your\UpdaterClass\Here::class;
+    protected $modelUpdaterConfigClass = \Your\UpdaterConfigClass::class;
     
 ```
 
