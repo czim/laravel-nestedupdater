@@ -41,7 +41,7 @@ $data = [
 - create a new author named 'John' and linking it to comment #18,
 - create a new comment for the post and linking author #512 to it
 
-Any combination of nested creates and updates is supported.
+Any combination of nested creates and updates is supported; the nesting logic follows that of Eloquent relationships and is highly customizable. 
 
 
 ## Install
