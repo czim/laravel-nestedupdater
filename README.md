@@ -38,6 +38,66 @@ Note that this package will not do any nested updates without setting up at leas
 configuration for the relations that you want to allow nested updates for. 
 Configuration must be set before this can be used at all. See the configuration section below.
 
+### NestedUpdatable Trait
+An easy way to set up a model for processing nested updates is by using the `NestedUpdatable` trait:
+
+```php
+<?php
+class YourModel extends Model
+{
+    use \Czim\NestedModelUpdater\Traits\NestedUpdatable;
+    
+    // ...
+```
+
+Any data array passed into `create()` or `update()` calls for that model will be processed for nested data. 
+Note that `fill()` (or any other data-related methods on the model) will *not* be affected, and do not process nested data with the model updater.
+
+If you wish to use your own implementation of the `ModelUpdaterInterface`, you may do so by setting a (protected) property `$modelUpdaterClass` with the fully qualitied namespace for the updater.
+This is entirely optional and merely availble for flexibility.
+
+```php
+<?php
+class YourCustomizedModel extends Model
+{
+    use \Czim\NestedModelUpdater\Traits\NestedUpdatable;
+    
+    /**
+     * You can refer to any class, as long as it implements the
+     * ModelUpdaterInterface.
+     *
+     * @var string
+     */
+    protected $modelUpdaterClass = \Your\UpdaterClass\Here::class;
+    
+    /**
+     * Additionally, optionally, you can set a class to be used
+     * for the configuration, if you need to override how relation
+     * configuration is determined.
+     * 
+     * @var string
+     */
+    protected $modelUpdaterClass = \Your\UpdaterClass\Here::class;
+    
+```
+
+### Manual ModelUpdater Usage
+
+Alternatively, you can use the `ModelUpdater` manually, by creating an instance.
+
+```php
+<?php
+
+    // Instantiate the modelupdater
+    $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
+    
+    // Perform a nested data create operation
+    $model = $updater->create([ 'some' => 'create', 'data' => 'here' ]);
+    
+    // Perform a nested data update on an existing model
+    $updater->update([ 'some' => 'update', 'data' => 'here' ], $model);
+    
+```
 
 ## Configuration
 
@@ -51,6 +111,7 @@ As a simple example, if you wish to add comments when creating a post, your setu
 The updating data would be, something like this:
 
 ```php
+<?php
 $data = [
     'title' => 'new post title',
     'comments' => [
@@ -68,6 +129,7 @@ This could be used to update a post (or create a new post) with a title, create 
 The `relations`-configuration to make this work would look like this:
 
 ```php
+<?php
 'relations' => [
     // The model class:
     App\Models\Post::class => [

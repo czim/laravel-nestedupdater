@@ -14,6 +14,7 @@ Each relation may have a configuration section array in which specific options m
 If `true` is used instead of an array, default options are used.
 
 ```php
+<?php
     // The model class:
     App\Models\Post::class => [
         'comments' => [
