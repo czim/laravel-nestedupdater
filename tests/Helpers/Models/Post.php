@@ -1,10 +1,13 @@
 <?php
 namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 
+use Czim\NestedModelUpdater\Traits\NestedUpdatable;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
+    use NestedUpdatable;
+
     protected $fillable = [ 'title', 'body' ];
 
     public function authors()
