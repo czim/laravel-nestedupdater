@@ -738,24 +738,6 @@ class ModelUpdater implements ModelUpdaterInterface
     }
 
     /**
-     * Returns whether a key in the data array contains nested relation
-     * data. If false, this means that it should be a (fillable) value on
-     * the main model being created/updated.
-     *
-     * @param string $key
-     * @return boolean
-     */
-    protected function isAttributeNestedData($key)
-    {
-        // this only works if the relations have been analyzed
-        if ( ! $this->relationsAnalyzed) {
-            $this->analyzeNestedRelationsData();
-        }
-
-        return array_key_exists($key, $this->relationInfo);
-    }
-
-    /**
      * Returns data array containing only the data that should be stored
      * on the main model being updated/created.
      * 
