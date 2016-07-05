@@ -198,6 +198,70 @@ If you do not want this, you will have to filter out these occurrences before pa
 or make your own configuration option to make this an optional setting.
 
 
+## Temporary IDs: Referencing to-be created models in nested data
+
+When creating models through nested updates, it may be necessary to create a single new model once, 
+but link it to multiple other parents. Take the following data example:
+
+```php
+<?php
+
+$data = [
+    'title' => 'New post title',
+    'comments' => [
+        [
+            'body' => 'Some comment',
+            'author' => [
+                'name' => 'Howard Hawks'
+            ]
+        ],
+        [
+            'body' => 'Another comment',
+            'author' => [
+                'name' => 'Howard Hawks'
+            ]
+        ]
+    ]
+];
+```
+
+The above data would create two new authors with the same name, which is likely undesirable.
+If only one new author should be created, and connected to both comments, this may be done using
+temporary IDs:
+
+```php
+<?php
+
+$data = [
+    'title' => 'New post title',
+    'comments' => [
+        [
+            'body' => 'Some comment',
+            'author' => [
+                '_tmp_id' => 1,
+                'name' => 'Howard Hawks'
+            ]
+        ],
+        [
+            'body' => 'Another comment',
+            'author' => [
+                '_tmp_id' => 1,
+            ]
+        ]
+    ]
+];
+```
+
+This would create a single new author with the given name and connect it to both comments. 
+
+The `_tmp_id` reference must be unique for one to-be created model.
+It may be an integer or a string value, but it *must not* contain a period (`.`).
+
+Because there is a (minor) performance cost to checking for temporary IDs, this is disabled by default.
+To enable it, simply set `allow-temporary-ids` to `true` in the configuration.
+
+There are no deep checks for cyclical references or (fairly unlikely) dependency issues for multiple interrelated temporary ID create operations, so be careful with this or perform in-depth validation manually beforehand.
+ 
 ## Extending functionality
 
 The `ModelUpdater` class should be considered a prime candidate for customization.
