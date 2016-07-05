@@ -3,6 +3,8 @@ namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
+use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
+use Czim\NestedModelUpdater\Data\TemporaryIds;
 use Illuminate\Support\ServiceProvider;
 
 class NestedModelUpdaterServiceProvider extends ServiceProvider
@@ -31,6 +33,7 @@ class NestedModelUpdaterServiceProvider extends ServiceProvider
     {
         $this->app->bind(ModelUpdaterInterface::class, ModelUpdater::class);
         $this->app->bind(NestingConfigInterface::class, NestingConfig::class);
+        $this->app->bind(TemporaryIdsInterface::class, TemporaryIds::class);
     }
 
 }
