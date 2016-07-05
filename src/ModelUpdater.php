@@ -3,11 +3,14 @@ namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
+use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
 use Czim\NestedModelUpdater\Data\UpdateResult;
 use Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException;
+use Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException;
 use Czim\NestedModelUpdater\Exceptions\ModelSaveFailureException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
+use Czim\NestedModelUpdater\Traits\TracksTemporaryIds;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -20,6 +23,7 @@ use UnexpectedValueException;
 
 class ModelUpdater implements ModelUpdaterInterface
 {
+    use TracksTemporaryIds;
 
     /**
      * @var NestingConfigInterface
@@ -235,6 +239,10 @@ class ModelUpdater implements ModelUpdaterInterface
         $this->config->setParentModel($this->modelClass);
         $this->analyzeNestedRelationsData();
 
+        if ($this->isTopLevel()) {
+            $this->analyzeTemporaryIds();
+        }
+
         $this->prepareModel();
 
         // handle relationships; some need to be handled before saving the
@@ -261,6 +269,118 @@ class ModelUpdater implements ModelUpdaterInterface
     }
 
     /**
+     * Initializes temporary ids and analyzes data for any
+     * nested temporary ids. Must be performed after the
+     * relations are analyzed.
+     */
+    protected function analyzeTemporaryIds()
+    {
+        if ( ! $this->isHandlingTemporaryIds()) return;
+
+        $temporaryIdKey = $this->getTemporaryIdAttributeKey();
+
+        /** @var TemporaryIdsInterface $ids */
+        $ids = app(TemporaryIdsInterface::class);
+        $this->setTemporaryIds($ids);
+
+        $dotArray = array_keys(array_dot($this->data));
+
+        // only keep temporary id fields
+        $dotArray = array_filter($dotArray, function ($dotKey) use ($temporaryIdKey) {
+            return preg_match('#(^|\.)' . preg_quote($temporaryIdKey) . '$#', $dotKey);
+        });
+
+
+        if (count($dotArray)) {
+
+            // for each nested occurrence of a temporary ID,
+            // get the level right above it and pass it down recursively
+            // for analysis & temporary ID preparation
+
+            foreach ($dotArray as $dotKey) {
+                
+                $temporaryIdValue = array_get($this->data, $dotKey);
+
+                $explodedKeys = explode('.', $dotKey);
+                array_pop($explodedKeys);
+                $dotKeyAbove = implode('.', $explodedKeys);
+
+                // get the model class for the temporary id, so we can make sure it's consistently used
+                $modelClass = $this->getModelClassForDataKeyInDotNotation($dotKeyAbove);
+                if ( ! $modelClass) continue;
+
+                if ( ! $ids->getModelClassForId($temporaryIdValue)) {
+                    $ids->setModelClassForId($temporaryIdValue, $modelClass);
+                } elseif ($ids->getModelClassForId($temporaryIdValue) !== $modelClass) {
+                    throw (new InvalidNestedDataException("Mixed model class usaged for temporary ID '{$temporaryIdValue}'"))
+                        ->setNestedKey($dotKeyAbove);
+                }
+
+                // assign the create data for the temporary id if it is set, and
+                // check for problematic data defined for it
+                $data = array_get($this->data, $dotKeyAbove);
+                if (count($data) > 1) {
+                    $this->checkDataAttributeKeysForTemporaryId($temporaryIdValue, $data);
+                    $ids->setDataForId($temporaryIdValue, array_except($data, [ $temporaryIdKey ]));
+                }
+            }
+        }
+
+        $this->checkTemporaryIdsUsage();
+    }
+
+    /**
+     * Returns FQN for model related to the dot-notation key in the data array.
+     *
+     * @param string $key
+     * @return string|false     false if model could not be determined
+     */
+    public function getModelClassForDataKeyInDotNotation($key)
+    {
+        // if the key is at the current level, our current class is for the model asked
+        if (empty($key) || is_numeric($key)) {
+            return $this->modelClass;
+        }
+
+        $explodedKeys   = explode('.', $key);
+        $nextLevelKey   = array_shift($explodedKeys);
+        $nextLevelIndex = null;
+
+        if (count($explodedKeys) && is_numeric(head($explodedKeys))) {
+            $nextLevelIndex = (int) array_shift($explodedKeys);
+        }
+
+        $remainingKey = implode('.', $explodedKeys);
+
+        // prepare the next recursive step and pass on the key
+        // get the info for the next key, make sure that the info is loaded
+
+        /** @var RelationInfo $info */
+        if ( ! ($info = array_get($this->relationInfo, $nextLevelKey))) {
+            $info = $this->getRelationInfoForKey($nextLevelKey);
+        }
+        if ( ! $info) return false;
+
+        // we only need the updater if we cannot derive the model
+        // class directly from the relation info.
+        if (empty($remainingKey)) {
+            return get_class($info->model());
+        }
+
+        $updater = $this->makeModelUpdater($info->updater(), [
+            get_class($info->model()),
+            $nextLevelKey,
+            $this->appendNestedKey($nextLevelKey, $nextLevelIndex),
+            $this->model,
+            $this->config
+        ]);
+
+        return $updater->getModelClassForDataKeyInDotNotation($remainingKey);
+    }
+
+    
+
+    /**
      * Analyzes data to find nested relations data, and stores information about each.
      */
     protected function analyzeNestedRelationsData()
@@ -270,10 +390,23 @@ class ModelUpdater implements ModelUpdaterInterface
         foreach ($this->data as $key => $value) {
             if ( ! $this->config->isKeyNestedRelation($key)) continue;
 
-            $this->relationInfo[$key] = $this->config->getRelationInfo($key, $this->modelClass);
+            $this->relationInfo[$key] = $this->getRelationInfoForKey($key);
         }
 
         $this->relationsAnalyzed = true;
+    }
+
+    /**
+     * Returns and stores relation info for a given nested model key.
+     *
+     * @param string $key
+     * @return RelationInfo
+     */
+    protected function getRelationInfoForKey($key)
+    {
+        $this->relationInfo[$key] = $this->config->getRelationInfo($key, $this->modelClass);
+
+        return $this->relationInfo[$key];
     }
 
     /**
@@ -343,7 +476,7 @@ class ModelUpdater implements ModelUpdaterInterface
     protected function handleBelongsToRelations()
     {
         foreach ($this->relationInfo as $attribute => $info) {
-            if ( ! $info->isBelongsTo()) continue;
+            if ( ! array_has($this->data, $attribute) || ! $info->isBelongsTo()) continue;
 
             $this->belongsTosWereUpdated = true;
 
@@ -391,7 +524,7 @@ class ModelUpdater implements ModelUpdaterInterface
     protected function handleHasAndBelongsToManyRelations()
     {
         foreach ($this->relationInfo as $attribute => $info) {
-            if ($info->isBelongsTo()) continue;
+            if ( ! array_has($this->data, $attribute) || $info->isBelongsTo()) continue;
 
             // collect keys for (newly) connected models
             $keys = [];
@@ -588,6 +721,56 @@ class ModelUpdater implements ModelUpdaterInterface
             $info->model()->getKeyName(),
             $nestedKey
         );
+        
+        // if this data set has a temporary id, create the model and convert to link operation instead
+        // note that we cannot assume that it is being created explicitly for this relation, it
+        // may simply be the first time it is referenced while processing the data tree.
+        if (    $this->isHandlingTemporaryIds()
+            &&  $this->hasTemporaryIds()
+            &&  array_key_exists($this->getTemporaryIdAttributeKey(), $data)
+        ) {
+            $temporaryId = $data[ $this->getTemporaryIdAttributeKey() ];
+
+            if ( ! $this->temporaryIds->hasId($temporaryId)) {
+                return $this->makeUpdateResult();
+            }
+
+            $model = $this->temporaryIds->getModelForId($temporaryId);
+
+            if ( ! $model) {
+                // if it has not been created, attempt to create it
+
+                $data = $this->temporaryIds->getDataForId($temporaryId);
+
+                // safeguard, this should never happen
+                if (null === $data) {
+                    return $this->makeUpdateResult();
+                }
+
+                $updater = $this->makeModelUpdater($info->updater(), [
+                    get_class($info->model()),
+                    $attribute,
+                    $nestedKey,
+                    $this->model,
+                    $this->config
+                ]);
+
+                $updateResult = $updater->create($data);
+
+                // if for some reason the update or create was not succesful or
+                // did not return a model, dissociate the relationship
+                if ( ! $updateResult->model()) {
+                    return $this->makeUpdateResult();
+                }
+
+                $this->temporaryIds->setModelForId($temporaryId, $updateResult->model());
+
+                return $updateResult;
+            }
+
+            // it has been created, so can reference it here, converting the data to link-only
+            $data = [ $model->getKeyName() => $model->getKey() ];
+        }
 
         $updateId = Arr::get($data, $info->model()->getKeyName());
 
@@ -778,6 +961,11 @@ class ModelUpdater implements ModelUpdaterInterface
             );
         }
 
+        // if we're dealing with temporary IDs, pass on their tracking info
+        if ($this->isHandlingTemporaryIds() && $this->hasTemporaryIds()) {
+            $updater->setTemporaryIds($this->temporaryIds);
+        }
+
         return $updater;
     }
 
@@ -823,6 +1011,17 @@ class ModelUpdater implements ModelUpdaterInterface
         // if not explicitly disabled, transactions are used only for the top
         // level, so when no nested key has been set at all.
         return null === $this->nestedKey;
+    }
+
+    /**
+     * Returns whether this instance is performing a top-level operation,
+     * as opposed to a nested at any recursion depth below it.
+     *
+     * @return boolean
+     */
+    protected function isTopLevel()
+    {
+        return null === $this->parentAttribute && null === $this->parentRelationInfo;
     }
 
     // ------------------------------------------------------------------------------
