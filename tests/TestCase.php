@@ -161,10 +161,15 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      */
     protected function createPost($title = 'testing title', $body = 'testing body')
     {
-        return Post::create([
+        // do not use create() method to prevent trait nested update from being applied
+        $post = new Post([
             'title' => $title,
             'body'  => $body,
         ]);
+
+        $post->save();
+
+        return $post;
     }
 
     /**
