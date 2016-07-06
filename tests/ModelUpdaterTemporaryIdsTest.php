@@ -4,6 +4,7 @@ namespace Czim\NestedModelUpdater\Test;
 use Config;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
+use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 
@@ -67,140 +68,6 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
             'id'   => $author->id,
             'name' => 'new shared author',
         ]);
-    }
-
-    /**
-     * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #['"]auth_1['"]#
-     */
-    function it_throws_an_exception_if_a_temporary_id_is_used_for_different_models()
-    {
-        $post    = $this->createPost();
-        $comment = $this->createComment($post);
-
-        $data = [
-            'comments' => [
-                [
-                    'id'     => $comment->id,
-                    'title'  => 'updated title',
-                    'author' => [
-                        '_tmp_id' => 'auth_1',
-                        'name'    => 'new author',
-                    ]
-                ],
-                [
-                    '_tmp_id' => 'auth_1',
-                    'title'   => 'new title',
-                    'body'    => 'for new comment',
-                ]
-            ]
-        ];
-
-        $updater = new ModelUpdater(Post::class);
-        $updater->update($data, $post);
-    }
-
-    /**
-     * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #['"]auth_1['"]#
-     */
-    function it_throws_an_exception_if_a_no_data_is_defined_for_a_temporary_id()
-    {
-        $post    = $this->createPost();
-        $comment = $this->createComment($post);
-
-        $data = [
-            'comments' => [
-                [
-                    'id'     => $comment->id,
-                    'title'  => 'updated title',
-                    'author' => [
-                        '_tmp_id' => 'auth_1',
-                    ]
-                ],
-                [
-                    'title'  => 'new title',
-                    'body'   => 'for new comment',
-                    'author' => [
-                        '_tmp_id' => 'auth_1',
-                    ]
-                ]
-            ]
-        ];
-
-        $updater = new ModelUpdater(Post::class);
-        $updater->update($data, $post);
-    }
-
-    /**
-     * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #['"]auth_1['"]#
-     */
-    function it_throws_an_exception_if_a_create_data_for_a_temporary_id_contains_a_primary_key_value()
-    {
-        $post    = $this->createPost();
-        $comment = $this->createComment($post);
-
-        $data = [
-            'comments' => [
-                [
-                    'id'     => $comment->id,
-                    'title'  => 'updated title',
-                    'author' => [
-                        '_tmp_id' => 'auth_1',
-                    ]
-                ],
-                [
-                    'title'  => 'new title',
-                    'body'   => 'for new comment',
-                    'author' => [
-                        '_tmp_id' => 'auth_1',
-                        'id'      => 123,
-                    ]
-                ]
-            ]
-        ];
-
-        $updater = new ModelUpdater(Post::class);
-        $updater->update($data, $post);
-    }
-
-    /**
-     * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #['"]auth_1['"]#
-     */
-    function it_throws_an_exception_if_multiple_inconsistent_sets_of_create_data_for_a_temporary_id_are_defined()
-    {
-        $post    = $this->createPost();
-        $comment = $this->createComment($post);
-
-        $data = [
-            'comments' => [
-                [
-                    'id'     => $comment->id,
-                    'title'  => 'updated title',
-                    'author' => [
-                        '_tmp_id' => 'auth_1',
-                        'name'    => 'Some Author Name',
-                    ]
-                ],
-                [
-                    'title'  => 'new title',
-                    'body'   => 'for new comment',
-                    'author' => [
-                        '_tmp_id' => 'auth_1',
-                        'name'    => 'Not The Same Author Name',
-                    ]
-                ]
-            ]
-        ];
-
-        $updater = new ModelUpdater(Post::class);
-        $updater->update($data, $post);
     }
 
     /**
@@ -289,6 +156,181 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
             'id'   => $genre->id,
             'name' => 'new shared genre',
         ]);
+    }
+
+
+    // ------------------------------------------------------------------------------
+    //      Exceptions
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @test
+     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
+     * @expectedExceptionMessageRegExp #['"]auth_1['"]#
+     */
+    function it_throws_an_exception_if_a_temporary_id_is_used_for_different_models()
+    {
+        $post    = $this->createPost();
+        $comment = $this->createComment($post);
+
+        $data = [
+            'comments' => [
+                [
+                    'id'     => $comment->id,
+                    'title'  => 'updated title',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                        'name'    => 'new author',
+                    ]
+                ],
+                [
+                    '_tmp_id' => 'auth_1',
+                    'title'   => 'new title',
+                    'body'    => 'for new comment',
+                ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+    }
+
+    /**
+     * @test
+     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
+     * @expectedExceptionMessageRegExp #data defined.*['"]auth_1['"]#
+     */
+    function it_throws_an_exception_if_a_no_data_is_defined_for_a_temporary_id()
+    {
+        $post    = $this->createPost();
+        $comment = $this->createComment($post);
+
+        $data = [
+            'comments' => [
+                [
+                    'id'     => $comment->id,
+                    'title'  => 'updated title',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                    ]
+                ],
+                [
+                    'title'  => 'new title',
+                    'body'   => 'for new comment',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                    ]
+                ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+    }
+
+    /**
+     * @test
+     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
+     * @expectedExceptionMessageRegExp #['"]auth_1['"].*primary key#
+     */
+    function it_throws_an_exception_if_a_create_data_for_a_temporary_id_contains_a_primary_key_value()
+    {
+        $post    = $this->createPost();
+        $comment = $this->createComment($post);
+
+        $data = [
+            'comments' => [
+                [
+                    'id'     => $comment->id,
+                    'title'  => 'updated title',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                    ]
+                ],
+                [
+                    'title'  => 'new title',
+                    'body'   => 'for new comment',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                        'id'      => 123,
+                    ]
+                ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+    }
+
+    /**
+     * @test
+     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
+     * @expectedExceptionMessageRegExp #inconsistent.*['"]auth_1['"]#
+     */
+    function it_throws_an_exception_if_multiple_inconsistent_sets_of_create_data_for_a_temporary_id_are_defined()
+    {
+        $post    = $this->createPost();
+        $comment = $this->createComment($post);
+
+        $data = [
+            'comments' => [
+                [
+                    'id'     => $comment->id,
+                    'title'  => 'updated title',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                        'name'    => 'Some Author Name',
+                    ]
+                ],
+                [
+                    'title'  => 'new title',
+                    'body'   => 'for new comment',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                        'name'    => 'Not The Same Author Name',
+                    ]
+                ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+    }
+
+    /**
+     * @test
+     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
+     * @expectedExceptionMessageRegExp #allowed.*['"]auth_1['"]#
+     */
+    function it_throws_an_exception_if_not_allowed_to_create_for_any_nested_use_of_a_temporary_id()
+    {
+        Config::set('nestedmodelupdater.relations.'  . Comment::class . '.author', [ 'update-only' => true ]);
+
+        $post    = $this->createPost();
+        $comment = $this->createComment($post);
+
+        $data = [
+            'comments' => [
+                [
+                    'id'     => $comment->id,
+                    'title'  => 'updated title',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                        'name'    => 'Some Author Name',
+                    ]
+                ],
+                [
+                    'title'  => 'new title',
+                    'body'   => 'for new comment',
+                    'author' => [
+                        '_tmp_id' => 'auth_1',
+                    ]
+                ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
     }
 
 }
