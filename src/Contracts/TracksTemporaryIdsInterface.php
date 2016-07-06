@@ -1,6 +1,8 @@
 <?php
 namespace Czim\NestedModelUpdater\Contracts;
 
+use Czim\NestedModelUpdater\Data\RelationInfo;
+
 interface TracksTemporaryIdsInterface
 {
 
@@ -25,11 +27,11 @@ interface TracksTemporaryIdsInterface
     public function getTemporaryIds();
 
     /**
-     * Returns FQN for model related to the dot-notation key in the data array.
+     * Returns RelationInfo instance for nested data element by dot notation data key.
      *
      * @param string $key
-     * @return string|false     false if model could not be determined
+     * @return RelationInfo|false     false if data could not be determined
      */
-    public function getModelClassForDataKeyInDotNotation($key);
+    public function getRelationInfoForDataKeyInDotNotation($key);
 
 }

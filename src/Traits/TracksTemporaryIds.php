@@ -75,8 +75,15 @@ trait TracksTemporaryIds
     protected function checkTemporaryIdsUsage()
     {
         foreach ($this->temporaryIds->getKeys() as $key) {
+            
             if (null === $this->temporaryIds->getDataForId($key)) {
                 throw new InvalidNestedDataException("No create data defined for temporary ID '{$key}'");
+            }
+            
+            if ( ! $this->temporaryIds->isAllowedToCreateForId($key)) {
+                throw new InvalidNestedDataException(
+                    "Not allowed to create new model for temporary ID '{$key}' for any referenced nested relation"
+                );
             }
         }
 

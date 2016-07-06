@@ -306,7 +306,8 @@ class ModelUpdater implements ModelUpdaterInterface
                 $dotKeyAbove = implode('.', $explodedKeys);
 
                 // get the model class for the temporary id, so we can make sure it's consistently used
-                $modelClass = $this->getModelClassForDataKeyInDotNotation($dotKeyAbove);
+                $info = $this->getRelationInfoForDataKeyInDotNotation($dotKeyAbove);
+                $modelClass = get_class($info->model());
                 if ( ! $modelClass) continue;
 
                 if ( ! $ids->getModelClassForId($temporaryIdValue)) {
@@ -323,6 +324,11 @@ class ModelUpdater implements ModelUpdaterInterface
                     $this->checkDataAttributeKeysForTemporaryId($temporaryIdValue, $data);
                     $ids->setDataForId($temporaryIdValue, array_except($data, [ $temporaryIdKey ]));
                 }
+                
+                // track if we're ever able to create the model for which a temporary ID is used
+                if ($info->isCreateAllowed()) {
+                    $ids->markAllowedToCreateForId($temporaryIdValue);
+                }
             }
         }
 
@@ -330,18 +336,13 @@ class ModelUpdater implements ModelUpdaterInterface
     }
 
     /**
-     * Returns FQN for model related to the dot-notation key in the data array.
+     * Returns RelationInfo instance for nested data element by dot notation data key.
      *
      * @param string $key
-     * @return string|false     false if model could not be determined
+     * @return RelationInfo|false     false if data could not be determined
      */
-    public function getModelClassForDataKeyInDotNotation($key)
+    public function getRelationInfoForDataKeyInDotNotation($key)
     {
-        // if the key is at the current level, our current class is for the model asked
-        if (empty($key) || is_numeric($key)) {
-            return $this->modelClass;
-        }
-
         $explodedKeys   = explode('.', $key);
         $nextLevelKey   = array_shift($explodedKeys);
         $nextLevelIndex = null;
@@ -364,7 +365,7 @@ class ModelUpdater implements ModelUpdaterInterface
         // we only need the updater if we cannot derive the model
         // class directly from the relation info.
         if (empty($remainingKey)) {
-            return get_class($info->model());
+            return $info;
         }
 
         $updater = $this->makeModelUpdater($info->updater(), [
@@ -375,7 +376,7 @@ class ModelUpdater implements ModelUpdaterInterface
             $this->config
         ]);
 
-        return $updater->getModelClassForDataKeyInDotNotation($remainingKey);
+        return $updater->getRelationInfoForDataKeyInDotNotation($remainingKey);
     }
 
     

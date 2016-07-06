@@ -39,12 +39,23 @@ class TemporaryId
      */
     protected $modelClass;
 
+    /**
+     * Whether any of the temporary ID usages allow the model to be created.
+     * This should be true if ANY of the nested usages allow this; all the others
+     * may be treated as linking the model created only once.
+     *
+     * @var boolean
+     */
+    protected $allowedToCreate = false;
+
 
     /**
+     * Sets whether the model was created.
+     *
      * @param boolean $created
      * @return $this
      */
-    public function setCreated($created)
+    public function setCreated($created = true)
     {
         $this->created = $created;
 
@@ -52,11 +63,36 @@ class TemporaryId
     }
 
     /**
+     * Returns whether the model has been created so far.
+     *
      * @return boolean
      */
     public function isCreated()
     {
         return $this->created;
+    }
+
+    /**
+     * Marks whether the temporary ID's data may be used to create anything.
+     *
+     * @param boolean $allowedToCreate
+     * @return $this
+     */
+    public function setAllowedToCreate($allowedToCreate = true)
+    {
+        $this->allowedToCreate = (bool) $allowedToCreate;
+
+        return $this;
+    }
+
+    /**
+     * Returns whether the temporary ID is allowed to be created at any point.
+     *
+     * @return boolean
+     */
+    public function isAllowedToCreate()
+    {
+        return $this->allowedToCreate;
     }
 
     /**

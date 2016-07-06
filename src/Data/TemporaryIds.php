@@ -78,6 +78,8 @@ class TemporaryIds implements TemporaryIdsInterface
     public function setModelClassForId($key, $class)
     {
         $this->getOrCreateByKey($key)->setModelClass($class);
+
+        return $this;
     }
 
     /**
@@ -168,6 +170,33 @@ class TemporaryIds implements TemporaryIdsInterface
     public function toArray()
     {
         return $this->temporaryIds;
+    }
+
+    /**
+     * Marks whether the model for a given temporary may be created.
+     *
+     * @param string $key
+     * @param bool   $allowed
+     * @return $this
+     */
+    public function markAllowedToCreateForId($key, $allowed = true)
+    {
+        $this->getOrCreateByKey($key)->setAllowedToCreate($allowed);
+
+        return $this;
+    }
+
+    /**
+     * Returns whether create is allowed for a given temporary ID.
+     *
+     * @param string $key
+     * @return bool
+     */
+    public function isAllowedToCreateForId($key)
+    {
+        $temp = $this->getByKey($key);
+
+        return $temp ? $temp->isAllowedToCreate() : false;
     }
     
 }
