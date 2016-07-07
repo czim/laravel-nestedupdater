@@ -2,7 +2,6 @@
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
-use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
 use Czim\NestedModelUpdater\Data\UpdateResult;
@@ -10,69 +9,17 @@ use Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException;
 use Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException;
 use Czim\NestedModelUpdater\Exceptions\ModelSaveFailureException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
-use Czim\NestedModelUpdater\Traits\TracksTemporaryIds;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
 
-class ModelUpdater implements ModelUpdaterInterface
+class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 {
-    use TracksTemporaryIds;
-
-    /**
-     * @var NestingConfigInterface
-     */
-    protected $config;
-
-    /**
-     * Dot-notation key, if relevant, representing the record currently updated or created
-     *
-     * @var null|string
-     */
-    protected $nestedKey;
-
-    /**
-     * If available, the (future) parent model of this record
-     *
-     * @var null|Model
-     */
-    protected $parentModel;
-
-    /**
-     * If available, the relation attribute on the parent model that may be used to
-     * look up the nested config relation info.
-     *
-     * @var null|string
-     */
-    protected $parentAttribute;
-
-    /**
-     * The information about the relation on the parent's attribute, based on
-     * parentModel & parentAttribute. Only set if not top-level.
-     *
-     * @var null|RelationInfo
-     */
-    protected $parentRelationInfo;
-
-    /**
-     * Data passed in for the create or update process
-     *
-     * @var array
-     */
-    protected $data;
-
-    /**
-     * Model being updated or created
-     * 
-     * @var null|Model
-     */
-    protected $model;
 
     /**
      * Whether we're currently creating or just updating
@@ -80,14 +27,7 @@ class ModelUpdater implements ModelUpdaterInterface
      * @var boolean
      */
     protected $isCreating;
-
-    /**
-     * The FQN for the main model being created or updated
-     *
-     * @var string
-     */
-    protected $modelClass;
-
+    
     /**
      * Normally, the whole update is performed in a database transaction, but only
      * on the top level. If this is set to true, no transactions are used.
@@ -95,22 +35,6 @@ class ModelUpdater implements ModelUpdaterInterface
      * @var bool
      */
     protected $noDatabaseTransaction = false;
-
-    /**
-     * Information about the nested relationships. If a key in the data array
-     * is present as a key in this array, it should be considered a nested
-     * relation's data.
-     *
-     * @var RelationInfo[]  keyed by nested attribute data key
-     */
-    protected $relationInfo;
-
-    /**
-     * Whether the relations in the data array have been analyzed
-     *
-     * @var bool
-     */
-    protected $relationsAnalyzed = false;
 
     /**
      * Whether any belongs to relations were updated so far
@@ -125,37 +49,7 @@ class ModelUpdater implements ModelUpdaterInterface
      * @var array
      */
     protected $saveOptions = [];
-
-
-    /**
-     * @param string                      $modelClass      FQN for model
-     * @param null|string                 $parentAttribute the name of the attribute on the parent's data array
-     * @param null|string                 $nestedKey       dot-notation key for tree data (ex.: 'blog.comments.2.author')
-     * @param null|Model                  $parentModel     the parent model, if this is a recursive/nested call
-     * @param null|NestingConfigInterface $config
-     */
-    public function __construct(
-        $modelClass,
-        $parentAttribute = null,
-        $nestedKey = null,
-        Model $parentModel = null,
-        NestingConfigInterface $config = null
-    ) {
-        if (null === $config) {
-            /** @var NestingConfigInterface $config */
-            $config = app(NestingConfigInterface::class);
-        }
-
-        $this->modelClass      = $modelClass;
-        $this->parentAttribute = $parentAttribute;
-        $this->nestedKey       = $nestedKey;
-        $this->parentModel     = $parentModel;
-        $this->config          = $config;
-
-        if ($parentAttribute && $parentModel) {
-            $this->parentRelationInfo = $this->config->getRelationInfo($parentAttribute, get_class($parentModel));
-        }
-    }
+    
 
 
     /**
@@ -334,81 +228,7 @@ class ModelUpdater implements ModelUpdaterInterface
 
         $this->checkTemporaryIdsUsage();
     }
-
-    /**
-     * Returns RelationInfo instance for nested data element by dot notation data key.
-     *
-     * @param string $key
-     * @return RelationInfo|false     false if data could not be determined
-     */
-    public function getRelationInfoForDataKeyInDotNotation($key)
-    {
-        $explodedKeys   = explode('.', $key);
-        $nextLevelKey   = array_shift($explodedKeys);
-        $nextLevelIndex = null;
-
-        if (count($explodedKeys) && is_numeric(head($explodedKeys))) {
-            $nextLevelIndex = (int) array_shift($explodedKeys);
-        }
-
-        $remainingKey = implode('.', $explodedKeys);
-
-        // prepare the next recursive step and pass on the key
-        // get the info for the next key, make sure that the info is loaded
-
-        /** @var RelationInfo $info */
-        if ( ! ($info = array_get($this->relationInfo, $nextLevelKey))) {
-            $info = $this->getRelationInfoForKey($nextLevelKey);
-        }
-        if ( ! $info) return false;
-
-        // we only need the updater if we cannot derive the model
-        // class directly from the relation info.
-        if (empty($remainingKey)) {
-            return $info;
-        }
-
-        $updater = $this->makeModelUpdater($info->updater(), [
-            get_class($info->model()),
-            $nextLevelKey,
-            $this->appendNestedKey($nextLevelKey, $nextLevelIndex),
-            $this->model,
-            $this->config
-        ]);
-
-        return $updater->getRelationInfoForDataKeyInDotNotation($remainingKey);
-    }
-
     
-
-    /**
-     * Analyzes data to find nested relations data, and stores information about each.
-     */
-    protected function analyzeNestedRelationsData()
-    {
-        $this->relationInfo = [];
-
-        foreach ($this->data as $key => $value) {
-            if ( ! $this->config->isKeyNestedRelation($key)) continue;
-
-            $this->relationInfo[$key] = $this->getRelationInfoForKey($key);
-        }
-
-        $this->relationsAnalyzed = true;
-    }
-
-    /**
-     * Returns and stores relation info for a given nested model key.
-     *
-     * @param string $key
-     * @return RelationInfo
-     */
-    protected function getRelationInfoForKey($key)
-    {
-        $this->relationInfo[$key] = $this->config->getRelationInfo($key, $this->modelClass);
-
-        return $this->relationInfo[$key];
-    }
 
     /**
      * Prepares model property so it is ready for belongsTo relation updates.
@@ -748,7 +568,7 @@ class ModelUpdater implements ModelUpdaterInterface
                     return $this->makeUpdateResult();
                 }
 
-                $updater = $this->makeModelUpdater($info->updater(), [
+                $updater = $this->makeNestedParser($info->updater(), [
                     get_class($info->model()),
                     $attribute,
                     $nestedKey,
@@ -833,7 +653,7 @@ class ModelUpdater implements ModelUpdaterInterface
                 ->setNestedKey($nestedKey);
         }
 
-        $updater = $this->makeModelUpdater($info->updater(), [
+        $updater = $this->makeNestedParser($info->updater(), [
             get_class($info->model()),
             $attribute,
             $nestedKey,
@@ -930,60 +750,7 @@ class ModelUpdater implements ModelUpdaterInterface
         return $model;
     }
 
-    /**
-     * Returns data array containing only the data that should be stored
-     * on the main model being updated/created.
-     * 
-     * @return array
-     */
-    protected function getDirectModelData()
-    {
-        // this only works if the relations have been analyzed
-        if ( ! $this->relationsAnalyzed) {
-            $this->analyzeNestedRelationsData();
-        }
-
-        return Arr::except($this->data, array_keys($this->relationInfo));
-    }
-
-    /**
-     * @param string $class         FQN of updater
-     * @param array  $parameters    parameters for model updater constructor
-     * @return ModelUpdaterInterface
-     */
-    protected function makeModelUpdater($class, array $parameters)
-    {
-        /** @var ModelUpdaterInterface $updater */
-        $updater = App::make($class, $parameters);
-
-        if ( ! ($updater instanceof ModelUpdaterInterface)) {
-            throw new UnexpectedValueException(
-                "Expected ModelUpdaterInterface instance, got " . get_class($class) . ' instead'
-            );
-        }
-
-        // if we're dealing with temporary IDs, pass on their tracking info
-        if ($this->isHandlingTemporaryIds() && $this->hasTemporaryIds()) {
-            $updater->setTemporaryIds($this->temporaryIds);
-        }
-
-        return $updater;
-    }
-
-    /**
-     * Returns nested key for the current full-depth nesting.
-     *
-     * @param string   $key
-     * @param null|int $index
-     * @return string
-     */
-    protected function appendNestedKey($key, $index = null)
-    {
-        return ($this->nestedKey ? $this->nestedKey . '.' : '')
-             . $key
-             . (null !== $index ? '.' . $index : '');
-    }
-
+    
     /**
      * Returns UpdateResult instance for standard precluded responses.
      *
@@ -1013,17 +780,7 @@ class ModelUpdater implements ModelUpdaterInterface
         // level, so when no nested key has been set at all.
         return null === $this->nestedKey;
     }
-
-    /**
-     * Returns whether this instance is performing a top-level operation,
-     * as opposed to a nested at any recursion depth below it.
-     *
-     * @return boolean
-     */
-    protected function isTopLevel()
-    {
-        return null === $this->parentAttribute && null === $this->parentRelationInfo;
-    }
+    
 
     // ------------------------------------------------------------------------------
     //      Getters / Setters
