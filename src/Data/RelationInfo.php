@@ -86,6 +86,21 @@ class RelationInfo
      */
     protected $deleteDetached = false;
 
+    /**
+     * @var null|string     FQN for nested validator that should handle nested validation
+     */
+    protected $validator;
+
+    /**
+     * @var null|string     FQN for the class that provides the rules for the model
+     */
+    protected $rulesClass;
+
+    /**
+     * @var null|string     name of the method that provides the array with rules
+     */
+    protected $rulesMethod;
+
 
     /**
      * @return string
@@ -273,6 +288,63 @@ class RelationInfo
     public function setDetachMissing($detachMissing)
     {
         $this->detachMissing = $detachMissing;
+
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function validator()
+    {
+        return $this->validator;
+    }
+
+    /**
+     * @param string $validator
+     * @return $this
+     */
+    public function setValidator($validator)
+    {
+        $this->validator = $validator;
+
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function rulesClass()
+    {
+        return $this->rulesClass;
+    }
+
+    /**
+     * @param string $rulesClass
+     * @return $this
+     */
+    public function setRulesClass($rulesClass)
+    {
+        $this->rulesClass = $rulesClass;
+
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function rulesMethod()
+    {
+        return $this->rulesMethod ?: config('nestedmodelupdater.validation.model-rules-method', 'rules');
+    }
+
+    /**
+     * @param string $rulesMethod
+     * @return $this
+     */
+    public function setRulesMethod($rulesMethod)
+    {
+        $this->rulesMethod = $rulesMethod;
 
         return $this;
     }

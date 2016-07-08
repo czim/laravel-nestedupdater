@@ -65,7 +65,10 @@ class NestingConfig implements NestingConfigInterface
             ->setUpdateAllowed($this->isKeyUpdatableNestedRelation($key, $parentModel))
             ->setCreateAllowed($this->isKeyCreatableNestedRelation($key, $parentModel))
             ->setDetachMissing($this->isKeyDetachingNestedRelation($key, $parentModel))
-            ->setDeleteDetached($this->isKeyDeletingNestedRelation($key, $parentModel));
+            ->setDeleteDetached($this->isKeyDeletingNestedRelation($key, $parentModel))
+            ->setValidator($this->getValidatorClassForKey($key, $parentModel))
+            ->setRulesClass($this->getRulesClassForKey($key, $parentModel))
+            ->setRulesMethod($this->getRulesMethodForKey($key, $parentModel));
     }
 
     /**
@@ -179,18 +182,7 @@ class NestingConfig implements NestingConfigInterface
      */
     public function getRelationMethod($key, $parentModel = null)
     {
-        if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
-            return false;
-        }
-
-        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
-
-        if (is_array($config) && Arr::has($config, 'method')) {
-            return Arr::get($config, 'method');
-        }
-
-        // if no exception set, the method is based on the key
-        return Str::camel($key);
+        return $this->getStringValueForKey($key, 'method', Str::camel($key), $parentModel);
     }
 
     /**
@@ -202,18 +194,7 @@ class NestingConfig implements NestingConfigInterface
      */
     public function getUpdaterClassForKey($key, $parentModel = null)
     {
-        if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
-            return false;
-        }
-
-        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
-
-        if (is_array($config) && Arr::has($config, 'updater')) {
-            return Arr::get($config, 'updater');
-        }
-
-        // if no exception is set, return the normal updater
-        return ModelUpdater::class;
+        return $this->getStringValueForKey($key, 'updater', ModelUpdater::class, $parentModel);
     }
 
     /**
@@ -314,6 +295,73 @@ class NestingConfig implements NestingConfigInterface
             get_class($relation),
             Config::get('nestedmodelupdater.belongs-to-relations', [])
         );
+    }
+
+    /**
+     * Returns a string relation config value for a given nested data key
+     *
+     * @param string      $key
+     * @param string      $configKey
+     * @param string      $default
+     * @param null|string $parentModel
+     * @return bool|string
+     */
+    protected function getStringValueForKey($key, $configKey, $default = null, $parentModel = null)
+    {
+        if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
+            return false;
+        }
+
+        $config = $this->getNestedRelationConfigByKey($key, $parentModel);
+
+        if (is_array($config) && Arr::has($config, $configKey)) {
+            return Arr::get($config, $configKey);
+        }
+
+        return $default ?: false;
+    }
+
+    // ------------------------------------------------------------------------------
+    //      Validation
+    // ------------------------------------------------------------------------------
+
+    /**
+     * Returns the FQN for the nested validator to be used for a specific nested relation key
+     *
+     * @param string      $key
+     * @param null|string $parentModel the FQN for the parent model
+     * @return string
+     */
+    public function getValidatorClassForKey($key, $parentModel = null)
+    {
+        return $this->getStringValueForKey($key, 'validator', NestedValidator::class, $parentModel);
+    }
+
+    /**
+     * Returns the FQN for the class that has the rules for the nested model
+     *
+     * @param string      $key
+     * @param null|string $parentModel the FQN for the parent model
+     * @return string
+     */
+    public function getRulesClassForKey($key, $parentModel = null)
+    {
+        return $this->getStringValueForKey($key, 'rules', null, $parentModel);
+    }
+
+    /**
+     * Returns the FQN for the method on the rules class that should be called to
+     * get the rules array
+     *
+     * @param string      $key
+     * @param null|string $parentModel the FQN for the parent model
+     * @return string
+     */
+    public function getRulesMethodForKey($key, $parentModel = null)
+    {
+        $default = config('nestedmodelupdater.validation.model-rules-method', 'rules');
+
+        return $this->getStringValueForKey($key, 'rules-method', $default, $parentModel);
     }
 
 }

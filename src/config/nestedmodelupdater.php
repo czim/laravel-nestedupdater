@@ -48,6 +48,10 @@ return [
     //                                  means that instead of setting the foreign key NULL, for BelongsToMany
     //                                  related models are deleted if they are not related to anything else
     //                                  (default: false).
+    //      validator       string      FQN of NestedValidatorInterface that should handle validation.
+    //      rules           string      FQN of the class that provides the rules for the model
+    //      rules-method    string      method name on the rules class to use (default: 'rules')
+    //
     //
     //          'Some\Model\Class' => [
     //              'relation_key' => [ 'link-only' => true, 'updater' => 'Some\Updater\Class' ]
