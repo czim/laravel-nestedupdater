@@ -6,6 +6,7 @@ use Czim\NestedModelUpdater\NestedValidator;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
+use Czim\NestedModelUpdater\Test\Helpers\Models\Tag;
 
 class NestedValidatorTest extends TestCase
 {
@@ -242,6 +243,57 @@ class NestedValidatorTest extends TestCase
 
         $this->assertHasValidationRules($rules, [
             'genre.name' => ['in:custom,rules,work'],
+        ], true);
+    }
+
+    /**
+     * @test
+     */
+    function it_uses_model_specific_rules_if_configured_to_unless_nested_relation_rules_overrule_them()
+    {
+        // set up some models to use specific rules classes & methods
+        // and set up a single overruling nested relation rules class & method
+
+        Config::set('nestedmodelupdater.validation.model-rules', [
+            Post::class => [
+                'class' => Post::class,
+                'method' => 'customRulesMethod',
+            ],
+            Tag::class  => Tag::class,
+            Genre::class => [
+                'class'  => Genre::class,
+                'method' => 'notUsedRulesMethod',
+            ]
+        ]);
+
+        Config::set('nestedmodelupdater.relations.' . Post::class . '.genre', [
+            'rules'        => Genre::class,
+            'rules-method' => 'customRulesMethod',
+        ]);
+
+        $data = [
+            'title' => 'allowed title',
+            'genre' => [
+                'name' => 'non-custom allowed genre',
+            ],
+            'tags' => [
+                [
+                    'id'   => 123,
+                    'name' => 'some tag',
+                ]
+            ]
+        ];
+
+        $validator = new NestedValidator(Post::class);
+        $rules = $validator->validationRules($data);
+
+        $this->assertHasValidationRules($rules, [
+            // set for model with array: class & method
+            'title'       => 'in:custom,post,rules',
+            // set for model with just a class string
+            'tags.0.name' => 'in:custom,tag,rules',
+            // if genre would not be overridden, it would error on not finding 'notUsedRulesMethod'
+            'genre.name'  => 'in:custom,rules,work',
         ], true);
     }
 

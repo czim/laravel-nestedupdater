@@ -16,4 +16,12 @@ class Tag extends Model
     {
         return $this->morphTo(Comment::class, 'taggable');
     }
+
+    // for testing per-model rules class/method validation configuration
+    public function rules()
+    {
+        return [
+            'name' => 'in:custom,tag,rules',
+        ];
+    }
 }

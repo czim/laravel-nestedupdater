@@ -45,4 +45,13 @@ class Post extends Model
     {
         return $this->hasMany(Special::class);
     }
+
+    // for testing per-model rules class/method validation configuration
+    public function customRulesMethod()
+    {
+        return [
+            'title' => 'in:custom,post,rules',
+        ];
+    }
+
 }
