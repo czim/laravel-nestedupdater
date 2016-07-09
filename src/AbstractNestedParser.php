@@ -240,5 +240,71 @@ abstract class AbstractNestedParser implements NestedParserInterface
     {
         return null === $this->parentAttribute && null === $this->parentRelationInfo;
     }
-    
+
+    /**
+     * @param mixed       $id         primary model key or lookup value
+     * @param null|string $attribute  primary model key name or lookup column, if null, uses find() method
+     * @param null|string $modelClass optional, if not looking up the main model
+     * @param null|string $nestedKey  optional, if not looking up the main model
+     * @param bool        $exceptionIfNotFound
+     * @return Model|null
+     * @throws NestedModelNotFoundException
+     */
+    protected function getModelByLookupAtribute(
+        $id,
+        $attribute = null,
+        $modelClass = null,
+        $nestedKey = null,
+        $exceptionIfNotFound = true
+    ) {
+        $class     = $modelClass ?: $this->modelClass;
+        $model     = new $class;
+        $nestedKey = $nestedKey ?: $this->nestedKey;
+
+        if ( ! ($model instanceof Model)) {
+            throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
+        }
+
+        /** @var Model $model */
+        if (null === $attribute) {
+            $model = $model::find($id);
+        } else {
+            $model = $model::where($attribute, $id)->first();
+        }
+
+        if ( ! $model && $exceptionIfNotFound) {
+            throw (new NestedModelNotFoundException())
+                ->setModel($class)
+                ->setNestedKey($nestedKey);
+        }
+
+        return $model;
+    }
+
+    /**
+     * @param mixed       $id         primary model key or lookup value
+     * @param null|string $attribute  primary model key name or lookup column, if null, uses find() method
+     * @param null|string $modelClass optional, if not looking up the main model
+     * @return bool
+     */
+    protected function checkModelExistsByLookupAtribute(
+        $id,
+        $attribute = null,
+        $modelClass = null
+    ) {
+        $class = $modelClass ?: $this->modelClass;
+        $model = new $class;
+
+        if ( ! ($model instanceof Model)) {
+            throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
+        }
+
+        /** @var Model $model */
+        if (null === $attribute) {
+            return null !== $model::find($id);
+        }
+
+        return $model::where($attribute, $id)->count() > 0;
+    }
+
 }
