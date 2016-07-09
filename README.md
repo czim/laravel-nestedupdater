@@ -6,7 +6,7 @@
 [![Latest Stable Version](http://img.shields.io/packagist/v/czim/laravel-nestedupdater.svg)](https://packagist.org/packages/czim/laravel-nestedupdater)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/cb05e233-afac-486e-b276-2765d1461cd6/mini.png)](https://insight.sensiolabs.com/projects/cb05e233-afac-486e-b276-2765d1461cd6)
 
-Package for allowing updating of nested eloquent model relations using a single data array.
+Package for updating nested eloquent model relations using a single data array.
 
 This package will make it easy to create or update a group of nested, related models through a single method call.
 For example, when passing in the following data for an update of a Post model ...
@@ -42,6 +42,8 @@ $data = [
 - create a new comment for the post and linking author #512 to it
 
 Any combination of nested creates and updates is supported; the nesting logic follows that of Eloquent relationships and is highly customizable. 
+
+Additionally, this package provides support for validating data with nested relations all at once. 
 
 
 ## Install
@@ -198,13 +200,13 @@ Also check out [the configuration file](https://github.com/czim/laravel-nestedup
 
 ## Validation
 
-Validation is not automatically performed by the model updater. This pacakge offers nested validation as a separate process,
+Validation is not automatically performed by the model updater. This package offers nested validation as a separate process,
 that may be implemented as freely as that of the updater itself. 
 A `NestedValidator` class may be used to perform validation or return validation rules based on the data provided and the
 relations configuration set. This will reflect update- or link-only rights and rules for records existing on using primary
 keys when updating.
 
-[Further information on setting up validation](VALIDATION.md) is available.
+[Further information on setting up validation here](VALIDATION.md), including different approaches for intiating validation.
 
 
 
@@ -281,6 +283,7 @@ To enable it, simply set `allow-temporary-ids` to `true` in the configuration.
 
 There are no deep checks for cyclical references or (fairly unlikely) dependency issues for multiple interrelated temporary ID create operations, so be careful with this or perform in-depth validation manually beforehand.
  
+ 
 ## Extending functionality
 
 The `ModelUpdater` class should be considered a prime candidate for customization.
@@ -288,6 +291,8 @@ The `normalizeData()` method may be overridden to manipulate the data array pass
 Additionally check out `deleteFormerlyRelatedModel()`, which may be useful to set up in cases where conditions for deleting need to be refined.
 
 Note that it is your own ModelUpdater extension may be set for specific relations by using the `updater` attribute.
+
+The validator shares much of the updater's structure, so it should be equally easy to extend.
 
 
 ## Contributing

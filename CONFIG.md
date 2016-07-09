@@ -48,7 +48,103 @@ The options that may be be set are as follows:
 - `updater` (string):
     If you want your own implementation of the `ModelUpdaterInterface` to handle nested update or create actions for
     the relation, you can set the fully qualified namespace for it here.
-    (default is `null`, uses the default package `ModelUpdater` class.
+    (default is `null`, uses the default package `ModelUpdater` class)
+
+And for validation:
+
+- `validator` (string):
+    If you want your own implementation of the `NestedUpdaterInterface` to handle nested validation for
+    the relation, you can set the fully qualified namespace for it here.
+    (default is `null`, uses the default package `NestedValidator` class.
+- `rules` (string):
+    If you want to override the default validation rules class (see validation configuration options) for
+    the relation, you can set a fully qualified namespace for a class here.
+    (default is `null`)
+- `rules-method` (string):
+    If you want to override the default validation rules method to be called on the rules class
+    (see validation configuration options) for the relation, you can set the method here.
+    (default is `rules`)
+
+
+## Validation configuration
+
+The above relations options for validation overrule the validator defaults. 
+The validation defaults are configured in the `nestedmodelupdater.validation` section of the config.
+
+### Rules class fallback
+
+The default fallback for rules classes ([see the readme section on validation](VALIDATON.md)) works as follows:
+Given a model, say `App\Models\Post`, the class name will be constructed as follows:
+
+    model-rules-namespace + basename of model class + optional postfix
+    
+For example:
+    
+    App\Http\\Request\Rules\ + Post + Rules = App\Http\\Request\Rules\PostRules 
+ 
+The namespace and postfix may be configured in the `valiation` section:
+
+```php
+<?php
+    'model-rules-namespace' => 'App\\Http\\Request\\Rules',
+    'model-rules-postfix'   => 'Rules',
+```
+
+Note that using this fallback option is entirely optional. 
+`model-rules` and/or `relations` settings may be used to prevent the fallback from ever being used. 
+
+
+### Allowing missing rules classes
+
+By default, if a rules class fallback is not found or instantiable, an empty set of rules is silently used.
+This behavior may be altered by chaning the value for `validation.allow-missing-rules`:
+
+```php
+<?php
+    'allow-missing-rules' => false,
+```
+
+When set to false, this will cause an `UnexpectedValueException` to be thrown if no rules class is available.
+Note that exceptions will always be thrown if a class is available, but the *method* is not, or cannot be used.
+
+
+### Rules method
+
+The indicated class will be instantiated, and a call to the `rules()` method will be performed on it.
+This default method may be changed:
+
+```php
+<?php
+    // This would default to calling customMethod() instead of rules()
+    'model-rules-method' => 'customMethod',
+``` 
+    
+### Model Rules
+
+It is also possible to set rules classes and methods on a per-model basis, in the `validation.model-rules` array.
+These will apply for any validation of the model's data, regardless of its nested relation context.
+
+```php
+<?php
+
+    'model-rules' => [
+    
+        // If a string value is used, it should be the rules class FQN
+        // the default rules method would be used in this case.
+        App\Models\Post::class => Your\RulesClass::class,
+        
+        // If a rules method needs to be defined, use an array for the
+        // value and set it as follows. Note that 'class' and 'method'
+        // are both optional; the default/fallback will be used for any
+        // option not specified.
+        App\Models\Comment::class => [
+            'class'  => Your\RulesClass::class,
+            'method' => 'rulesForComment',
+        ],
+    ],
+```
+
+Note that the model-specific settings are overruled by relation-specific rules settings.
 
 
 ### A note on detaching
