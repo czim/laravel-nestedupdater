@@ -67,4 +67,33 @@ return [
     'relations' => [
     ],
 
+    // Settings for using the nested data validator
+    'validation' => [
+
+        // Default namespace to look for <ModelName> classes with rules in
+        // If no rules class has been defined for a specific model, the
+        // model name is expected in this namespace.
+        //
+        // The rules relation configuration option overrides this and the next
+        // configuration option.
+        'model-rules-namespace' => 'App\\Http\\Request\\Rules',
+
+        // Postfix to use when composing model rules class FQNs.
+        // If this is set to 'Rules', the class name loaded would
+        // be <ModelName>Rules, f.i.: App\Http\Request\Rules\PostRules
+        'model-rules-postfix' => null,
+
+        // Default rules method to call on the rules classes
+        // should take one optional parameter with the type:
+        //  'create', 'update', (or 'link')
+        //
+        // The rules-method relation configuration option overrides this.
+        'model-rules-method' => 'rules',
+
+        // If true, does not throw exceptions if no rules model class can be
+        // instantiated for a nested validation call.
+        'allow-missing-rules' => true,
+
+    ],
+
 ];
