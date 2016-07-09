@@ -256,7 +256,8 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
             $attribute,
             $this->appendNestedKey($attribute, $index),
             $this->model,
-            $this->config
+            $this->config,
+            $this->modelClass,
         ]);
 
         $rules = $this->mergeInherentRulesWithCustomModelRules($rules, $validator->validationRules($data, $creating));
