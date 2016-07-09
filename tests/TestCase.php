@@ -70,6 +70,10 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
                 'specials' => true,
             ],
         ]);
+
+        $app['config']->set('nestedmodelupdater.validation.model-rules-namespace', 'Czim\\NestedModelUpdater\\Test\\Helpers\\Rules');
+        $app['config']->set('nestedmodelupdater.validation.model-rules-postfix', 'Rules');
+        $app['config']->set('nestedmodelupdater.validation.allow-missing-rules', true);
     }
 
     protected function migrateDatabase()
