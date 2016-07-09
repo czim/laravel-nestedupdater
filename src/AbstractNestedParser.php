@@ -43,6 +43,13 @@ abstract class AbstractNestedParser implements NestedParserInterface
     protected $parentModel;
 
     /**
+     * If available the FQN of the parent model (may be set while parentModel instance is not)
+     *
+     * @var null|string
+     */
+    protected $parentModelClass;
+
+    /**
      * If available, the relation attribute on the parent model that may be used to
      * look up the nested config relation info.
      *
@@ -89,32 +96,39 @@ abstract class AbstractNestedParser implements NestedParserInterface
 
 
     /**
-     * @param string                      $modelClass      FQN for model
-     * @param null|string                 $parentAttribute the name of the attribute on the parent's data array
-     * @param null|string                 $nestedKey       dot-notation key for tree data (ex.: 'blog.comments.2.author')
-     * @param null|Model                  $parentModel     the parent model, if this is a recursive/nested call
+     * @param string                      $modelClass       FQN for model
+     * @param null|string                 $parentAttribute  the name of the attribute on the parent's data array
+     * @param null|string                 $nestedKey        dot-notation key for tree data (ex.: 'blog.comments.2.author')
+     * @param null|Model                  $parentModel      the parent model, if this is a recursive/nested call
      * @param null|NestingConfigInterface $config
+     * @param null                        $parentModelClass if the parentModel is not known, but its class is, set this
      */
     public function __construct(
         $modelClass,
         $parentAttribute = null,
         $nestedKey = null,
         Model $parentModel = null,
-        NestingConfigInterface $config = null
+        NestingConfigInterface $config = null,
+        $parentModelClass = null
     ) {
         if (null === $config) {
             /** @var NestingConfigInterface $config */
             $config = app(NestingConfigInterface::class);
         }
 
-        $this->modelClass      = $modelClass;
-        $this->parentAttribute = $parentAttribute;
-        $this->nestedKey       = $nestedKey;
-        $this->parentModel     = $parentModel;
-        $this->config          = $config;
+        $this->modelClass       = $modelClass;
+        $this->parentAttribute  = $parentAttribute;
+        $this->nestedKey        = $nestedKey;
+        $this->parentModel      = $parentModel;
+        $this->config           = $config;
+        $this->parentModelClass = $parentModel ? get_class($parentModel) : $parentModelClass;
 
-        if ($parentAttribute && $parentModel) {
-            $this->parentRelationInfo = $this->config->getRelationInfo($parentAttribute, get_class($parentModel));
+        print_r($parentAttribute . PHP_EOL);
+        print_r($parentModel . PHP_EOL);
+
+        if ($parentAttribute && $this->parentModelClass) {
+
+            $this->parentRelationInfo = $this->config->getRelationInfo($parentAttribute, $this->parentModelClass);
         }
     }
 
