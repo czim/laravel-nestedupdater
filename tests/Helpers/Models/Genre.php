@@ -11,4 +11,17 @@ class Genre extends Model
     {
         return $this->hasMany(Post::class);
     }
+
+    // for testing the validator configuration
+    public function customRulesMethod()
+    {
+        return [
+            'name' => 'in:custom,rules,work',
+        ];
+    }
+
+    public function brokenCustomRulesMethod()
+    {
+        return 'something other than an array';
+    }
 }
