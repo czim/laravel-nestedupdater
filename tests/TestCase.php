@@ -9,6 +9,8 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Tag;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Mockery;
@@ -226,5 +228,42 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             'special' => $key,
             'name'    => $name,
         ]);
+    }
+
+    /**
+     * @param mixed  $messages
+     * @param string $key
+     * @param string $like
+     * @param bool   $isRegex if true, $like is already a regex string
+     */
+    protected function assertHasValidationErrorLike($messages, $key, $like, $isRegex = false)
+    {
+        if ( ! ($messages instanceof MessageBag)) {
+            $this->fail("Messages should be a MessageBag instance");
+        }
+        /** @var MessageBag $messages */
+        if ( ! $messages->has($key)) {
+            $this->fail("Messages does not contain key '{$key}'");
+        }
+
+        $regex = $isRegex ? $like : '#' . preg_quote($like) . '#i';
+
+        $matched = array_filter($messages->get($key), function ($message) use ($regex) {
+            return preg_match($regex, $message);
+        });
+
+        if ( ! count($matched)) {
+            $this->fail("Messages does not contain error for key '{$key}' that matches '{$regex}'");
+        }
+    }
+
+    /**
+     * @param mixed  $messages
+     * @param string $key
+     * @param string $regex
+     */
+    protected function assertHasValidationErrorRegex($messages, $key, $regex)
+    {
+        $this->assertHasValidationErrorLike($messages, $key, $regex, true);
     }
 }
