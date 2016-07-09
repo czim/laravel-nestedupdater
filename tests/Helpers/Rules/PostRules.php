@@ -8,7 +8,7 @@ class PostRules
     {
         if ($type !== 'create') {
             return [
-                'title' => 'string|max:50',
+                'title' => 'string|max:10',
                 'body'  => 'required|string',
             ];
         } else {
