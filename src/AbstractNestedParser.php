@@ -123,9 +123,6 @@ abstract class AbstractNestedParser implements NestedParserInterface
         $this->config           = $config;
         $this->parentModelClass = $parentModel ? get_class($parentModel) : $parentModelClass;
 
-        print_r($parentAttribute . PHP_EOL);
-        print_r($parentModel . PHP_EOL);
-
         if ($parentAttribute && $this->parentModelClass) {
 
             $this->parentRelationInfo = $this->config->getRelationInfo($parentAttribute, $this->parentModelClass);
