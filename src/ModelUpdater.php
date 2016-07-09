@@ -630,7 +630,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         // if a model for a given 'updateId' does not exist yet, and the model's key is
         // not an incrementing key, this should be treated as an attempt to create a record
-        $creatingWithKey = ( ! $info->model()->incrementing && ! empty($updateId) && ! $existingModel);
+        $creatingWithKey = ( ! $info->model()->getIncrementing() && ! empty($updateId) && ! $existingModel);
 
         // if this is a link-only operation, mark it
         $onlyLinking = (count($data) == 1 && ! empty($updateId) && ! $creatingWithKey);
