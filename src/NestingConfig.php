@@ -3,6 +3,8 @@ namespace Czim\NestedModelUpdater;
 
 use BadMethodCallException;
 use Config;
+use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
+use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
 use Illuminate\Database\Eloquent\Model;
@@ -194,7 +196,7 @@ class NestingConfig implements NestingConfigInterface
      */
     public function getUpdaterClassForKey($key, $parentModel = null)
     {
-        return $this->getStringValueForKey($key, 'updater', ModelUpdater::class, $parentModel);
+        return $this->getStringValueForKey($key, 'updater', ModelUpdaterInterface::class, $parentModel);
     }
 
     /**
@@ -334,7 +336,7 @@ class NestingConfig implements NestingConfigInterface
      */
     public function getValidatorClassForKey($key, $parentModel = null)
     {
-        return $this->getStringValueForKey($key, 'validator', NestedValidator::class, $parentModel);
+        return $this->getStringValueForKey($key, 'validator', NestedValidatorInterface::class, $parentModel);
     }
 
     /**

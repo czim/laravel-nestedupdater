@@ -1,8 +1,8 @@
 <?php
 namespace Czim\NestedModelUpdater\Test;
 
+use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
-use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\NestingConfig;
 use Czim\NestedModelUpdater\Test\Helpers\AlternativeUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
@@ -44,7 +44,7 @@ class NestingConfigTest extends TestCase
         $this->assertInstanceOf(Genre::class, $info->model());
         $this->assertEquals('genre', $info->relationMethod());
         $this->assertEquals(BelongsTo::class, $info->relationClass());
-        $this->assertEquals(ModelUpdater::class, $info->updater());
+        $this->assertEquals(ModelUpdaterInterface::class, $info->updater());
     }
 
     /**
