@@ -94,6 +94,30 @@ return [
         // instantiated for a nested validation call.
         'allow-missing-rules' => true,
 
+
+        // Classes and/or methods to read validation rules from by default for a given model
+        // these settings will override the validation rules defaults, but will in turn
+        // be overriden by specific rules classes and/or methods defined in the relations
+        // configuration above.
+        //
+        // Definitions should be set per model FQN. They may either be a string indicating
+        // the rules class (the default model-rules-method will be accessed on this class:
+        //
+        //          'Some\Model\Class' => 'Some\Rules\Class'
+        //
+        // or the configuration may be an array, with two optional settings: 'class' and 'rules':
+        //
+        //          'Some\Model\Class' => [
+        //              'class'  => 'Some\Rules\Class',
+        //              'method' => 'rulesMethod',
+        //          ]
+        //
+        // Note that all classes defined here must be FQN's, they will *not* be namespaced by
+        // the set model-rules-namespace.
+
+        'model-rules' => [
+        ],
+
     ],
 
 ];
