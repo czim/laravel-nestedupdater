@@ -2,6 +2,7 @@
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
+use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Czim\NestedModelUpdater\Data\TemporaryIds;
@@ -32,6 +33,7 @@ class NestedModelUpdaterServiceProvider extends ServiceProvider
     protected function registerInterfaceBindings()
     {
         $this->app->bind(ModelUpdaterInterface::class, ModelUpdater::class);
+        $this->app->bind(NestedValidatorInterface::class, NestedValidator::class);
         $this->app->bind(NestingConfigInterface::class, NestingConfig::class);
         $this->app->bind(TemporaryIdsInterface::class, TemporaryIds::class);
     }
