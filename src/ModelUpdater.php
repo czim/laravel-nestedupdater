@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
@@ -711,45 +712,34 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     }
 
     /**
-     * @param mixed       $id         primary model key or lookup value
-     * @param null|string $attribute  primary model key name or lookup column, if null, uses find() method
-     * @param null|string $modelClass optional, if not looking up the main model
-     * @param null|string $nestedKey  optional, if not looking up the main model
-     * @param bool        $exceptionIfNotFound
-     * @return Model|null
-     * @throws NestedModelNotFoundException
+     * {@inheritdoc}
+     * @return ModelUpdaterInterface
      */
-    protected function getModelByLookupAtribute(
-        $id,
-        $attribute = null,
-        $modelClass = null,
-        $nestedKey = null,
-        $exceptionIfNotFound = true
-    ) {
-        $class     = $modelClass ?: $this->modelClass;
-        $model     = new $class;
-        $nestedKey = $nestedKey ?: $this->nestedKey;
+    protected function makeNestedParser($class, array $parameters)
+    {
+        /** @var ModelUpdaterInterface $updater */
+        $updater = App::make($class, $parameters);
 
-        if ( ! ($model instanceof Model)) {
-            throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
+        if ( ! ($updater instanceof ModelUpdaterInterface)) {
+
+            if ( ! $updater) {
+                throw new UnexpectedValueException(
+                    "Expected ModelUpdaterInterface instance, got nothing for " . $class
+                );
+            }
+
+            throw new UnexpectedValueException(
+                "Expected ModelUpdaterInterface instance, got " . get_class($class) . ' instead'
+            );
         }
 
-        /** @var Model $model */
-        if (null === $attribute) {
-            $model = $model::find($id);
-        } else {
-            $model = $model::where($attribute, $id)->first();
+        // if we're dealing with temporary IDs, pass on their tracking info
+        if ($this->isHandlingTemporaryIds() && $this->hasTemporaryIds()) {
+            $updater->setTemporaryIds($this->temporaryIds);
         }
 
-        if ( ! $model && $exceptionIfNotFound) {
-            throw (new NestedModelNotFoundException())
-                ->setModel($class)
-                ->setNestedKey($nestedKey);
-        }
-
-        return $model;
+        return $updater;
     }
-
     
     /**
      * Returns UpdateResult instance for standard precluded responses.

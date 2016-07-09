@@ -5,7 +5,7 @@ use Czim\NestedModelUpdater\Data\UpdateResult;
 use Czim\NestedModelUpdater\Exceptions\ModelSaveFailureException;
 use Illuminate\Database\Eloquent\Model;
 
-interface ModelUpdaterInterface extends TracksTemporaryIdsInterface
+interface ModelUpdaterInterface extends NestedParserInterface, TracksTemporaryIdsInterface
 {
 
     /**

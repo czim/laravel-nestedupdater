@@ -2,15 +2,17 @@
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
+use Czim\NestedModelUpdater\Contracts\NestedParserInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
+use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\Traits\TracksTemporaryIds;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use UnexpectedValueException;
 
-abstract class AbstractNestedParser
+abstract class AbstractNestedParser implements NestedParserInterface
 {
     use TracksTemporaryIds;
 
@@ -197,26 +199,9 @@ abstract class AbstractNestedParser
      *
      * @param string $class         FQN of updater
      * @param array  $parameters    parameters for model updater constructor
-     * @return ModelUpdaterInterface
+     * @return NestedParserInterface
      */
-    protected function makeNestedParser($class, array $parameters)
-    {
-        /** @var ModelUpdaterInterface $updater */
-        $updater = App::make($class, $parameters);
-
-        if ( ! ($updater instanceof ModelUpdaterInterface)) {
-            throw new UnexpectedValueException(
-                "Expected ModelUpdaterInterface instance, got " . get_class($class) . ' instead'
-            );
-        }
-
-        // if we're dealing with temporary IDs, pass on their tracking info
-        if ($this->isHandlingTemporaryIds() && $this->hasTemporaryIds()) {
-            $updater->setTemporaryIds($this->temporaryIds);
-        }
-
-        return $updater;
-    }
+    abstract protected function makeNestedParser($class, array $parameters);
 
     /**
      * Returns nested key for the current full-depth nesting.
