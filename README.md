@@ -70,7 +70,9 @@ Note that this package will not do any nested updates without setting up at leas
 configuration for the relations that you want to allow nested updates for. 
 Configuration must be set before this can be used at all. See the configuration section below.
 
+
 ### NestedUpdatable Trait
+
 An easy way to set up a model for processing nested updates is by using the `NestedUpdatable` trait:
 
 ```php
@@ -116,6 +118,7 @@ class YourCustomizedModel extends Model
     
 ```
 
+
 ### Manual ModelUpdater Usage
 
 Alternatively, you can use the `ModelUpdater` manually, by creating an instance.
@@ -126,6 +129,9 @@ Alternatively, you can use the `ModelUpdater` manually, by creating an instance.
     // Instantiate the modelupdater
     $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
     
+    // Or by using the service container binding
+    $updater = app(\Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface::class, [ YourModel::class ]);
+    
     // Perform a nested data create operation
     $model = $updater->create([ 'some' => 'create', 'data' => 'here' ]);
     
@@ -133,6 +139,7 @@ Alternatively, you can use the `ModelUpdater` manually, by creating an instance.
     $updater->update([ 'some' => 'update', 'data' => 'here' ], $model);
     
 ```
+
 
 ## Configuration
 
@@ -187,6 +194,18 @@ Note that any relation not present in the config will be ignored for nesting, an
 
 More [information on relation configuration](CONFIG.md). 
 Also check out [the configuration file](https://github.com/czim/laravel-nestedupdater/blob/master/src/config/nestedmodelupdater.php) for further notes.
+
+
+## Validation
+
+Validation is not automatically performed by the model updater. This pacakge offers nested validation as a separate process,
+that may be implemented as freely as that of the updater itself. 
+A `NestedValidator` class may be used to perform validation or return validation rules based on the data provided and the
+relations configuration set. This will reflect update- or link-only rights and rules for records existing on using primary
+keys when updating.
+
+[Further information on setting up validation](VALIDATION.md) is available.
+
 
 
 ## Non-incrementing primary keys
