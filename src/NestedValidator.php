@@ -188,6 +188,12 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
         // if the relation is allowed in nesting at all -- if the data is null, it should be considered a detach
         // operation, which is allowed aswell. 
         if (is_scalar($data) || null === $data) {
+
+            // add rule if we know that the primary key should be an integer
+            if ($info->model()->getIncrementing()) {
+                $rules[ $this->getNestedKeyPrefix() . $dotKey ] = 'integer';
+            }
+
             return $rules;
         }
         
