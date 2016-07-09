@@ -155,7 +155,9 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
                 $rules[ $this->getNestedKeyPrefix() . $attribute ] = 'array';
                 
                 if (is_array($this->data[ $attribute ])) {
-                    for ($index = 0; $index < count($this->data[ $attribute ]); $index++) {
+
+                    $total = count($this->data[ $attribute ]);
+                    for ($index = 0; $index < $total; $index++) {
 
                         $rules = array_merge($rules, $this->getNestedRelationValidationRulesForSingleItem($info, $attribute, $index));
                     }
