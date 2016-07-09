@@ -357,6 +357,18 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     {
         $rulesClass = $this->parentRelationInfo ? $this->parentRelationInfo->rulesClass() : null;
 
+        // default: use per-model class
+        if ( ! $rulesClass) {
+            $modelConfig = config('nestedmodelupdater.validation.model-rules.' . $this->modelClass);
+
+            if (is_array($modelConfig)) {
+                $rulesClass = array_get($modelConfig, 'class');
+            } else {
+                $rulesClass = $modelConfig;
+            }
+        }
+
+        // fallback: use namespace & postfix, using model's basename
         if ( ! $rulesClass) {
             $rulesClass = rtrim(config('nestedmodelupdater.validation.model-rules-namespace'), '\\')
                         . '\\' . class_basename($this->modelClass)
@@ -373,9 +385,18 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      */
     protected function determineModelRulesMethod()
     {
-        return $this->parentRelationInfo
-            ?   $this->parentRelationInfo->rulesMethod()
-            :   config('nestedmodelupdater.validation.model-rules-method', 'rules');
+        $rulesMethod = $this->parentRelationInfo ? $this->parentRelationInfo->rulesMethod() : null;
+
+        // use per-model method, if defined
+        if ( ! $rulesMethod) {
+            $modelConfig = config('nestedmodelupdater.validation.model-rules.' . $this->modelClass);
+
+            if (is_array($modelConfig)) {
+                $rulesMethod = array_get($modelConfig, 'method');
+            }
+        }
+
+        return $rulesMethod ?: config('nestedmodelupdater.validation.model-rules-method', 'rules');
     }
 
     /**
