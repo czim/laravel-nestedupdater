@@ -49,7 +49,7 @@ class NestingConfigTest extends TestCase
 
         $this->assertEquals(NestedValidatorInterface::class, $info->validator());
         $this->assertEquals(false, $info->rulesClass());
-        $this->assertEquals('rules', $info->rulesMethod());
+        $this->assertEquals(null, $info->rulesMethod());
     }
 
     /**

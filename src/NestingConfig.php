@@ -344,7 +344,7 @@ class NestingConfig implements NestingConfigInterface
      *
      * @param string      $key
      * @param null|string $parentModel the FQN for the parent model
-     * @return string
+     * @return null|string
      */
     public function getRulesClassForKey($key, $parentModel = null)
     {
@@ -357,13 +357,11 @@ class NestingConfig implements NestingConfigInterface
      *
      * @param string      $key
      * @param null|string $parentModel the FQN for the parent model
-     * @return string
+     * @return null|string
      */
     public function getRulesMethodForKey($key, $parentModel = null)
     {
-        $default = config('nestedmodelupdater.validation.model-rules-method', 'rules');
-
-        return $this->getStringValueForKey($key, 'rules-method', $default, $parentModel);
+        return $this->getStringValueForKey($key, 'rules-method', null, $parentModel);
     }
 
 }

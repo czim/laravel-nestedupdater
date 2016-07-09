@@ -335,7 +335,7 @@ class RelationInfo
      */
     public function rulesMethod()
     {
-        return $this->rulesMethod ?: config('nestedmodelupdater.validation.model-rules-method', 'rules');
+        return $this->rulesMethod;
     }
 
     /**
