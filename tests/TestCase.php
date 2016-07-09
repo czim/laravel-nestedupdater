@@ -230,7 +230,11 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         ]);
     }
 
+
     /**
+     * Asserts that a given MessageBag contains a validation error for a key,
+     * based on a loosy or regular expression match.
+     *
      * @param mixed  $messages
      * @param string $key
      * @param string $like
@@ -239,11 +243,11 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     protected function assertHasValidationErrorLike($messages, $key, $like, $isRegex = false)
     {
         if ( ! ($messages instanceof MessageBag)) {
-            $this->fail("Messages should be a MessageBag instance");
+            $this->fail("Messages should be a MessageBag instance, cannot look up presence of '{$like}' for '{$key}'.");
         }
         /** @var MessageBag $messages */
         if ( ! $messages->has($key)) {
-            $this->fail("Messages does not contain key '{$key}'");
+            $this->fail("Messages does not contain key '{$key}' (cannot look up presence of '{$like}').");
         }
 
         $regex = $isRegex ? $like : '#' . preg_quote($like) . '#i';
@@ -253,11 +257,14 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         });
 
         if ( ! count($matched)) {
-            $this->fail("Messages does not contain error for key '{$key}' that matches '{$regex}'");
+            $this->fail("Messages does not contain error for key '{$key}' that matches '{$regex}'.");
         }
     }
 
     /**
+     * Asserts that a given MessageBag contains a validation error for a key,
+     * based on a regular expression match.
+     *
      * @param mixed  $messages
      * @param string $key
      * @param string $regex
@@ -266,4 +273,79 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     {
         $this->assertHasValidationErrorLike($messages, $key, $regex, true);
     }
+
+    /**
+     * Asserts whether a set of validation rules per key are present in an array
+     * with validation rules.
+     *
+     * @param array|mixed $rules
+     * @param array       $findRules    associative array with key => rules to find
+     * @param bool        $strictPerKey if true, the rules for each key present should match strictly
+     * @param bool        $strictKeys   if true, only the keys must be present in the rules, and no more
+     */
+    protected function assertHasValidationRules($rules, array $findRules, $strictPerKey = false, $strictKeys = false)
+    {
+        foreach ($findRules as $key => $findRule) {
+            $this->assertHasValidationRule($rules, $key, $findRule, $strictPerKey);
+        }
+
+        if ($strictKeys) {
+            if (count($rules) > count($findRules)) {
+                $this->fail(
+                    "Not strictly the same rules: "
+                    . (count($rules) - count($findRules)) . ' more keys present than expected'
+                    . ' (' . implode(', ', array_diff(array_keys($rules), array_keys($findRules))) . ').'
+                );
+            }
+        }
+    }
+
+    /**
+     * Asserts whether a given single validation rule is present in an array with
+     * validation rules, for a given key. Does not care whether the format is
+     * pipe-separate string or array.
+     *
+     * @param array|mixed  $rules
+     * @param string       $key
+     * @param string|array $findRules   full validation rule string ('max:50'), or array of them
+     * @param bool         $strict      only the given rules should be present, no others
+     * @return bool
+     */
+    protected function assertHasValidationRule($rules, $key, $findRules, $strict = false)
+    {
+        if ( ! is_array($findRules)) {
+            $findRules = [ $findRules ];
+        }
+
+        if ( ! is_array($rules)) {
+            $this->fail("Rules should be an array, can not look up value '{$findRules[0]}' for '{$key}'.");
+        }
+
+        if ( ! array_key_exists($key, $rules)) {
+            $this->fail("Rules array does not contain key '{$key}' (cannot find rule '{$findRules[0]}').");
+        }
+
+        $rulesForKey = $rules[ $key ];
+
+        if ( ! is_array($rulesForKey)) {
+            $rulesForKey = explode('|', $rulesForKey);
+        }
+
+        foreach ($findRules as $findRule) {
+            if ( ! in_array($findRule, $rulesForKey)) {
+                $this->fail("Rules array does not contain rule '{$findRule}' for key '{$key}'.");
+            }
+        }
+
+        if ($strict) {
+            if (count($rulesForKey) > count($findRules)) {
+                $this->fail(
+                    "Not strictly the same rules for '{$key}': "
+                    . (count($rulesForKey) - count($findRules)) . ' more present than expected'
+                    . ' (' . implode(', ', array_diff(array_values($rulesForKey), array_values($findRules))) . ').'
+                );
+            }
+        }
+    }
+
 }
