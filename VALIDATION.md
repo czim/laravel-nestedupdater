@@ -9,16 +9,16 @@ Setting up a validator is very much like using the `ModelUpdater`:
 ```php
 <?php
     // Instantiate the validator
-    $updater = new \Czim\NestedModelUpdater\NestedValidator(YourModel::class);
+    $validator = new \Czim\NestedModelUpdater\NestedValidator(YourModel::class);
     
     // Or by using the service container binding
-    $updater = app(\Czim\NestedModelUpdater\Contracts\NestedValidatorInterface::class, [ YourModel::class ]);
+    $validator = app(\Czim\NestedModelUpdater\Contracts\NestedValidatorInterface::class, [ YourModel::class ]);
     
     // Perform validation for create
-    $model = $updater->validate([ 'some' => 'create', 'data' => 'here' ], true);
+    $model = $validator->validate([ 'some' => 'create', 'data' => 'here' ], true);
     
     // or update
-    $model = $updater->validate([ 'some' => 'create', 'data' => 'here' ], false);
+    $model = $validator->validate([ 'some' => 'create', 'data' => 'here' ], false);
     
 ```
 
@@ -29,13 +29,13 @@ Alternatively, it is possible to extract the validation rules without performing
 ```php
 <?php
     // Instantiate the validator
-    $updater = new \Czim\NestedModelUpdater\NestedValidator(YourModel::class);
+    $validator = new \Czim\NestedModelUpdater\NestedValidator(YourModel::class);
     
     // Perform validation for create
-    $model = $updater->validationRules([ 'some' => 'create', 'data' => 'here' ], true);
+    $model = $validator->validationRules([ 'some' => 'create', 'data' => 'here' ], true);
     
     // or update
-    $model = $updater->validationRules([ 'some' => 'create', 'data' => 'here' ], false);
+    $model = $validator->validationRules([ 'some' => 'create', 'data' => 'here' ], false);
 
 ```
 
