@@ -76,7 +76,7 @@ return [
         //
         // The rules relation configuration option overrides this and the next
         // configuration option.
-        'model-rules-namespace' => 'App\\Http\\Request\\Rules',
+        'model-rules-namespace' => 'App\\Http\\Requests\\Rules',
 
         // Postfix to use when composing model rules class FQNs.
         // If this is set to 'Rules', the class name loaded would
