@@ -72,8 +72,7 @@ Setting up a validator is very much like using the `ModelUpdater`:
         $errors = $validator->messages();
         
         dd($errors);
-    }
-    
+    } 
 ```
 
 
@@ -91,7 +90,6 @@ Alternatively, it is possible to extract the validation rules without performing
     
     // or update
     $rules = $validator->validationRules([ 'some' => 'create', 'data' => 'here' ], false);
-
 ```
 
 The rules are returned as a flat associative array.
@@ -99,13 +97,33 @@ The rules are returned as a flat associative array.
 
 ## Form Requests
 
-The plan here is to set up a standardized Request that would take
-a model class FQN for configuration and detect create/update actions
-(with some level of configurability).
+An abstract form request class is provided to make it easier to set up custom nested data
+form requests. To use it, extend `Czim\NestedModelUpdater\Requests\AbstractNestedDataRequest`:
 
+```php
+<?php
+    namespace App\Http\Requests;
 
-## Automatic validation when updating or creating models
+    use Czim\NestedModelUpdater\Requests\AbstractNestedDataRequest;
 
-Currently considering whether this should be added as an option.
-The idea would be to hook into the model's `saving` event by using a trait,
-which would fire up a validator process.
+    class YourNestedDataRequest extends AbstractNestedDataRequest
+    {
+    
+        protected function getNestedModelClass()
+        {
+            return \App\Model\YourModel::class;
+        }
+    
+        protected function isCreating()
+        {
+            // As an example, the difference between creating and updating here is
+            // simulated as that of the difference between using a POST and PUT method.
+    
+            return request()->getMethod() != 'PUT' && request()->getMethod() != 'PATCH';
+        }
+    
+    }
+```
+
+All the usual rules for using Form Requests apply, including the `authorize()` method and
+the redirection behaviour for failed validation.
