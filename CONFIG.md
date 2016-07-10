@@ -71,6 +71,7 @@ And for validation:
 The above relations options for validation overrule the validator defaults. 
 The validation defaults are configured in the `nestedmodelupdater.validation` section of the config.
 
+
 ### Rules class fallback
 
 The default fallback for rules classes ([see the readme section on validation](VALIDATON.md)) works as follows:
@@ -80,13 +81,13 @@ Given a model, say `App\Models\Post`, the class name will be constructed as foll
     
 For example:
     
-    App\Http\\Request\Rules\ + Post + Rules = App\Http\\Request\Rules\PostRules 
+    App\Http\\Requests\Rules\ + Post + Rules = App\Http\\Requests\Rules\PostRules 
  
 The namespace and postfix may be configured in the `valiation` section:
 
 ```php
 <?php
-    'model-rules-namespace' => 'App\\Http\\Request\\Rules',
+    'model-rules-namespace' => 'App\\Http\\Requests\\Rules',
     'model-rules-postfix'   => 'Rules',
 ```
 
