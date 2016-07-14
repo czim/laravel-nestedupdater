@@ -152,7 +152,7 @@ Finally, for each of those, either add `true` to enable nested updates with all 
 
 As a simple example, if you wish to add comments when creating a post, your setup might look like the following.
 
-The updating data would be, something like this:
+The updating data would be something like this:
 
 ```php
 <?php

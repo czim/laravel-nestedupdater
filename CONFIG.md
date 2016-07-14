@@ -98,7 +98,7 @@ Note that using this fallback option is entirely optional.
 ### Allowing missing rules classes
 
 By default, if a rules class fallback is not found or instantiable, an empty set of rules is silently used.
-This behavior may be altered by chaning the value for `validation.allow-missing-rules`:
+This behavior may be altered by changing the value for `validation.allow-missing-rules`:
 
 ```php
 <?php
