@@ -9,11 +9,9 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Tag;
-use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
-use Mockery;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
 {
