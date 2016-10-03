@@ -404,7 +404,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     /**
      * Makes instance of class that should contain the rules method.
      *
-     * @return object
+     * @return object|false
      */
     protected function makeModelRulesInstance()
     {
