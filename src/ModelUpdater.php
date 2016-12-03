@@ -51,6 +51,12 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      */
     protected $saveOptions = [];
     
+    /**
+    * Attributes to be added
+    *
+    * @var array
+    */
+    protected $attributes = [];
 
 
     /**
@@ -139,6 +145,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         }
 
         $this->prepareModel();
+        
+        $this->setAttributes();
 
         // handle relationships; some need to be handled before saving the
         // model, since the foreign keys are stored in it; others can only
@@ -152,6 +160,27 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $this->handleHasAndBelongsToManyRelations();
 
         return (new UpdateResult())->setModel($this->model);
+    }
+    
+    /**
+     * Add attribute to main model to prevent Mass Assignment
+     *
+     * @param $key
+     * @param $value
+     */
+    public function setAttribute($key, $value)
+    {
+        $this->attributes[$key] = $value;
+    }
+    
+    /**
+     * Process all the attributes to the Model
+     */
+    private function setAttributes()
+    {
+        foreach ($this->attributes as $key => $value) {
+            $this->model->setAttribute($key, $value);
+        }
     }
 
     /**
