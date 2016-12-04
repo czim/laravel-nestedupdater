@@ -94,6 +94,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->integer('genre_id')->nullable()->unsigned();
             $table->string('title', 50);
             $table->text('body');
+            $table->string('unfillable', 20)->nullable();
             $table->timestamps();
         });
 

@@ -682,4 +682,78 @@ class ElaborateModelUpdaterTest extends TestCase
         ]);
     }
 
+
+    // ------------------------------------------------------------------------------
+    //      Unguarded Attributes
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @test
+     */
+    function it_sets_and_clears_unguarded_attributes()
+    {
+        $updater = new ModelUpdater(Post::class);
+
+        $updater->setUnguardedAttribute('unfillable', 'testing');
+        $this->assertEquals([ 'unfillable' => 'testing' ], $updater->getUnguardedAttributes());
+
+        $updater->setUnguardedAttributes([ 'test' => 'a', 'test_b' => '2' ]);
+        $this->assertEquals([ 'test' => 'a', 'test_b' => '2' ], $updater->getUnguardedAttributes());
+
+        $updater->clearUnguardedAttributes();
+        $this->assertEmpty($updater->getUnguardedAttributes());
+    }
+
+    /**
+     * @test
+     */
+    function it_updates_an_unguarded_unfillable_attribute()
+    {
+        $post = $this->createPost();
+
+        $data = [
+            'comments' => [
+                [
+                    'title' => 'new title',
+                    'body'  => 'new body',
+                ]
+            ]
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+
+        $updater->setUnguardedAttribute('unfillable', 'testing');
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('posts', [
+            'id'         => $post->id,
+            'unfillable' => 'testing',
+        ]);
+
+        $this->seeInDatabase('comments', [
+            'title' => 'new title',
+            'body'  => 'new body',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    function it_clears_unguarded_attributes_after_update()
+    {
+        $post = $this->createPost();
+
+        $data = [];
+
+        $updater = new ModelUpdater(Post::class);
+
+        $updater->setUnguardedAttribute('unfillable', 'testing');
+
+        $this->assertNotEmpty($updater->getUnguardedAttributes());
+
+        $updater->update($data, $post);
+
+        $this->assertEmpty($updater->getUnguardedAttributes());
+    }
+
 }
