@@ -133,7 +133,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      */
     public function setUnguardedAttribute($key, $value)
     {
-        $this->unguardedAttributes[$key] = $value;
+        $this->unguardedAttributes[ $key ] = $value;
 
         return $this;
     }
@@ -312,7 +312,11 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $modelData = $this->getDirectModelData();
 
         // if we have nothing to update, skip it
-        if ( ! $this->isCreating && empty($modelData) && ! $this->belongsTosWereUpdated) {
+        if (    ! $this->isCreating
+            &&  empty($modelData)
+            &&  empty($this->unguardedAttributes)
+            &&  ! $this->belongsTosWereUpdated
+        ) {
             return;
         }
 
