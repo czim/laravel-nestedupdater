@@ -51,6 +51,14 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      */
     protected $saveOptions = [];
     
+    /**
+     * Attributes to set on the main model, bypassing the fillable guard.*
+     *
+     * These will be cleared automatically after an update/create is performed.
+     *
+     * @var array    associative key value pairs
+     */
+    protected $unguardedAttributes = [];
 
 
     /**
@@ -91,6 +99,55 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $this->saveOptions = $saveOptions;
         
         return $this->createOrUpdate();
+    }
+
+    /**
+     * Returns list of currently queued unguarded attributes.
+     *
+     * @return array
+     */
+    public function getUnguardedAttributes()
+    {
+        return $this->unguardedAttributes;
+    }
+
+    /**
+     * Sets a list of unguarded attributes to store directly on the model, bypassing the fillable guard.
+     *
+     * @param array $attributes     associative key value pairs
+     * @return $this
+     */
+    public function setUnguardedAttributes(array $attributes)
+    {
+        $this->unguardedAttributes = $attributes;
+
+       return $this;
+    }
+
+    /**
+     * Sets an unguarded attribute to store directly on the model, bypassing the fillable guard.
+     *
+     * @param string $key
+     * @param mixed  $value
+     * @return $this
+     */
+    public function setUnguardedAttribute($key, $value)
+    {
+        $this->unguardedAttributes[$key] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Clears list of currently to be applied unguarded attributes.
+     *
+     * @return $this
+     */
+    public function clearUnguardedAttributes()
+    {
+        $this->unguardedAttributes = [];
+
+        return $this;
     }
 
     /**
@@ -150,6 +207,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $this->updatedAndPersistModel();
 
         $this->handleHasAndBelongsToManyRelations();
+
+        $this->clearUnguardedAttributes();
 
         return (new UpdateResult())->setModel($this->model);
     }
@@ -259,6 +318,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         $this->model->fill($modelData);
 
+        $this->storeUnguardedAttributes();
+
         // if we're saving a separate, top-level or belongs to related model,
         // we can simply save it by itself; other models should be saved
         // on their parent's relation.
@@ -276,6 +337,17 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
                 "Failed persisting instance of {$this->modelClass} on "
                 . ($this->isCreating ? 'create' : 'update') . ' operation'
             ))->setNestedKey($this->nestedKey);
+        }
+    }
+
+    /**
+     * Stores unguarded attributes set on the main model, if any.
+     */
+    protected function storeUnguardedAttributes()
+    {
+        foreach ($this->unguardedAttributes as $key => $value) {
+
+            $this->model->setAttribute($key, $value);
         }
     }
 
