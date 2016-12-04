@@ -282,7 +282,47 @@ Because there is a (minor) performance cost to checking for temporary IDs, this 
 To enable it, simply set `allow-temporary-ids` to `true` in the configuration.
 
 There are no deep checks for cyclical references or (fairly unlikely) dependency issues for multiple interrelated temporary ID create operations, so be careful with this or perform in-depth validation manually beforehand.
+
  
+## Unguarded Attributes
+
+Updates and creates adhere to the `fillable` guards for the relevant models.
+
+It is possible to prepare the model updater to set attributes bypassing the guard.
+This may be done using the `setUnguardedAttribute()` method on the model updater, before calling `update()` or `create()`.
+
+Example:
+
+```php
+<?php
+    // Instantiate the modelupdater
+    $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
+    
+    // Queue an non-fillable attribute to be stored on the create model
+    $updater->setUnguardedAttribute('user_id', \Auth::user()->id);
+    
+    // Perform a nested data create operation
+    $model = $updater->create([ 'some' => 'create', 'data' => 'here' ]);
+```
+
+In this case the `user_id` would be stored directly on the newly created model.
+
+As a safety measure, any previously set unguarded attributes will be cleared automatically after a succesful model update or create operation.
+Set them again for each subsequent update/create to be performed.
+
+It is also possible to set an entire array of unguarded attributes to assign at once:
+
+```php
+<?php
+    $updater->setUnguardedAttributes([
+        'some_attribute' => 'example',
+        'another'        => 'value',
+    ]);
+```
+
+Currently queued unguarded attributes to be assigned may be retrieved using `getUnguardedAttributes()`.
+The unguarded attributes may also be cleared at any time using `clearUnguardedAttributes()`.
+
  
 ## Extending functionality
 
