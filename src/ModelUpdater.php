@@ -204,7 +204,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         $this->handleBelongsToRelations();
 
-        $this->updatedAndPersistModel();
+        $this->updateAndPersistModel();
 
         $this->handleHasAndBelongsToManyRelations();
 
@@ -307,7 +307,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @throws ModelSaveFailureException
      */
-    protected function updatedAndPersistModel()
+    protected function updateAndPersistModel()
     {
         $modelData = $this->getDirectModelData();
 
