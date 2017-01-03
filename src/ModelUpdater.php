@@ -424,8 +424,10 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         foreach ($this->relationInfo as $attribute => $info) {
             if ( ! array_has($this->data, $attribute) || $info->isBelongsTo()) continue;
 
-            // collect keys for (newly) connected models
+            // collect keys for (newly) connected models, and all models to connect
             $keys = [];
+            /** @var Model[] $models */
+            $models = [];
 
 
             if ($info->isSingular()) {
@@ -460,18 +462,25 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
                         continue;
                     }
 
-                    $keys[] = $result->model()->getKey();
+                    $keys[]   = $result->model()->getKey();
+                    $models[] = $result->model();
                 }
             }
 
             
-            // sync relation, detaching anything not specifically listed in the dataset
-            // unless we shouldn't
-
+            // sync relation, detaching anything not specifically listed in the dataset unless we shouldn't
             if (is_a($info->relationClass(), BelongsToMany::class, true)) {
+
                 $this->syncKeysForBelongsToManyRelation($info, $keys);
+
             } else {
-                $this->syncKeysForHasManyRelation($info, $keys);
+                // HasMany relations: save the current models on the relation and detach anything else
+
+                foreach ($models as $model) {
+                    $this->model->{$info->relationMethod()}()->save($model);
+                }
+
+                $this->detachByKeysForHasManyRelation($info, $keys);
             }
         }
     }
@@ -518,7 +527,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param RelationInfo $info
      * @param array        $keys
      */
-    protected function syncKeysForHasManyRelation(RelationInfo $info, array $keys)
+    protected function detachByKeysForHasManyRelation(RelationInfo $info, array $keys)
     {
         // the relations might be disconnected, but only if the key is nullable
         // if deletion is not configured, we should attempt setting the key to
