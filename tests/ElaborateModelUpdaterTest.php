@@ -501,13 +501,16 @@ class ElaborateModelUpdaterTest extends TestCase
 
         // setup
 
-        $post     = $this->createPost();
-        $commentA = $this->createComment($post);
-        $commentB = $this->createComment($post);
+        $post      = $this->createPost();
+        $otherPost = $this->createPost();
+        $commentA  = $this->createComment($post);
+        $commentB  = $this->createComment($post);
+        $commentC  = $this->createComment($otherPost);
 
         $data = [
             'comments' => [
                 $commentB->id,
+                $commentC->id,
             ],
         ];
 
@@ -518,6 +521,7 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $this->notSeeInDatabase('comments', [ 'id' => $commentA->id ]);
         $this->seeInDatabase('comments',    [ 'id' => $commentB->id, 'post_id' => $post->id ]);
+        $this->seeInDatabase('comments',    [ 'id' => $commentC->id, 'post_id' => $post->id ]);
     }
     
     // ------------------------------------------------------------------------------

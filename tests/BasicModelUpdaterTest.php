@@ -186,6 +186,33 @@ class BasicModelUpdaterTest extends TestCase
         ]);
     }
 
+    /**
+     * @test
+     */
+    function it_attaches_has_many_related_models_that_were_related_to_a_different_model()
+    {
+        $post      = $this->createPost();
+        $otherPost = $this->createPost();
+        $commentA  = $this->createComment($otherPost);
+        $commentB  = $this->createComment($otherPost);
+
+        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'post_id' => $otherPost->id ]);
+        $this->seeInDatabase('comments', [ 'id' => $commentB->id, 'post_id' => $otherPost->id ]);
+
+        $data = [
+            'comments' => [
+                $commentA->id,
+                [ 'id' => $commentB->id ],
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'post_id' => $post->id ]);
+        $this->seeInDatabase('comments', [ 'id' => $commentB->id, 'post_id' => $post->id ]);
+    }
+
     // ------------------------------------------------------------------------------
     //      Normalization
     // ------------------------------------------------------------------------------
@@ -196,7 +223,6 @@ class BasicModelUpdaterTest extends TestCase
     function it_normalizes_nested_data_for_null_value()
     {
         $post  = $this->createPost();
-        $genre = $this->createGenre('original name');
         $post->genre()->associate($post);
         $post->save();
 
@@ -262,6 +288,7 @@ class BasicModelUpdaterTest extends TestCase
             'name' => 'updated',
         ]);
     }
+
 
     // ------------------------------------------------------------------------------
     //      Problems and exceptions
