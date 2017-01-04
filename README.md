@@ -323,7 +323,36 @@ It is also possible to set an entire array of unguarded attributes to assign at 
 Currently queued unguarded attributes to be assigned may be retrieved using `getUnguardedAttributes()`.
 The unguarded attributes may also be cleared at any time using `clearUnguardedAttributes()`.
 
- 
+
+## Associative array data
+
+Be careful submitting associative arrays for entries of plural relations.
+They are supported, but can easily break validation:
+Problems will arise when data is submitted with associative keys that contain `'.'` like so:
+
+```php
+<?php
+$data = [
+    'comments' => [
+        'some.key' => [
+            'body' => 'Some comment',
+        ],
+        'another-key' => [
+            'body' => 'Another comment',
+        ]
+    ]
+];
+```
+
+Since Laravel's `Arr::get()` and other dot-notation based lookup methods are used,
+nested validation will fail to properly validate data entries with such keys.  
+
+Note that such associative keys serve no purpose for the model updater itself.
+The best way to avoid problems is to normalize your data so that all plural relation arrays are non-associative.
+Alternatively, replace any `.` in the array's keys with a placeholder. 
+See 'Extending functionality' below for tips.
+
+
 ## Extending functionality
 
 The `ModelUpdater` class should be considered a prime candidate for customization.
