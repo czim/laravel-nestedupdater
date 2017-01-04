@@ -99,6 +99,42 @@ class NestedValidatorTest extends TestCase
         $this->assertCount(8, $messages);
     }
 
+    /**
+     * @test
+     */
+    function it_performs_validation_correctly_for_associative_plural_relation_array()
+    {
+        $data = [
+            'title' => 'required',
+            'comments' => [
+                'test' => [
+                    'title'  => 12,
+                    'author' => [
+                        'name' => 13
+                    ]
+                ],
+                3948 => [
+                    'id'    => 999,
+                    'title' => 'updated comment title',
+                ]
+            ]
+        ];
+
+        $validator = new NestedValidator(Post::class);
+
+        $this->assertFalse($validator->validate($data), 'Validation should fail');
+
+        $messages = $validator->messages();
+
+        $this->assertHasValidationErrorLike($messages, 'comments.test.title', 'string');
+        $this->assertHasValidationErrorLike($messages, 'comments.test.body', 'required');
+        $this->assertHasValidationErrorLike($messages, 'comments.test.author.name', 'string');
+        $this->assertHasValidationErrorLike($messages, 'comments.3948.id', 'invalid');
+        $this->assertHasValidationErrorLike($messages, 'comments.3948.body', 'required');
+
+        $this->assertCount(5, $messages);
+    }
+
 
     // ------------------------------------------------------------------------------
     //      Rules

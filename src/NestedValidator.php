@@ -156,8 +156,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
                 
                 if (is_array($this->data[ $attribute ])) {
 
-                    $total = count($this->data[ $attribute ]);
-                    for ($index = 0; $index < $total; $index++) {
+                    foreach (array_keys($this->data[ $attribute ]) as $index) {
 
                         $rules = array_merge($rules, $this->getNestedRelationValidationRulesForSingleItem($info, $attribute, $index));
                     }
@@ -182,8 +181,8 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     {
         $rules = [];
         
-        $dotKey = $attribute . (null !== $index ? '.' . (int) $index : '');
-        
+        $dotKey = $attribute . (null !== $index ? '.' . $index : '');
+
         $data = array_get($this->data, $dotKey);
 
         // if the data is scalar, it is treated as the primary key in a link-only operation, which should be allowed
