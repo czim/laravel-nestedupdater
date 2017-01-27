@@ -34,7 +34,7 @@ $data = [
 
 ```
 
-... this would set a new title for Post model being updated, but in additionally:
+... this would set a new title for Post model being updated, but additionally:
 
 - link comment #17 to the post,
 - link and/or update comment #18 to the post, setting a new body text for the comment,
