@@ -1,6 +1,7 @@
 <?php
 namespace Czim\NestedModelUpdater\Requests;
 
+use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Foundation\Http\FormRequest;
@@ -74,7 +75,8 @@ abstract class AbstractNestedDataRequest extends FormRequest
      */
     protected function makeNestedValidator()
     {
-        return App::make($this->getNestedValidatorClass(), [ $this->getNestedModelClass() ]);
+        return $this->getNestedValidatorFactory()
+            ->make($this->getNestedValidatorClass(), [ $this->getNestedModelClass() ]);
     }
 
     /**
@@ -85,6 +87,14 @@ abstract class AbstractNestedDataRequest extends FormRequest
     protected function getNestedValidatorClass()
     {
         return $this->validatorClass;
+    }
+
+    /**
+     * @return NestedValidatorFactoryInterface
+     */
+    protected function getNestedValidatorFactory()
+    {
+        return App::make(NestedValidatorFactoryInterface::class);
     }
 
 }

@@ -2,6 +2,7 @@
 namespace Czim\NestedModelUpdater\Traits;
 
 use App;
+use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 
 trait NestedUpdatable
@@ -55,7 +56,15 @@ trait NestedUpdatable
             ?   App::make($this->modelUpdaterConfigClass)
             :   null;
 
-        return App::make($class, [ get_class($this), null, null, null, $config ]);
+        return $this->getModelUpdaterFactory()->make($class, [ get_class($this), null, null, null, $config ]);
+    }
+
+    /**
+     * @return ModelUpdaterFactoryInterface
+     */
+    protected function getModelUpdaterFactory()
+    {
+        return App::make(ModelUpdaterFactoryInterface::class);
     }
 
 }

@@ -1,6 +1,7 @@
 <?php
 namespace Czim\NestedModelUpdater;
 
+use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -438,23 +439,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      */
     protected function makeNestedParser($class, array $parameters)
     {
-        /** @var NestedValidatorInterface $validator */
-        $validator = App::make($class, $parameters);
-
-        if ( ! ($validator instanceof NestedValidatorInterface)) {
-
-            if ( ! $validator) {
-                throw new UnexpectedValueException(
-                    "Expected NestedValidatorInterface instance, got nothing for " . $class
-                );
-            }
-
-            throw new UnexpectedValueException(
-                "Expected NestedValidatorInterface instance, got " . get_class($validator) . ' instead'
-            );
-        }
-
-        return $validator;
+        return $this->getNestedValidatorFactory()->make($class, $parameters);
     }
 
     /**
@@ -465,6 +450,14 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     protected function getValidationFactory()
     {
         return app(Factory::class);
+    }
+
+    /**
+     * @return NestedValidatorFactoryInterface
+     */
+    protected function getNestedValidatorFactory()
+    {
+        return App::make(NestedValidatorFactoryInterface::class);
     }
 
 }

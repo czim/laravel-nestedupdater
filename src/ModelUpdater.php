@@ -1,6 +1,7 @@
 <?php
 namespace Czim\NestedModelUpdater;
 
+use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
@@ -802,21 +803,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      */
     protected function makeNestedParser($class, array $parameters)
     {
-        /** @var ModelUpdaterInterface $updater */
-        $updater = App::make($class, $parameters);
-
-        if ( ! ($updater instanceof ModelUpdaterInterface)) {
-
-            if ( ! $updater) {
-                throw new UnexpectedValueException(
-                    "Expected ModelUpdaterInterface instance, got nothing for " . $class
-                );
-            }
-
-            throw new UnexpectedValueException(
-                "Expected ModelUpdaterInterface instance, got " . get_class($class) . ' instead'
-            );
-        }
+        $updater = $this->getUpdaterFactory()->make($class, $parameters);
 
         // if we're dealing with temporary IDs, pass on their tracking info
         if ($this->isHandlingTemporaryIds() && $this->hasTemporaryIds()) {
@@ -855,7 +842,14 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         // level, so when no nested key has been set at all.
         return null === $this->nestedKey;
     }
-    
+
+    /**
+     * @return ModelUpdaterFactoryInterface
+     */
+    protected function getUpdaterFactory()
+    {
+        return App::make(ModelUpdaterFactoryInterface::class);
+    }
 
     // ------------------------------------------------------------------------------
     //      Getters / Setters
