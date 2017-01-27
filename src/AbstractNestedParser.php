@@ -1,7 +1,6 @@
 <?php
 namespace Czim\NestedModelUpdater;
 
-use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Contracts\NestedParserInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
@@ -9,7 +8,6 @@ use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\Traits\TracksTemporaryIds;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
 use UnexpectedValueException;
 
 abstract class AbstractNestedParser implements NestedParserInterface
