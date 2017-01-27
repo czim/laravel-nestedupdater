@@ -131,7 +131,7 @@ Alternatively, you can use the `ModelUpdater` manually, by creating an instance.
     // Instantiate the modelupdater
     $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
     
-    // Or by using the service container binding
+    // Or by using the service container binding (won't work in Laravel 5.4)
     $updater = app(\Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface::class, [ YourModel::class ]);
     
     // Perform a nested data create operation

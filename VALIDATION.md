@@ -57,7 +57,7 @@ Setting up a validator is very much like using the `ModelUpdater`:
     // Instantiate the validator
     $validator = new \Czim\NestedModelUpdater\NestedValidator(YourModel::class);
     
-    // Or by using the service container binding
+    // Or by using the service container binding (won't work in Laravel 5.4)
     $validator = app(\Czim\NestedModelUpdater\Contracts\NestedValidatorInterface::class, [ YourModel::class ]);
     
     // Perform validation for create
