@@ -46,6 +46,14 @@ Any combination of nested creates and updates is supported; the nesting logic fo
 Additionally, this package provides support for validating data with nested relations all at once. 
 
 
+## Version Compatibility
+
+ Laravel         | Package 
+:----------------|:--------
+ 5.3.x and lower | 1.0.x
+ 5.4.x           | 1.4.x
+ 
+
 ## Install
 
 Via Composer
