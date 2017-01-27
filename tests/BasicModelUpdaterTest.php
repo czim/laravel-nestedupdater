@@ -30,7 +30,7 @@ class BasicModelUpdaterTest extends TestCase
         $this->assertInstanceOf(UpdateResult::class, $result);
         $this->assertTrue($result->model()->exists, "Created model should exist");
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'    => $result->model()->id,
             'title' => 'created',
             'body'  => 'fresh',
@@ -52,7 +52,7 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
             'title' => 'updated',
             'body'  => 'fresh',
@@ -76,7 +76,7 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'title'    => 'updated aswell',
         ]);
@@ -85,7 +85,7 @@ class BasicModelUpdaterTest extends TestCase
 
         $this->assertEquals(1, $post->genre_id, "New Genre should be associated with Post");
 
-        $this->seeInDatabase('genres', [
+        $this->assertDatabaseHas('genres', [
             'name' => 'New Genre',
         ]);
     }
@@ -121,9 +121,9 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', $originalPostData);
+        $this->assertDatabaseHas('posts', $originalPostData);
 
-        $this->seeInDatabase('genres', [
+        $this->assertDatabaseHas('genres', [
             'id'   => $genre->id,
             'name' => 'original name',
         ]);
@@ -155,9 +155,9 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', $originalPostData);
+        $this->assertDatabaseHas('posts', $originalPostData);
 
-        $this->seeInDatabase('genres', [
+        $this->assertDatabaseHas('genres', [
             'id'   => $genre->id,
             'name' => 'updated',
         ]);
@@ -180,7 +180,7 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'genre_id' => null,
         ]);
@@ -196,8 +196,8 @@ class BasicModelUpdaterTest extends TestCase
         $commentA  = $this->createComment($otherPost);
         $commentB  = $this->createComment($otherPost);
 
-        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'post_id' => $otherPost->id ]);
-        $this->seeInDatabase('comments', [ 'id' => $commentB->id, 'post_id' => $otherPost->id ]);
+        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'post_id' => $otherPost->id ]);
+        $this->assertDatabaseHas('comments', [ 'id' => $commentB->id, 'post_id' => $otherPost->id ]);
 
         $data = [
             'comments' => [
@@ -209,8 +209,8 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'post_id' => $post->id ]);
-        $this->seeInDatabase('comments', [ 'id' => $commentB->id, 'post_id' => $post->id ]);
+        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'post_id' => $post->id ]);
+        $this->assertDatabaseHas('comments', [ 'id' => $commentB->id, 'post_id' => $post->id ]);
     }
 
     // ------------------------------------------------------------------------------
@@ -233,7 +233,7 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'genre_id' => null,
         ]);
@@ -254,7 +254,7 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'genre_id' => $genre->id,
         ]);
@@ -278,12 +278,12 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'genre_id' => $genre->id,
         ]);
 
-        $this->seeInDatabase('genres', [
+        $this->assertDatabaseHas('genres', [
             'id'   => $genre->id,
             'name' => 'updated',
         ]);
@@ -423,7 +423,7 @@ class BasicModelUpdaterTest extends TestCase
         }
 
         // unchanged data
-        $this->notSeeInDatabase('posts', [
+        $this->assertDatabaseMissing('posts', [
             'title' => 'this should be',
             'body'  => 'rolled back',
         ]);
@@ -462,7 +462,7 @@ class BasicModelUpdaterTest extends TestCase
         }
 
         // unchanged data
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'title' => 'this should be',
             'body'  => 'rolled back',
         ]);

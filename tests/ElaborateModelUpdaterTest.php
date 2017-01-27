@@ -35,12 +35,12 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'id'    => $comment->id,
             'title' => 'updated title',
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title' => 'new title',
             'body'  => 'new body',
         ]);
@@ -63,7 +63,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title' => 'created title',
             'body'  => 'created body',
         ]);
@@ -83,7 +83,7 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $updater->update($data, $post);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'id'    => $comment->id,
             'title' => 'updated title',
             'body'  => 'created body',
@@ -115,18 +115,18 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Author::class);
         $updater->update($data, $author);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
             'title' => 'updated title',
             'body'  => 'updated body',
         ]);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'title' => 'very new title',
             'body'  => 'very new body',
         ]);
 
-        $this->seeInDatabase('author_post', [
+        $this->assertDatabaseHas('author_post', [
             'post_id'   => $post->id,
             'author_id' => $author->id,
         ]);
@@ -155,14 +155,14 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('tags', [
+        $this->assertDatabaseHas('tags', [
             'id'            => $tag->id,
             'taggable_id'   => $post->id,
             'taggable_type' => get_class($post),
             'name'          => 'updated tag',
         ]);
 
-        $this->seeInDatabase('tags', [
+        $this->assertDatabaseHas('tags', [
             'taggable_id'   => $post->id,
             'taggable_type' => get_class($post),
             'name'          => 'new tag',
@@ -189,7 +189,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('specials', [
+        $this->assertDatabaseHas('specials', [
             'special' => $special->getKey(),
             'name'    => 'updated special',
         ]);
@@ -214,7 +214,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('specials', [
+        $this->assertDatabaseHas('specials', [
             'special' => 'special-new',
             'name'    => 'new special',
         ]);
@@ -244,7 +244,7 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $this->assertEquals(1, Special::count(), "There should be only 1 Special record");
 
-        $this->seeInDatabase('specials', [
+        $this->assertDatabaseHas('specials', [
             'special' => 'special-exists',
             'name'    => 'updated name',
         ]);
@@ -268,7 +268,7 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $oldGenreId = $genre->id;
 
-        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
 
         // check if it is deleted after dissociation
 
@@ -279,8 +279,8 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => null ]);
-        $this->notSeeInDatabase('genres', [ 'id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => null ]);
+        $this->assertDatabaseMissing('genres', [ 'id' => $oldGenreId ]);
 
         // reset
 
@@ -292,7 +292,7 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $oldGenreId = $genre->id;
 
-        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
 
         // check if it is deleted after replacement
 
@@ -308,8 +308,8 @@ class ElaborateModelUpdaterTest extends TestCase
         $genre = Genre::where('name', 'replacement genre')->first();
         $this->assertInstanceOf(Genre::class, $genre);
 
-        $this->seeInDatabase('posts', [ 'id' => $post->id, 'genre_id' => $genre->id ]);
-        $this->notSeeInDatabase('genres', [ 'id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $genre->id ]);
+        $this->assertDatabaseMissing('genres', [ 'id' => $oldGenreId ]);
     }
 
     /**
@@ -326,8 +326,8 @@ class ElaborateModelUpdaterTest extends TestCase
         $authorB = $this->createAuthor();
         $post->authors()->sync([ $authorA->id, $authorB->id ]);
 
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
 
         $data = [
             'authors' => [
@@ -347,10 +347,10 @@ class ElaborateModelUpdaterTest extends TestCase
         $authorC = Author::latest()->first();
         $this->assertInstanceOf(Author::class, $authorC);
 
-        $this->seeInDatabase('authors', [ 'id' => $authorB->id ]);
-        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorC->id ]);
-        $this->notSeeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('authors', [ 'id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorC->id ]);
+        $this->assertDatabaseMissing('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
     }
 
     /**
@@ -367,8 +367,8 @@ class ElaborateModelUpdaterTest extends TestCase
         $authorB = $this->createAuthor();
         $post->authors()->sync([ $authorA->id, $authorB->id ]);
 
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
 
         $data = [
             'authors' => [
@@ -381,9 +381,9 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('authors', [ 'id' => $authorB->id ]);
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('authors', [ 'id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
     }
 
 
@@ -402,8 +402,8 @@ class ElaborateModelUpdaterTest extends TestCase
         $authorB = $this->createAuthor();
         $post->authors()->sync([ $authorA->id, $authorB->id ]);
 
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->seeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
 
         $data = [
             'authors' => [
@@ -416,9 +416,9 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->notSeeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
-        $this->notSeeInDatabase('authors', [ 'id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->assertDatabaseMissing('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseMissing('authors', [ 'id' => $authorB->id ]);
     }
 
     /**
@@ -450,9 +450,9 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->seeInDatabase('author_post',    [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->notSeeInDatabase('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
-        $this->seeInDatabase('authors', [ 'id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
+        $this->assertDatabaseMissing('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('authors', [ 'id' => $authorB->id ]);
     }
 
     /**
@@ -472,7 +472,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $author->comments()->save($commentA);
         $author->comments()->save($commentB);
 
-        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'author_id' => $author->id ]);
+        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'author_id' => $author->id ]);
 
         $data = [
             'comments' => [
@@ -487,8 +487,8 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater->update($data, $author);
 
 
-        $this->seeInDatabase('comments', [ 'id' => $commentA->id, 'author_id' => null ]);
-        $this->seeInDatabase('comments', [ 'id' => $commentB->id, 'author_id' => $author->id ]);
+        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'author_id' => null ]);
+        $this->assertDatabaseHas('comments', [ 'id' => $commentB->id, 'author_id' => $author->id ]);
     }
 
     /**
@@ -519,9 +519,9 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->notSeeInDatabase('comments', [ 'id' => $commentA->id ]);
-        $this->seeInDatabase('comments',    [ 'id' => $commentB->id, 'post_id' => $post->id ]);
-        $this->seeInDatabase('comments',    [ 'id' => $commentC->id, 'post_id' => $post->id ]);
+        $this->assertDatabaseMissing('comments', [ 'id' => $commentA->id ]);
+        $this->assertDatabaseHas('comments',     [ 'id' => $commentB->id, 'post_id' => $post->id ]);
+        $this->assertDatabaseHas('comments',     [ 'id' => $commentC->id, 'post_id' => $post->id ]);
     }
     
     // ------------------------------------------------------------------------------
@@ -584,31 +584,31 @@ class ElaborateModelUpdaterTest extends TestCase
         $commentAuthorC = Author::where('name', 'Author C')->first();
         $this->assertInstanceOf(Author::class, $commentAuthorC);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'title'    => 'new title',
             'body'     => 'new body',
             'genre_id' => $genre->id,
         ]);
 
-        $this->seeInDatabase('genres', [
+        $this->assertDatabaseHas('genres', [
             'id'   => $genre->id,
             'name' => 'new genre',
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title'     => 'title 1',
             'body'      => 'body 1',
             'author_id' => $commentAuthorB->id,
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title'     => 'title 2',
             'body'      => 'body 2',
             'author_id' => $commentAuthorC->id,
         ]);
 
-        $this->seeInDatabase('authors', [
+        $this->assertDatabaseHas('authors', [
             'name' => 'Author A',
         ]);
     }
@@ -656,31 +656,31 @@ class ElaborateModelUpdaterTest extends TestCase
         $post = Post::latest()->first();
         $this->assertInstanceOf(Post::class, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'title'    => 'new title',
             'body'     => 'new body',
             'genre_id' => $genre->id,
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title'     => 'title 1',
             'body'      => 'body 1',
             'author_id' => $authorA->id,
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title'     => 'title 2',
             'body'      => 'body 2',
             'author_id' => $authorB->id,
         ]);
 
-        $this->seeInDatabase('author_post', [
+        $this->assertDatabaseHas('author_post', [
             'post_id'   => $post->id,
             'author_id' => $authorA->id,
         ]);
 
-        $this->seeInDatabase('author_post', [
+        $this->assertDatabaseHas('author_post', [
             'post_id'   => $post->id,
             'author_id' => $authorB->id,
         ]);
@@ -729,12 +729,12 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater->setUnguardedAttribute('unfillable', 'testing');
         $updater->update($data, $post);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'         => $post->id,
             'unfillable' => 'testing',
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title' => 'new title',
             'body'  => 'new body',
         ]);

@@ -54,17 +54,17 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
         /** @var Author $author */
         $author = Author::first();
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'id'    => $comment->id,
             'title' => 'updated title',
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title' => 'new title',
             'body'  => 'for new comment',
         ]);
 
-        $this->seeInDatabase('authors', [
+        $this->assertDatabaseHas('authors', [
             'id'   => $author->id,
             'name' => 'new shared author',
         ]);
@@ -126,33 +126,33 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
         /** @var Post $newPost */
         $newPost = Post::orderBy('id', 'desc')->first();
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'id'    => $comment->id,
             'title' => 'updated title',
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'title' => 'new title',
             'body'  => 'for new comment',
         ]);
 
-        $this->seeInDatabase('authors', [
+        $this->assertDatabaseHas('authors', [
             'id'   => $author->id,
             'name' => 'new shared author',
         ]);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
             'genre_id' => $genre->id,
         ]);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'       => $newPost->id,
             'title'    => 'new nested title',
             'genre_id' => $genre->id,
         ]);
 
-        $this->seeInDatabase('genres', [
+        $this->assertDatabaseHas('genres', [
             'id'   => $genre->id,
             'name' => 'new shared genre',
         ]);

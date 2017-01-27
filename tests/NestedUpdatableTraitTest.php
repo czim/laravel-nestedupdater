@@ -22,7 +22,7 @@ class NestedUpdatableTraitTest extends TestCase
         $this->assertInstanceOf(Post::class, $post);
         $this->assertTrue($post->exists);
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
             'title' => 'created',
             'body'  => 'fresh',
@@ -45,7 +45,7 @@ class NestedUpdatableTraitTest extends TestCase
 
         $this->assertSame(true, $result, "Update call should return boolean true");
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
             'title' => 'updated',
             'body'  => 'fresh',
@@ -79,20 +79,20 @@ class NestedUpdatableTraitTest extends TestCase
         $author = Author::latest()->first();
         $this->assertInstanceOf(Author::class, $author, "Author model should have been created");
 
-        $this->seeInDatabase('posts', [
+        $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
             'title' => 'created',
             'body'  => 'fresh',
         ]);
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'post_id'   => $post->id,
             'title'     => 'created comment',
             'body'      => 'comment body',
             'author_id' => $author->id,
         ]);
 
-        $this->seeInDatabase('authors', [
+        $this->assertDatabaseHas('authors', [
             'id'   => $author->id,
             'name' => 'new author',
         ]);
@@ -119,7 +119,7 @@ class NestedUpdatableTraitTest extends TestCase
 
         $this->assertSame(true, $result, "Update call should return boolean true");
 
-        $this->seeInDatabase('comments', [
+        $this->assertDatabaseHas('comments', [
             'id'      => $comment->id,
             'post_id' => $post->id,
             'title'   => 'updated comment',

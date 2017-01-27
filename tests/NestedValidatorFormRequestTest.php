@@ -21,7 +21,7 @@ class NestedValidatorFormRequestTest extends TestCase
      */
     function it_performs_validation_for_invalid_nested_create_data_through_a_form_request()
     {
-        $this->post('testing', [
+        $response = $this->post('testing', [
             'title' => 'disallowed title that is way and way too long to be allowed '
                      . 'by the nested validator',
             'genre' => [
@@ -30,8 +30,9 @@ class NestedValidatorFormRequestTest extends TestCase
             ],
         ]);
 
-        $this->seeStatusCode(422)
-            ->seeJson([
+        $response
+            ->assertStatus(422)
+            ->assertJson([
                 "title"    => ["The title may not be greater than 50 characters."],
                 "genre.id" => ["The selected genre.id is invalid."],
             ]);
@@ -44,7 +45,7 @@ class NestedValidatorFormRequestTest extends TestCase
     {
         // the title for updates may be no longer than 10 characters,
         // for the create
-        $this->put('testing', [
+        $response = $this->put('testing', [
             'title' => 'ten characters allowed',
             'genre' => [
                 'id'   => 999,
@@ -52,8 +53,9 @@ class NestedValidatorFormRequestTest extends TestCase
             ],
         ]);
 
-        $this->seeStatusCode(422)
-            ->seeJson([
+        $response
+            ->assertStatus(422)
+            ->assertJson([
                 "body"     => ["The body field is required."],
                 "genre.id" => ["The selected genre.id is invalid."],
                 "title"    => ["The title may not be greater than 10 characters."],
@@ -65,15 +67,15 @@ class NestedValidatorFormRequestTest extends TestCase
      */
     function it_performs_validation_for_valid_nested_create_data_through_a_form_request()
     {
-        $this->post('testing', [
+        $response = $this->post('testing', [
             'title' => 'allowed title',
             'genre' => [
                 'name' => 'allowed genre name',
             ],
         ]);
 
-        $this->seeStatusCode(200);
-        $this->assertEquals('ok', $this->response->getContent());
+        $response->assertStatus(200);
+        $this->assertEquals('ok', $response->getContent());
     }
 
 }
