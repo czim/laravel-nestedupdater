@@ -5,7 +5,7 @@ use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exception\HttpResponseException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\App;
 
 abstract class AbstractNestedDataRequest extends FormRequest

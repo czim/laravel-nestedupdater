@@ -567,7 +567,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
                 $detachModel = $info->model()->find($oldKey);
                 if ( ! $detachModel) continue;
 
-                $foreignKey = $this->model->{$info->relationMethod()}()->getPlainForeignKey();
+                $foreignKey = $this->model->{$info->relationMethod()}()->getForeignKeyName();
 
                 $detachModel->{$foreignKey} = null;
                 $detachModel->save();
