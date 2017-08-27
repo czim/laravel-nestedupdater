@@ -1,9 +1,10 @@
 # Eloquent Nested Model Updater for Laravel
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
+[![Latest Stable Version](http://img.shields.io/packagist/v/czim/laravel-nestedupdater.svg)](https://packagist.org/packages/czim/laravel-nestedupdater)
 [![Software License][ico-license]](LICENSE.md)
 [![Build Status](https://travis-ci.org/czim/laravel-nestedupdater.svg?branch=master)](https://travis-ci.org/czim/laravel-nestedupdater)
-[![Latest Stable Version](http://img.shields.io/packagist/v/czim/laravel-nestedupdater.svg)](https://packagist.org/packages/czim/laravel-nestedupdater)
+[![Coverage Status](https://coveralls.io/repos/github/czim/laravel-nestedupdater/badge.svg?branch=master)](https://coveralls.io/github/czim/laravel-nestedupdater?branch=master)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/cb05e233-afac-486e-b276-2765d1461cd6/mini.png)](https://insight.sensiolabs.com/projects/cb05e233-afac-486e-b276-2765d1461cd6)
 
 Package for updating nested eloquent model relations using a single data array.
