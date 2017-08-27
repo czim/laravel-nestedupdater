@@ -23,7 +23,8 @@
         "phpunit/phpunit": "5.*",
         "mockery/mockery": "0.9.*",
         "scrutinizer/ocular": "~1.1",
-        "orchestra/testbench": "3.4.*"
+        "orchestra/testbench": "3.4.*",
+        "satooshi/php-coveralls": "^1.0"
     },
     "autoload": {
         "psr-4": {
