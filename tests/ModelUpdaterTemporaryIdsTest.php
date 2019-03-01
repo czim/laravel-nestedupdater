@@ -11,7 +11,7 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 class ModelUpdaterTemporaryIdsTest extends TestCase
 {
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
