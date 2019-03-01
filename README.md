@@ -51,8 +51,9 @@ Additionally, this package provides support for validating data with nested rela
 
  Laravel         | Package 
 :----------------|:--------
- 5.3.x and lower | 1.0.x
- 5.4.x and up    | 1.4.x
+ 5.3 and lower   | 1.0
+ 5.4 to 5.6      | 1.4
+ 5.7 and up      | 1.5
  
 
 ## Install
