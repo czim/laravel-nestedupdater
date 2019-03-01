@@ -312,7 +312,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * @param string       $key
      * @param string|array $findRules   full validation rule string ('max:50'), or array of them
      * @param bool         $strict      only the given rules should be present, no others
-     * @return bool
      */
     protected function assertHasValidationRule($rules, $key, $findRules, $strict = false)
     {
@@ -320,13 +319,9 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $findRules = [ $findRules ];
         }
 
-        if ( ! is_array($rules)) {
-            $this->fail("Rules should be an array, can not look up value '{$findRules[0]}' for '{$key}'.");
-        }
+        $this->assertIsArray($rules, "Rules should be an array, can not look up value '{$findRules[0]}' for '{$key}'.");
 
-        if ( ! array_key_exists($key, $rules)) {
-            $this->fail("Rules array does not contain key '{$key}' (cannot find rule '{$findRules[0]}').");
-        }
+        $this->assertArrayHasKey($key, $rules, "Rules array does not contain key '{$key}' (cannot find rule '{$findRules[0]}').");
 
         $rulesForKey = $rules[ $key ];
 
@@ -335,19 +330,17 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         }
 
         foreach ($findRules as $findRule) {
-            if ( ! in_array($findRule, $rulesForKey)) {
-                $this->fail("Rules array does not contain rule '{$findRule}' for key '{$key}'.");
-            }
+            $this->assertContains($findRule, $rulesForKey, "Rules array does not contain rule '{$findRule}' for key '{$key}'.");
         }
 
         if ($strict) {
-            if (count($rulesForKey) > count($findRules)) {
-                $this->fail(
-                    "Not strictly the same rules for '{$key}': "
+            $this->assertLessThanOrEqual(
+                count($rulesForKey),
+                count($findRules),
+                "Not strictly the same rules for '{$key}': "
                     . (count($rulesForKey) - count($findRules)) . ' more present than expected'
                     . ' (' . implode(', ', array_diff(array_values($rulesForKey), array_values($findRules))) . ').'
-                );
-            }
+            );
         }
     }
 
