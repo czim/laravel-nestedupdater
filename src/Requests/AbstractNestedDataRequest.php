@@ -38,7 +38,7 @@ abstract class AbstractNestedDataRequest extends FormRequest
     /**
      * Validate the class instance.
      */
-    public function validate()
+    public function validateResolved()
     {
         $validator = $this->makeNestedValidator();
 
