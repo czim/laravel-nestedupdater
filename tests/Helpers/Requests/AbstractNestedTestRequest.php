@@ -13,7 +13,7 @@ abstract class AbstractNestedTestRequest extends AbstractNestedDataRequest
      * @param array $errors
      * @return Response
      */
-    public function response(array $errors)
+    public function response(array $errors): Response
     {
         return response($errors, 422);
     }

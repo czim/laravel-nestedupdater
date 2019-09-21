@@ -1,4 +1,7 @@
 <?php
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+/** @noinspection AccessModifierPresentedInspection */
+
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\Test\Helpers\Requests\NestedPostRequest;
@@ -11,7 +14,7 @@ class NestedValidatorFormRequestTest extends TestCase
         parent::setUp();
 
         // will return 'ok' if the validation passes or json errors if it fails
-        $this->app['router']->any('testing', function(NestedPostRequest $request) {
+        $this->app['router']->any('testing', function (NestedPostRequest $request) {
             return response('ok');
         });
     }
@@ -33,8 +36,8 @@ class NestedValidatorFormRequestTest extends TestCase
         $response
             ->assertStatus(422)
             ->assertJson([
-                "title"    => ["The title may not be greater than 50 characters."],
-                "genre.id" => ["The selected genre.id is invalid."],
+                'title'    => ['The title may not be greater than 50 characters.'],
+                'genre.id' => ['The selected genre.id is invalid.'],
             ]);
     }
 
@@ -56,9 +59,9 @@ class NestedValidatorFormRequestTest extends TestCase
         $response
             ->assertStatus(422)
             ->assertJson([
-                "body"     => ["The body field is required."],
-                "genre.id" => ["The selected genre.id is invalid."],
-                "title"    => ["The title may not be greater than 10 characters."],
+                'body'     => ['The body field is required.'],
+                'genre.id' => ['The selected genre.id is invalid.'],
+                'title'    => ['The title may not be greater than 10 characters.'],
             ]);
     }
 

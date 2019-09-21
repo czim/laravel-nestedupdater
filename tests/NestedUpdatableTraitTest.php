@@ -1,4 +1,7 @@
 <?php
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+/** @noinspection AccessModifierPresentedInspection */
+
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
@@ -43,7 +46,7 @@ class NestedUpdatableTraitTest extends TestCase
 
         $result = $post->update($data);
 
-        $this->assertSame(true, $result, "Update call should return boolean true");
+        $this->assertTrue($result, 'Update call should return boolean true');
 
         $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
@@ -77,7 +80,7 @@ class NestedUpdatableTraitTest extends TestCase
         $this->assertTrue($post->exists);
 
         $author = Author::latest()->first();
-        $this->assertInstanceOf(Author::class, $author, "Author model should have been created");
+        $this->assertInstanceOf(Author::class, $author, 'Author model should have been created');
 
         $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
@@ -117,7 +120,7 @@ class NestedUpdatableTraitTest extends TestCase
 
         $result = $post->update($data);
 
-        $this->assertSame(true, $result, "Update call should return boolean true");
+        $this->assertTrue($result, 'Update call should return boolean true');
 
         $this->assertDatabaseHas('comments', [
             'id'      => $comment->id,

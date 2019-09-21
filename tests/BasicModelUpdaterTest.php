@@ -1,7 +1,11 @@
 <?php
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+/** @noinspection AccessModifierPresentedInspection */
+
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\Data\UpdateResult;
+use Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\ArrayableData;
@@ -28,7 +32,7 @@ class BasicModelUpdaterTest extends TestCase
         $result = $updater->create($data);
 
         $this->assertInstanceOf(UpdateResult::class, $result);
-        $this->assertTrue($result->model()->exists, "Created model should exist");
+        $this->assertTrue($result->model()->exists, 'Created model should exist');
 
         $this->assertDatabaseHas('posts', [
             'id'    => $result->model()->id,
@@ -296,11 +300,12 @@ class BasicModelUpdaterTest extends TestCase
 
     /**
      * @test
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessageRegExp #genre\)#i
      */
     function it_throws_an_exception_if_nested_relation_data_is_of_incorrect_type()
     {
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessageRegExp('#genre\)#i');
+
         $post  = $this->createPost();
 
         $data = [
@@ -313,11 +318,12 @@ class BasicModelUpdaterTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException
-     * @expectedExceptionMessageRegExp #Czim\\NestedModelUpdater\\Test\\Helpers\\Models\\Post#
      */
     function it_throws_an_exception_if_it_cannot_find_the_top_level_model_by_id()
     {
+        $this->expectException(NestedModelNotFoundException::class);
+        $this->expectExceptionMessageRegExp('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Post#');
+
         $data = [
             'genre' => [
                 'name' => 'updated',
@@ -330,11 +336,12 @@ class BasicModelUpdaterTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException
-     * @expectedExceptionMessageRegExp #Czim\\NestedModelUpdater\\Test\\Helpers\\Models\\Genre.*\(nesting: genre\)#i
      */
     function it_throws_an_exception_with_nested_key_if_it_cannot_find_a_nested_model_by_id()
     {
+        $this->expectException(NestedModelNotFoundException::class);
+        $this->expectExceptionMessageRegExp('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Genre.*\(nesting: genre\)#i');
+
         $post = $this->createPost();
 
         $data = [
@@ -350,11 +357,12 @@ class BasicModelUpdaterTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException
-     * @expectedExceptionMessageRegExp #authors\.0#i
      */
     function it_throws_an_exception_if_not_allowed_to_create_a_nested_model_record_that_has_no_id()
     {
+        $this->expectException(DisallowedNestedActionException::class);
+        $this->expectExceptionMessageRegExp('#authors\.0#i');
+
         $data = [
             'title' => 'Problem Post',
             'body'  => 'Body',
@@ -369,11 +377,12 @@ class BasicModelUpdaterTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException
-     * @expectedExceptionMessageRegExp #authors\.0#i
      */
     function it_throws_an_exception_if_not_allowed_to_create_an_update_only_nested_model_record()
     {
+        $this->expectException(DisallowedNestedActionException::class);
+        $this->expectExceptionMessageRegExp('#authors\.0#i');
+
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors', [
             'link-only'   => false,
             'update-only' => true,

@@ -3,34 +3,41 @@ namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 
 use Czim\NestedModelUpdater\Traits\NestedUpdatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Post extends Model
 {
     use NestedUpdatable;
 
+    /**
+     * @var array
+     */
     protected $fillable = [ 'title', 'body' ];
 
-    public function authors()
+    public function authors(): BelongsToMany
     {
         return $this->belongsToMany(Author::class);
     }
 
-    public function comments()
+    public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
 
-    public function genre()
+    public function genre(): BelongsTo
     {
         return $this->belongsTo(Genre::class);
     }
 
-    public function tags()
+    public function tags(): MorphMany
     {
         return $this->morphMany(Tag::class, 'taggable');
     }
 
-    
+
     public function someOtherRelationMethod()
     {
         return $this->belongsTo(Genre::class);

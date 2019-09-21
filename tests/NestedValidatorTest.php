@@ -1,12 +1,17 @@
 <?php
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+/** @noinspection AccessModifierPresentedInspection */
+
 namespace Czim\NestedModelUpdater\Test;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Czim\NestedModelUpdater\NestedValidator;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Tag;
+use UnexpectedValueException;
 
 class NestedValidatorTest extends TestCase
 {
@@ -346,8 +351,8 @@ class NestedValidatorTest extends TestCase
         $validator = new NestedValidator(Post::class);
         $rules = $validator->getDirectModelValidationRules(false);
 
-        $this->assertTrue(is_array($rules));
-        $this->assertEquals('required|string|max:50', array_get($rules, 'title'));
+        $this->assertIsArray($rules);
+        $this->assertEquals('required|string|max:50', Arr::get($rules, 'title'));
     }
 
     /**
@@ -358,8 +363,8 @@ class NestedValidatorTest extends TestCase
         $validator = new NestedValidator(Post::class);
         $rules = $validator->getDirectModelValidationRules(false, false);
 
-        $this->assertTrue(is_array($rules));
-        $this->assertEquals('string|max:10', array_get($rules, 'title'));
+        $this->assertIsArray($rules);
+        $this->assertEquals('string|max:10', Arr::get($rules, 'title'));
     }
 
     /**
@@ -370,17 +375,18 @@ class NestedValidatorTest extends TestCase
         $validator = new NestedValidator(Special::class);
         $rules = $validator->getDirectModelValidationRules();
 
-        $this->assertTrue(is_array($rules));
+        $this->assertIsArray($rules);
         $this->assertCount(0, $rules);
     }
 
     /**
      * @test
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessageRegExp #not bound#
      */
     function it_throws_an_exception_when_attempting_to_retrieve_nonexistent_rules_if_configured_to()
     {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessageRegExp('#not bound#i');
+
         Config::set('nestedmodelupdater.validation.allow-missing-rules', false);
 
         $validator = new NestedValidator(Special::class);
@@ -394,11 +400,12 @@ class NestedValidatorTest extends TestCase
 
     /**
      * @test
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessageRegExp #no method 'rules'#i
      */
     function it_throws_an_exception_if_a_rules_class_for_a_model_does_not_have_the_rules_method()
     {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessageRegExp('#no method \'rules\'#i');
+
         // set a 'rules' class that does not have rules()
         Config::set('nestedmodelupdater.relations.' . Post::class . '.genre', [ 'rules' => Post::class ]);
 
@@ -415,11 +422,12 @@ class NestedValidatorTest extends TestCase
 
     /**
      * @test
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessageRegExp #array#i
      */
     function it_throws_an_exception_if_a_rules_class_method_does_not_return_an_array()
     {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessageRegExp('#array#i');
+
         Config::set('nestedmodelupdater.relations.' . Post::class . '.genre', [
             'rules'        => Genre::class,
             'rules-method' => 'brokenCustomRulesMethod',

@@ -1,4 +1,7 @@
 <?php
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+/** @noinspection AccessModifierPresentedInspection */
+
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\ModelUpdater;
@@ -18,7 +21,7 @@ class ElaborateModelUpdaterTest extends TestCase
     {
         $post    = $this->createPost();
         $comment = $this->createComment($post);
-        
+
         $data = [
             'comments' => [
                 [
@@ -31,7 +34,7 @@ class ElaborateModelUpdaterTest extends TestCase
                 ]
             ]
         ];
-        
+
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
@@ -242,7 +245,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertEquals(1, Special::count(), "There should be only 1 Special record");
+        $this->assertEquals(1, Special::count(), 'There should be only 1 Special record');
 
         $this->assertDatabaseHas('specials', [
             'special' => 'special-exists',
@@ -523,7 +526,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $this->assertDatabaseHas('comments',     [ 'id' => $commentB->id, 'post_id' => $post->id ]);
         $this->assertDatabaseHas('comments',     [ 'id' => $commentC->id, 'post_id' => $post->id ]);
     }
-    
+
     // ------------------------------------------------------------------------------
     //      Full Stack
     // ------------------------------------------------------------------------------
@@ -537,7 +540,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors', [
             'link-only' => false,
         ]);
-        
+
         $data = [
             'title' => 'new title',
             'body' => 'new body',
@@ -612,7 +615,7 @@ class ElaborateModelUpdaterTest extends TestCase
             'name' => 'Author A',
         ]);
     }
-    
+
     /**
      * @test
      */

@@ -1,6 +1,10 @@
 <?php
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+/** @noinspection AccessModifierPresentedInspection */
+
 namespace Czim\NestedModelUpdater\Test;
 
+use Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException;
 use Illuminate\Support\Facades\Config;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
@@ -25,7 +29,7 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
     {
         $post    = $this->createPost();
         $comment = $this->createComment($post);
-        
+
         $data = [
             'comments' => [
                 [
@@ -45,11 +49,11 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
                 ]
             ]
         ];
-        
+
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertEquals(1, Author::count(), "Exactly one author should have been created");
+        $this->assertEquals(1, Author::count(), 'Exactly one author should have been created');
 
         /** @var Author $author */
         $author = Author::first();
@@ -114,15 +118,15 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertEquals(1, Author::count(), "Exactly one author should have been created");
+        $this->assertEquals(1, Author::count(), 'Exactly one author should have been created');
         /** @var Author $author */
         $author = Author::first();
 
-        $this->assertEquals(1, Genre::count(), "Exactly one tag should have been created");
+        $this->assertEquals(1, Genre::count(), 'Exactly one tag should have been created');
         /** @var Genre $genre */
         $genre = Genre::first();
 
-        $this->assertEquals(2, Post::count(), "Exactly two posts should exist (1 created by nesting)");
+        $this->assertEquals(2, Post::count(), 'Exactly two posts should exist (1 created by nesting)');
         /** @var Post $newPost */
         $newPost = Post::orderBy('id', 'desc')->first();
 
@@ -165,11 +169,12 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #['"]auth_1['"]#
      */
     function it_throws_an_exception_if_a_temporary_id_is_used_for_different_models()
     {
+        $this->expectException(InvalidNestedDataException::class);
+        $this->expectExceptionMessageRegExp('#[\'"]auth_1[\'"]#');
+
         $post    = $this->createPost();
         $comment = $this->createComment($post);
 
@@ -197,11 +202,12 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #data defined.*['"]auth_1['"]#
      */
     function it_throws_an_exception_if_a_no_data_is_defined_for_a_temporary_id()
     {
+        $this->expectException(InvalidNestedDataException::class);
+        $this->expectExceptionMessageRegExp('#data defined.*[\'"]auth_1[\'"]#');
+
         $post    = $this->createPost();
         $comment = $this->createComment($post);
 
@@ -230,11 +236,12 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #['"]auth_1['"].*primary key#
      */
     function it_throws_an_exception_if_a_create_data_for_a_temporary_id_contains_a_primary_key_value()
     {
+        $this->expectException(InvalidNestedDataException::class);
+        $this->expectExceptionMessageRegExp('#[\'"]auth_1[\'"].*primary key#');
+
         $post    = $this->createPost();
         $comment = $this->createComment($post);
 
@@ -264,11 +271,12 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #inconsistent.*['"]auth_1['"]#
      */
     function it_throws_an_exception_if_multiple_inconsistent_sets_of_create_data_for_a_temporary_id_are_defined()
     {
+        $this->expectException(InvalidNestedDataException::class);
+        $this->expectExceptionMessageRegExp('#inconsistent.*[\'"]auth_1[\'"]#');
+
         $post    = $this->createPost();
         $comment = $this->createComment($post);
 
@@ -299,11 +307,12 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
 
     /**
      * @test
-     * @expectedException \Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException
-     * @expectedExceptionMessageRegExp #allowed.*['"]auth_1['"]#
      */
     function it_throws_an_exception_if_not_allowed_to_create_for_any_nested_use_of_a_temporary_id()
     {
+        $this->expectException(InvalidNestedDataException::class);
+        $this->expectExceptionMessageRegExp('#allowed.*[\'"]auth_1[\'"]#');
+
         Config::set('nestedmodelupdater.relations.'  . Comment::class . '.author', [ 'update-only' => true ]);
 
         $post    = $this->createPost();

@@ -29,7 +29,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      *
      * @param \Illuminate\Foundation\Application $app
      */
-    protected function getEnvironmentSetUp($app)
+    protected function getEnvironmentSetUp($app): void
     {
         $app->register(NestedModelUpdaterServiceProvider::class);
 
@@ -76,20 +76,20 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
     protected function migrateDatabase()
     {
-        Schema::create('genres', function($table) {
+        Schema::create('genres', function ($table) {
             $table->increments('id');
             $table->string('name', 50);
             $table->timestamps();
         });
 
-        Schema::create('authors', function($table) {
+        Schema::create('authors', function ($table) {
             $table->increments('id');
             $table->string('name', 255);
             $table->enum('gender', [ 'm', 'f' ])->default('f');
             $table->timestamps();
         });
 
-        Schema::create('posts', function($table) {
+        Schema::create('posts', function ($table) {
             $table->increments('id');
             $table->integer('genre_id')->nullable()->unsigned();
             $table->string('title', 50);
@@ -98,7 +98,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->timestamps();
         });
 
-        Schema::create('comments', function($table) {
+        Schema::create('comments', function ($table) {
             $table->increments('id');
             $table->integer('post_id')->unsigned();
             $table->integer('author_id')->nullable()->unsigned();
@@ -107,13 +107,13 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->timestamps();
         });
 
-        Schema::create('author_post', function($table) {
+        Schema::create('author_post', function ($table) {
             $table->increments('id');
             $table->integer('author_id')->unsigned();
             $table->integer('post_id')->unsigned();
         });
 
-        Schema::create('tags', function($table) {
+        Schema::create('tags', function ($table) {
             $table->increments('id');
             $table->integer('taggable_id')->unsigned()->nullable();
             $table->string('taggable_type', 255)->nullable();
@@ -121,7 +121,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->timestamps();
         });
 
-        Schema::create('specials', function($table) {
+        Schema::create('specials', function ($table) {
             $table->string('special', 20)->unique();
             $table->integer('post_id')->unsigned()->nullable();
             $table->string('name', 50);
@@ -130,17 +130,12 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         });
     }
 
-    protected function seedDatabase()
+    protected function seedDatabase(): void
     {
     }
 
 
-    /**
-     * @param string $name
-     * @param string $gender
-     * @return Author
-     */
-    protected function createAuthor($name = 'Test Author', $gender = 'm')
+    protected function createAuthor(string $name = 'Test Author', string $gender = 'm'): Author
     {
         return Author::create([
             'name'   => $name,
@@ -148,23 +143,14 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         ]);
     }
 
-    /**
-     * @param string $name
-     * @return Genre
-     */
-    protected function createGenre($name = 'testing genre')
+    protected function createGenre(string $name = 'testing genre'): Genre
     {
         return Genre::create([
             'name' => $name,
         ]);
     }
 
-    /**
-     * @param string $title
-     * @param string $body
-     * @return Post
-     */
-    protected function createPost($title = 'testing title', $body = 'testing body')
+    protected function createPost(string $title = 'testing title', string $body = 'testing body'): Post
     {
         // do not use create() method to prevent trait nested update from being applied
         $post = new Post([
@@ -177,15 +163,13 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $post;
     }
 
-    /**
-     * @param Post   $post
-     * @param string $title
-     * @param string $body
-     * @param null   $author
-     * @return Comment
-     */
-    protected function createComment(Post $post, $title = 'testing title', $body = 'testing body', $author = null)
-    {
+    protected function createComment(
+        Post $post,
+        string $title = 'testing title',
+        string $body = 'testing body',
+        ?Author $author = null
+    ): Comment {
+
         $comment = new Comment([
             'title' => $title,
             'body'  => $body,
@@ -198,13 +182,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $post->comments()->save($comment);
     }
 
-
-    /**
-     * @param Model|null $taggable
-     * @param string     $name
-     * @return Tag
-     */
-    protected function createTag(Model $taggable = null, $name = 'test tag')
+    protected function createTag(Model $taggable = null, string $name = 'test tag'): Tag
     {
         $tag = new Tag([
             'name'  => $name,
@@ -216,16 +194,11 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         }
 
         $tag->save();
-        
+
         return $tag;
     }
 
-    /**
-     * @param string $key
-     * @param string $name
-     * @return Genre
-     */
-    protected function createSpecial($key, $name = 'testing special')
+    protected function createSpecial(string $key, string $name = 'testing special'): Special
     {
         return Special::create([
             'special' => $key,
@@ -243,7 +216,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * @param string $like
      * @param bool   $isRegex if true, $like is already a regex string
      */
-    protected function assertHasValidationErrorLike($messages, $key, $like, $isRegex = false)
+    protected function assertHasValidationErrorLike($messages, string $key, string $like, bool $isRegex = false): void
     {
         if ( ! ($messages instanceof MessageBag)) {
             $this->fail("Messages should be a MessageBag instance, cannot look up presence of '{$like}' for '{$key}'.");
@@ -253,7 +226,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $this->fail("Messages does not contain key '{$key}' (cannot look up presence of '{$like}').");
         }
 
-        $regex = $isRegex ? $like : '#' . preg_quote($like) . '#i';
+        $regex = $isRegex ? $like : '#' . preg_quote($like, '#') . '#i';
 
         $matched = array_filter($messages->get($key), function ($message) use ($regex) {
             return preg_match($regex, $message);
@@ -272,7 +245,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * @param string $key
      * @param string $regex
      */
-    protected function assertHasValidationErrorRegex($messages, $key, $regex)
+    protected function assertHasValidationErrorRegex($messages, string $key, string $regex): void
     {
         $this->assertHasValidationErrorLike($messages, $key, $regex, true);
     }
@@ -286,20 +259,24 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * @param bool        $strictPerKey if true, the rules for each key present should match strictly
      * @param bool        $strictKeys   if true, only the keys must be present in the rules, and no more
      */
-    protected function assertHasValidationRules($rules, array $findRules, $strictPerKey = false, $strictKeys = false)
-    {
+    protected function assertHasValidationRules(
+        $rules,
+        array $findRules,
+        bool $strictPerKey = false,
+        bool $strictKeys = false
+    ): void {
+
         foreach ($findRules as $key => $findRule) {
             $this->assertHasValidationRule($rules, $key, $findRule, $strictPerKey);
         }
 
-        if ($strictKeys) {
-            if (count($rules) > count($findRules)) {
-                $this->fail(
-                    "Not strictly the same rules: "
-                    . (count($rules) - count($findRules)) . ' more keys present than expected'
-                    . ' (' . implode(', ', array_diff(array_keys($rules), array_keys($findRules))) . ').'
-                );
-            }
+        if ($strictKeys && count($rules) > count($findRules)) {
+
+            $this->fail(
+                "Not strictly the same rules: "
+                . (count($rules) - count($findRules)) . ' more keys present than expected'
+                . ' (' . implode(', ', array_diff(array_keys($rules), array_keys($findRules))) . ').'
+            );
         }
     }
 
@@ -313,7 +290,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * @param string|array $findRules   full validation rule string ('max:50'), or array of them
      * @param bool         $strict      only the given rules should be present, no others
      */
-    protected function assertHasValidationRule($rules, $key, $findRules, $strict = false)
+    protected function assertHasValidationRule($rules, string $key, $findRules, bool $strict = false): void
     {
         if ( ! is_array($findRules)) {
             $findRules = [ $findRules ];

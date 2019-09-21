@@ -6,22 +6,22 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 class NestedPostRequest extends AbstractNestedTestRequest
 {
 
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
-    protected function getNestedModelClass()
+    protected function getNestedModelClass(): string
     {
         return Post::class;
     }
 
-    protected function isCreating()
+    protected function isCreating(): bool
     {
         // As an example, the difference between creating and updating here is
         // simulated as that of the difference between using a POST and PUT method.
 
-        return request()->getMethod() != 'PUT' && request()->getMethod() != 'PATCH';
+        return request()->getMethod() !== 'PUT' && request()->getMethod() !== 'PATCH';
     }
 
 }

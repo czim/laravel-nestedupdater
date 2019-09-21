@@ -1,4 +1,7 @@
 <?php
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+/** @noinspection AccessModifierPresentedInspection */
+
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
@@ -71,5 +74,5 @@ class NestingConfigTest extends TestCase
         $info = $config->getRelationInfo('authors', Post::class);
         $this->assertFalse($info->isUpdateAllowed());
     }
-    
+
 }

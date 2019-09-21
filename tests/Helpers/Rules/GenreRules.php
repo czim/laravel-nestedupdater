@@ -4,7 +4,7 @@ namespace Czim\NestedModelUpdater\Test\Helpers\Rules;
 class GenreRules
 {
 
-    public function rules()
+    public function rules(): array
     {
         return [
             'id'   => 'integer',

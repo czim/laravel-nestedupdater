@@ -4,7 +4,7 @@ namespace Czim\NestedModelUpdater\Test\Helpers\Rules;
 class PostRules
 {
 
-    public function rules($type = 'create')
+    public function rules(string $type = 'create'): array
     {
         if ($type !== 'create') {
             return [
