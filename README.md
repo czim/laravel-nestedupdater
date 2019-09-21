@@ -53,8 +53,12 @@ Additionally, this package provides support for validating data with nested rela
 :----------------|:--------
  5.3 and lower   | 1.0
  5.4 to 5.6      | 1.4
- 5.7 and up      | 1.5
+ 5.7 to 5.8      | 1.5
+ 6.0 and up      | 2.0
  
+ ## Change log
+ 
+ [View the changelog](CHANGELOG.md).
 
 ## Install
 
