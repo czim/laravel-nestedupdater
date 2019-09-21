@@ -11,6 +11,6 @@ interface ModelUpdaterFactoryInterface
      * @param array  $parameters    constructor parameters for model updater
      * @return ModelUpdaterInterface
      */
-    public function make($class, array $parameters = []);
+    public function make(string $class, array $parameters = []): ModelUpdaterInterface;
 
 }

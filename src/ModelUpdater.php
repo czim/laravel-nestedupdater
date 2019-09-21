@@ -1,8 +1,10 @@
 <?php
 namespace Czim\NestedModelUpdater;
 
+use Czim\NestedModelUpdater\Contracts\HandlesUnguardedAttributesInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
+use Czim\NestedModelUpdater\Contracts\NestedParserInterface;
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
 use Czim\NestedModelUpdater\Data\UpdateResult;
@@ -29,7 +31,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @var boolean
      */
     protected $isCreating;
-    
+
     /**
      * Normally, the whole update is performed in a database transaction, but only
      * on the top level. If this is set to true, no transactions are used.
@@ -51,7 +53,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @var array
      */
     protected $saveOptions = [];
-    
+
     /**
      * Attributes to set on the main model, bypassing the fillable guard.*
      *
@@ -69,7 +71,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function create(array $data)
+    public function create(array $data): UpdateResult
     {
         $this->isCreating = true;
         $this->data       = $data;
@@ -88,8 +90,13 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function update(array $data, $model, $attribute = null, array $saveOptions = [])
-    {
+    public function update(
+        array $data,
+        $model,
+        ?string $attribute = null,
+        array $saveOptions = []
+    ): UpdateResult {
+
         if ( ! ($model instanceof Model)) {
             $model = $this->getModelByLookupAtribute($model, $attribute);
         }
@@ -98,7 +105,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $this->data        = $data;
         $this->model       = $model;
         $this->saveOptions = $saveOptions;
-        
+
         return $this->createOrUpdate();
     }
 
@@ -107,7 +114,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @return array
      */
-    public function getUnguardedAttributes()
+    public function getUnguardedAttributes(): array
     {
         return $this->unguardedAttributes;
     }
@@ -118,7 +125,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param array $attributes     associative key value pairs
      * @return $this
      */
-    public function setUnguardedAttributes(array $attributes)
+    public function setUnguardedAttributes(array $attributes): HandlesUnguardedAttributesInterface
     {
         $this->unguardedAttributes = $attributes;
 
@@ -132,7 +139,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param mixed  $value
      * @return $this
      */
-    public function setUnguardedAttribute($key, $value)
+    public function setUnguardedAttribute(string $key, $value): HandlesUnguardedAttributesInterface
     {
         $this->unguardedAttributes[ $key ] = $value;
 
@@ -144,7 +151,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @return $this
      */
-    public function clearUnguardedAttributes()
+    public function clearUnguardedAttributes(): HandlesUnguardedAttributesInterface
     {
         $this->unguardedAttributes = [];
 
@@ -158,7 +165,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    protected function createOrUpdate()
+    protected function createOrUpdate(): UpdateResult
     {
         $this->relationsAnalyzed     = false;
         $this->belongsTosWereUpdated = false;
@@ -187,7 +194,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    protected function performCreateOrUpdateProcess()
+    protected function performCreateOrUpdateProcess(): UpdateResult
     {
         $this->config->setParentModel($this->modelClass);
         $this->analyzeNestedRelationsData();
@@ -219,7 +226,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * Customize this to adjust the data property before the nesting
      * analysis & processing is performed.
      */
-    protected function normalizeData()
+    protected function normalizeData(): void
     {
     }
 
@@ -228,9 +235,11 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * nested temporary ids. Must be performed after the
      * relations are analyzed.
      */
-    protected function analyzeTemporaryIds()
+    protected function analyzeTemporaryIds(): void
     {
-        if ( ! $this->isHandlingTemporaryIds()) return;
+        if ( ! $this->isHandlingTemporaryIds()) {
+            return;
+        }
 
         $temporaryIdKey = $this->getTemporaryIdAttributeKey();
 
@@ -238,11 +247,11 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $ids = app(TemporaryIdsInterface::class);
         $this->setTemporaryIds($ids);
 
-        $dotArray = array_keys(array_dot($this->data));
+        $dotArray = array_keys(Arr::dot($this->data));
 
         // only keep temporary id fields
         $dotArray = array_filter($dotArray, function ($dotKey) use ($temporaryIdKey) {
-            return preg_match('#(^|\.)' . preg_quote($temporaryIdKey) . '$#', $dotKey);
+            return preg_match('#(^|\.)' . preg_quote($temporaryIdKey, '#') . '$#', $dotKey);
         });
 
 
@@ -253,8 +262,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             // for analysis & temporary ID preparation
 
             foreach ($dotArray as $dotKey) {
-                
-                $temporaryIdValue = array_get($this->data, $dotKey);
+
+                $temporaryIdValue = Arr::get($this->data, $dotKey);
 
                 $explodedKeys = explode('.', $dotKey);
                 array_pop($explodedKeys);
@@ -263,7 +272,10 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
                 // get the model class for the temporary id, so we can make sure it's consistently used
                 $info = $this->getRelationInfoForDataKeyInDotNotation($dotKeyAbove);
                 $modelClass = get_class($info->model());
-                if ( ! $modelClass) continue;
+
+                if ( ! $modelClass) {
+                    continue;
+                }
 
                 if ( ! $ids->getModelClassForId($temporaryIdValue)) {
                     $ids->setModelClassForId($temporaryIdValue, $modelClass);
@@ -274,12 +286,12 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
                 // assign the create data for the temporary id if it is set, and
                 // check for problematic data defined for it
-                $data = array_get($this->data, $dotKeyAbove);
+                $data = Arr::get($this->data, $dotKeyAbove);
                 if (count($data) > 1) {
                     $this->checkDataAttributeKeysForTemporaryId($temporaryIdValue, $data);
-                    $ids->setDataForId($temporaryIdValue, array_except($data, [ $temporaryIdKey ]));
+                    $ids->setDataForId($temporaryIdValue, Arr::except($data, [ $temporaryIdKey ]));
                 }
-                
+
                 // track if we're ever able to create the model for which a temporary ID is used
                 if ($info->isCreateAllowed()) {
                     $ids->markAllowedToCreateForId($temporaryIdValue);
@@ -289,15 +301,17 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         $this->checkTemporaryIdsUsage();
     }
-    
+
 
     /**
      * Prepares model property so it is ready for belongsTo relation updates.
      * When updating, the model is already retrieved and considered prepared.
      */
-    protected function prepareModel()
+    protected function prepareModel(): void
     {
-        if ( ! $this->isCreating) return;
+        if ( ! $this->isCreating) {
+            return;
+        }
 
         $modelClass  = $this->modelClass;
         $this->model = new $modelClass;
@@ -308,7 +322,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @throws ModelSaveFailureException
      */
-    protected function updateAndPersistModel()
+    protected function updateAndPersistModel(): void
     {
         $modelData = $this->getDirectModelData();
 
@@ -348,7 +362,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     /**
      * Stores unguarded attributes set on the main model, if any.
      */
-    protected function storeUnguardedAttributes()
+    protected function storeUnguardedAttributes(): void
     {
         foreach ($this->unguardedAttributes as $key => $value) {
 
@@ -361,9 +375,11 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @return bool
      */
-    protected function shouldSaveModelOnParentRelation()
+    protected function shouldSaveModelOnParentRelation(): bool
     {
-        if ( ! $this->parentModel || ! $this->parentRelationInfo) return false;
+        if ( ! $this->parentModel || ! $this->parentRelationInfo) {
+            return false;
+        }
 
         return ! $this->parentRelationInfo->isBelongsTo();
     }
@@ -372,10 +388,13 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * Handles the relations that need to be updated/created before the main
      * model is. Returns an array with results keyed by attribute.
      */
-    protected function handleBelongsToRelations()
+    protected function handleBelongsToRelations(): void
     {
         foreach ($this->relationInfo as $attribute => $info) {
-            if ( ! array_has($this->data, $attribute) || ! $info->isBelongsTo()) continue;
+
+            if ( ! Arr::has($this->data, $attribute) || ! $info->isBelongsTo()) {
+                continue;
+            }
 
             $this->belongsTosWereUpdated = true;
 
@@ -420,10 +439,13 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * Handles the relations that should be updated only after the model
      * is persisted.
      */
-    protected function handleHasAndBelongsToManyRelations()
+    protected function handleHasAndBelongsToManyRelations(): void
     {
         foreach ($this->relationInfo as $attribute => $info) {
-            if ( ! array_has($this->data, $attribute) || $info->isBelongsTo()) continue;
+
+            if ( ! Arr::has($this->data, $attribute) || $info->isBelongsTo()) {
+                continue;
+            }
 
             // collect keys for (newly) connected models, and all models to connect
             $keys = [];
@@ -468,7 +490,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
                 }
             }
 
-            
+
             // sync relation, detaching anything not specifically listed in the dataset unless we shouldn't
             if (is_a($info->relationClass(), BelongsToMany::class, true)) {
 
@@ -492,7 +514,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param RelationInfo $info
      * @param array        $keys
      */
-    protected function syncKeysForBelongsToManyRelation(RelationInfo $info, array $keys)
+    protected function syncKeysForBelongsToManyRelation(RelationInfo $info, array $keys): void
     {
         // if we should delete detached models, gather the model ids to delete
         if ($info->isDeleteDetached()) {
@@ -528,7 +550,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param RelationInfo $info
      * @param array        $keys
      */
-    protected function detachByKeysForHasManyRelation(RelationInfo $info, array $keys)
+    protected function detachByKeysForHasManyRelation(RelationInfo $info, array $keys): void
     {
         // the relations might be disconnected, but only if the key is nullable
         // if deletion is not configured, we should attempt setting the key to
@@ -538,9 +560,11 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $isNotHasOne = is_a($info->relationClass(), HasOne::class, true);
 
         // do not detach by default (for hasmany), unless configured otherwise
-        $detaching = (null === $info->getDetachMissing()) ? $isNotHasOne : $info->getDetachMissing();
+        $detaching = $info->getDetachMissing() ?? $isNotHasOne;
 
-        if ( ! $detaching && ! $info->isDeleteDetached()) return;
+        if ( ! $detaching && ! $info->isDeleteDetached()) {
+            return;
+        }
 
         // find keys for all models that are linked to the model but omitted in nested data
         $oldKeys = $this->model->{$info->relationMethod()}()
@@ -549,7 +573,9 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         $oldKeys = array_diff($oldKeys, $keys);
 
-        if ( ! count($oldKeys)) return;
+        if ( ! count($oldKeys)) {
+            return;
+        }
 
 
         if ($info->isDeleteDetached()) {
@@ -565,7 +591,10 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             foreach ($oldKeys as $oldKey) {
                 /** @var Model $model */
                 $detachModel = $info->model()->find($oldKey);
-                if ( ! $detachModel) continue;
+
+                if ( ! $detachModel) {
+                    continue;
+                }
 
                 $foreignKey = $this->model->{$info->relationMethod()}()->getForeignKeyName();
 
@@ -585,7 +614,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param Model        $model
      * @param RelationInfo $info
      */
-    protected function deleteFormerlyRelatedModel(Model $model, RelationInfo $info)
+    protected function deleteFormerlyRelatedModel(Model $model, RelationInfo $info): void
     {
         $class = $this->modelClass;
 
@@ -603,7 +632,9 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             ->count();
 
 
-        if ($inUse) return;
+        if ($inUse) {
+            return;
+        }
 
         $model->delete();
     }
@@ -619,8 +650,13 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @return UpdateResult|false       false if no model available
      * @throws DisallowedNestedActionException
      */
-    protected function handleNestedSingleUpdateOrCreate($data, RelationInfo $info, $attribute, $index = null)
-    {
+    protected function handleNestedSingleUpdateOrCreate(
+        $data,
+        RelationInfo $info,
+        string $attribute,
+        ?int $index = null
+    ) {
+
         // handle model before, use results to save foreign key on the model later
         $nestedKey = $this->appendNestedKey($attribute, $index);
 
@@ -629,7 +665,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             $info->model()->getKeyName(),
             $nestedKey
         );
-        
+
         // if this data set has a temporary id, create the model and convert to link operation instead
         // note that we cannot assume that it is being created explicitly for this relation, it
         // may simply be the first time it is referenced while processing the data tree.
@@ -693,7 +729,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
             // if we cannot create it, we cannot proceed
             if (empty($updateId)) {
-                throw (new DisallowedNestedActionException("Not allowed to create new for link-only nested relation"))
+                throw (new DisallowedNestedActionException('Not allowed to create new for link-only nested relation'))
                     ->setNestedKey($nestedKey);
             }
 
@@ -716,10 +752,10 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         // if a model for a given 'updateId' does not exist yet, and the model's key is
         // not an incrementing key, this should be treated as an attempt to create a record
-        $creatingWithKey = ( ! $info->model()->getIncrementing() && ! empty($updateId) && ! $existingModel);
+        $creatingWithKey = ! $info->model()->getIncrementing() && ! empty($updateId) && ! $existingModel;
 
         // if this is a link-only operation, mark it
-        $onlyLinking = (count($data) == 1 && ! empty($updateId) && ! $creatingWithKey);
+        $onlyLinking = count($data) === 1 && ! empty($updateId) && ! $creatingWithKey;
 
         // if we are allowed to update, but only the key is provided, treat this as a link-only operation
         // throw an exception if we couldn't find the model
@@ -736,7 +772,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         // otherwise, create or update, depending on whether the primary key is present in the data
         // if it is a create operation, make sure we're allowed to
         if ((empty($updateId) || $creatingWithKey) && ! $info->isCreateAllowed()) {
-            throw (new DisallowedNestedActionException("Not allowed to create new for update-only nested relation"))
+            throw (new DisallowedNestedActionException('Not allowed to create new for update-only nested relation'))
                 ->setNestedKey($nestedKey);
         }
 
@@ -747,7 +783,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             $this->model,
             $this->config
         ]);
-        
+
         $updateResult = (empty($updateId) || $creatingWithKey)
             ?   $updater->create($data)
             :   $updater->update($data, $updateId, $info->model()->getKeyName());
@@ -770,8 +806,12 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param null|string $nestedKey        child nested key that the data is for
      * @return array
      */
-    protected function normalizeNestedSingularData($data, $keyAttribute = 'id', $nestedKey = null)
-    {
+    protected function normalizeNestedSingularData(
+        $data,
+        string $keyAttribute = 'id',
+        ?string $nestedKey = null
+    ): array {
+
         // data may be a scalar, in which case it is assumed
         // to be the primary key
 
@@ -789,7 +829,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         if ( ! is_array($data)) {
             throw new UnexpectedValueException(
-                "Nested data should be key (scalar) or array data"
+                'Nested data should be key (scalar) or array data'
                 . ($nestedKey ? " (nesting: {$nestedKey})" : '')
             );
         }
@@ -801,7 +841,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * {@inheritdoc}
      * @return ModelUpdaterInterface
      */
-    protected function makeNestedParser($class, array $parameters)
+    protected function makeNestedParser(string $class, array $parameters): NestedParserInterface
     {
         $updater = $this->getUpdaterFactory()->make($class, $parameters);
 
@@ -812,7 +852,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         return $updater;
     }
-    
+
     /**
      * Returns UpdateResult instance for standard precluded responses.
      *
@@ -820,7 +860,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param bool  $success
      * @return UpdateResult
      */
-    protected function makeUpdateResult(Model $model = null, $success = true)
+    protected function makeUpdateResult(Model $model = null, bool $success = true): UpdateResult
     {
         return (new UpdateResult())
             ->setModel($model)
@@ -832,7 +872,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @return boolean
      */
-    protected function shouldUseTransaction()
+    protected function shouldUseTransaction(): bool
     {
         if ($this->noDatabaseTransaction || ! Config::get('nestedmodelupdater.database-transactions')) {
             return false;
@@ -846,7 +886,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     /**
      * @return ModelUpdaterFactoryInterface
      */
-    protected function getUpdaterFactory()
+    protected function getUpdaterFactory(): ModelUpdaterFactoryInterface
     {
         return App::make(ModelUpdaterFactoryInterface::class);
     }
@@ -858,7 +898,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     /**
      * @return $this
      */
-    public function enableDatabaseTransaction()
+    public function enableDatabaseTransaction(): ModelUpdaterInterface
     {
         $this->noDatabaseTransaction = false;
 
@@ -868,7 +908,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     /**
      * @return $this
      */
-    public function disableDatabaseTransaction()
+    public function disableDatabaseTransaction(): ModelUpdaterInterface
     {
         $this->noDatabaseTransaction = true;
 

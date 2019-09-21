@@ -46,7 +46,7 @@ trait NestedUpdatable
      *
      * @return ModelUpdaterInterface
      */
-    protected function getModelUpdaterInstance()
+    protected function getModelUpdaterInstance(): ModelUpdaterInterface
     {
         $class = (property_exists($this, 'modelUpdaterClass'))
             ?   $this->modelUpdaterClass
@@ -62,7 +62,7 @@ trait NestedUpdatable
     /**
      * @return ModelUpdaterFactoryInterface
      */
-    protected function getModelUpdaterFactory()
+    protected function getModelUpdaterFactory(): ModelUpdaterFactoryInterface
     {
         return App::make(ModelUpdaterFactoryInterface::class);
     }

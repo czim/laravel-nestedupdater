@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class TemporaryId
- * 
+ *
  * Container for information about a single temporary ID's status.
  */
 class TemporaryId
@@ -55,7 +55,7 @@ class TemporaryId
      * @param boolean $created
      * @return $this
      */
-    public function setCreated($created = true)
+    public function setCreated(bool $created = true): TemporaryId
     {
         $this->created = $created;
 
@@ -67,7 +67,7 @@ class TemporaryId
      *
      * @return boolean
      */
-    public function isCreated()
+    public function isCreated(): bool
     {
         return $this->created;
     }
@@ -78,9 +78,9 @@ class TemporaryId
      * @param boolean $allowedToCreate
      * @return $this
      */
-    public function setAllowedToCreate($allowedToCreate = true)
+    public function setAllowedToCreate(bool $allowedToCreate = true): TemporaryId
     {
-        $this->allowedToCreate = (bool) $allowedToCreate;
+        $this->allowedToCreate = $allowedToCreate;
 
         return $this;
     }
@@ -90,7 +90,7 @@ class TemporaryId
      *
      * @return boolean
      */
-    public function isAllowedToCreate()
+    public function isAllowedToCreate(): bool
     {
         return $this->allowedToCreate;
     }
@@ -99,17 +99,14 @@ class TemporaryId
      * @param array $data
      * @return $this
      */
-    public function setData(array $data)
+    public function setData(array $data): TemporaryId
     {
         $this->data = $data;
 
         return $this;
     }
 
-    /**
-     * @return array|null
-     */
-    public function getData()
+    public function getData(): ?array
     {
         return $this->data;
     }
@@ -118,7 +115,7 @@ class TemporaryId
      * @param Model|null $model
      * @return $this
      */
-    public function setModel(Model $model)
+    public function setModel(Model $model): TemporaryId
     {
         $this->model = $model;
 
@@ -129,10 +126,7 @@ class TemporaryId
         return $this;
     }
 
-    /**
-     * @return Model|null
-     */
-    public function getModel()
+    public function getModel(): ?Model
     {
         return $this->model;
     }
@@ -141,19 +135,16 @@ class TemporaryId
      * @param string $class
      * @return $this
      */
-    public function setModelClass($class)
+    public function setModelClass(?string $class): TemporaryId
     {
         $this->modelClass = $class;
 
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getModelClass()
+    public function getModelClass(): ?string
     {
         return $this->modelClass;
     }
-    
+
 }

@@ -13,7 +13,7 @@ interface NestingConfigInterface
      * @param string $parentModel   FQN of the parent model
      * @return $this
      */
-    public function setParentModel($parentModel);
+    public function setParentModel(string $parentModel): NestingConfigInterface;
 
     /**
      * Returns a container with information about the nested relation by key
@@ -22,7 +22,7 @@ interface NestingConfigInterface
      * @param null|string  $parentModel     the FQN for the parent model
      * @return RelationInfo
      */
-    public function getRelationInfo($key, $parentModel = null);
+    public function getRelationInfo(string $key, ?string $parentModel = null): RelationInfo;
 
     /**
      * Returns the FQN for the ModelUpdater to be used for a specific nested relation key
@@ -31,7 +31,7 @@ interface NestingConfigInterface
      * @param null|string $parentModel      the FQN for the parent model
      * @return string
      */
-    public function getUpdaterClassForKey($key, $parentModel = null);
+    public function getUpdaterClassForKey(string $key, ?string $parentModel = null): string;
 
     /**
      * Returns whether a key, for the given model, is a nested relation at all.
@@ -40,7 +40,7 @@ interface NestingConfigInterface
      * @param null|string $parentModel      the FQN for the parent model
      * @return boolean
      */
-    public function isKeyNestedRelation($key, $parentModel = null);
+    public function isKeyNestedRelation(string $key, ?string $parentModel = null): bool;
 
     /**
      * Returns whether a key, for the given model, is an updatable nested relation.
@@ -52,7 +52,7 @@ interface NestingConfigInterface
      * @param null|string $parentModel      the FQN for the parent model
      * @return boolean
      */
-    public function isKeyUpdatableNestedRelation($key, $parentModel = null);
+    public function isKeyUpdatableNestedRelation(string $key, ?string $parentModel = null): bool;
 
     /**
      * Returns whether a key, for the given model, is a nested relation for which
@@ -62,6 +62,6 @@ interface NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return boolean
      */
-    public function isKeyCreatableNestedRelation($key, $parentModel = null);
-    
+    public function isKeyCreatableNestedRelation(string $key, ?string $parentModel = null): bool;
+
 }

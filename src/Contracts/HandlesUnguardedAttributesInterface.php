@@ -9,7 +9,7 @@ interface HandlesUnguardedAttributesInterface
      *
      * @return array
      */
-    public function getUnguardedAttributes();
+    public function getUnguardedAttributes(): array;
 
     /**
      * Sets a list of unguarded attributes to store directly on the model, bypassing the fillable guard.
@@ -17,7 +17,7 @@ interface HandlesUnguardedAttributesInterface
      * @param array $attributes     associative key value pairs
      * @return $this
      */
-    public function setUnguardedAttributes(array $attributes);
+    public function setUnguardedAttributes(array $attributes): HandlesUnguardedAttributesInterface;
 
     /**
      * Sets an unguarded attribute to store directly on the model, bypassing the fillable guard.
@@ -26,13 +26,13 @@ interface HandlesUnguardedAttributesInterface
      * @param mixed  $value
      * @return $this
      */
-    public function setUnguardedAttribute($key, $value);
+    public function setUnguardedAttribute(string $key, $value): HandlesUnguardedAttributesInterface;
 
     /**
      * Clears list of currently to be applied unguarded attributes.
      *
      * @return $this
      */
-    public function clearUnguardedAttributes();
+    public function clearUnguardedAttributes(): HandlesUnguardedAttributesInterface;
 
 }

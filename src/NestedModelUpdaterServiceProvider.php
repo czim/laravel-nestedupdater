@@ -32,7 +32,7 @@ class NestedModelUpdaterServiceProvider extends ServiceProvider
     /**
      * Registers interface bindings
      */
-    protected function registerInterfaceBindings()
+    protected function registerInterfaceBindings(): void
     {
         $this->app->bind(ModelUpdaterFactoryInterface::class, ModelUpdaterFactory::class);
         $this->app->bind(NestedValidatorFactoryInterface::class, NestedValidatorFactory::class);

@@ -11,7 +11,7 @@ interface TracksTemporaryIdsInterface
      *
      * @return boolean
      */
-    public function isHandlingTemporaryIds();
+    public function isHandlingTemporaryIds(): bool;
 
     /**
      * Stores TemporaryIds container.
@@ -19,12 +19,12 @@ interface TracksTemporaryIdsInterface
      * @param TemporaryIdsInterface $ids
      * @return $this
      */
-    public function setTemporaryIds(TemporaryIdsInterface $ids);
+    public function setTemporaryIds(TemporaryIdsInterface $ids): TracksTemporaryIdsInterface;
 
     /**
      * @return TemporaryIdsInterface|null
      */
-    public function getTemporaryIds();
+    public function getTemporaryIds(): ?TemporaryIdsInterface;
 
     /**
      * Returns RelationInfo instance for nested data element by dot notation data key.
@@ -32,6 +32,6 @@ interface TracksTemporaryIdsInterface
      * @param string $key
      * @return RelationInfo|false     false if data could not be determined
      */
-    public function getRelationInfoForDataKeyInDotNotation($key);
+    public function getRelationInfoForDataKeyInDotNotation(string $key);
 
 }

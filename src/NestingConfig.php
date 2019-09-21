@@ -29,10 +29,10 @@ class NestingConfig implements NestingConfigInterface
      * @param string $parentModel FQN of the parent model
      * @return $this
      */
-    public function setParentModel($parentModel)
+    public function setParentModel(string $parentModel): NestingConfigInterface
     {
         $this->parentModel = $parentModel;
-        
+
         return $this;
     }
 
@@ -43,12 +43,12 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return RelationInfo
      */
-    public function getRelationInfo($key, $parentModel = null)
+    public function getRelationInfo(string $key, ?string $parentModel = null): RelationInfo
     {
         if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
             throw new RuntimeException(
                 "{$key} is not a nested relation, cannot gather data"
-                . " for model " . ($parentModel ?: $this->parentModel)
+                . ' for model ' . ($parentModel ?: $this->parentModel)
             );
         }
 
@@ -56,7 +56,7 @@ class NestingConfig implements NestingConfigInterface
 
         $relationMethod = $this->getRelationMethod($key, $parentModel);
         $relation       = $parent->{$relationMethod}();
-        
+
         return (new RelationInfo())
             ->setRelationMethod($relationMethod)
             ->setRelationClass(get_class($relation))
@@ -78,7 +78,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel
      * @return array|boolean
      */
-    public function getNestedRelationConfigByKey($key, $parentModel = null)
+    public function getNestedRelationConfigByKey(string $key, ?string $parentModel = null)
     {
         $parentModel = $parentModel ?: $this->parentModel;
 
@@ -92,11 +92,11 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel      the FQN for the parent model
      * @return boolean
      */
-    public function isKeyNestedRelation($key, $parentModel = null)
+    public function isKeyNestedRelation(string $key, ?string $parentModel = null): bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        return (false !== $config && null !== $config);
+        return false !== $config && null !== $config;
     }
 
     /**
@@ -109,13 +109,18 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return boolean
      */
-    public function isKeyUpdatableNestedRelation($key, $parentModel = null)
+    public function isKeyUpdatableNestedRelation(string $key, ?string $parentModel = null): bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
-        
-        if (true === $config) return true;
-        if ( ! is_array($config)) return false;
-        
+
+        if (true === $config) {
+            return true;
+        }
+
+        if ( ! is_array($config)) {
+            return false;
+        }
+
         return ! (bool) Arr::get($config, 'link-only', false);
     }
 
@@ -127,7 +132,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return boolean
      */
-    public function isKeyCreatableNestedRelation($key, $parentModel = null)
+    public function isKeyCreatableNestedRelation(string $key, ?string $parentModel = null): bool
     {
         if ( ! $this->isKeyUpdatableNestedRelation($key, $parentModel)) {
             return false;
@@ -135,8 +140,13 @@ class NestingConfig implements NestingConfigInterface
 
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        if (true === $config) return true;
-        if ( ! is_array($config)) return false;
+        if (true === $config) {
+            return true;
+        }
+
+        if ( ! is_array($config)) {
+            return false;
+        }
 
         return ! (bool) Arr::get($config, 'update-only', false);
     }
@@ -148,13 +158,13 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return null|boolean
      */
-    public function isKeyDetachingNestedRelation($key, $parentModel = null)
+    public function isKeyDetachingNestedRelation(string $key, ?string $parentModel = null): ?bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
         if (true === $config || ! is_array($config)) return null;
 
-        $detach = Arr::get($config, 'detach', null);
+        $detach = Arr::get($config, 'detach');
 
         return null === $detach ? null : (bool) $detach;
     }
@@ -166,11 +176,13 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return boolean
      */
-    public function isKeyDeletingNestedRelation($key, $parentModel = null)
+    public function isKeyDeletingNestedRelation(string $key, ?string $parentModel = null): bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        if (true === $config || ! is_array($config)) return false;
+        if (true === $config || ! is_array($config)) {
+            return false;
+        }
 
         return (bool) Arr::get($config, 'delete-detached', false);
     }
@@ -182,7 +194,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return string|false
      */
-    public function getRelationMethod($key, $parentModel = null)
+    public function getRelationMethod(string $key, ?string $parentModel = null)
     {
         return $this->getStringValueForKey($key, 'method', Str::camel($key), $parentModel);
     }
@@ -194,7 +206,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return string
      */
-    public function getUpdaterClassForKey($key, $parentModel = null)
+    public function getUpdaterClassForKey(string $key, ?string $parentModel = null): string
     {
         return $this->getStringValueForKey($key, 'updater', ModelUpdaterInterface::class, $parentModel);
     }
@@ -205,7 +217,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentClass
      * @return Model
      */
-    protected function makeParentModel($parentClass = null)
+    protected function makeParentModel(?string $parentClass = null): Model
     {
         $parentClass = $parentClass ?: $this->parentModel;
 
@@ -223,28 +235,28 @@ class NestingConfig implements NestingConfigInterface
     }
 
     /**
-     * Returns the Relation object returned by calling the relation method on a model. 
-     * 
+     * Returns the Relation object returned by calling the relation method on a model.
+     *
      * @param Model  $model
      * @param string $method
      * @return Relation
      */
-    protected function makeRelation(Model $model, $method)
+    protected function makeRelation(Model $model, string $method): Relation
     {
         if ( ! method_exists($model, $method)) {
             throw new UnexpectedValueException(
                 "Relation method '{$method}' on model " . get_class($model) . ' does not exist'
-            );  
+            );
         }
-        
+
         $relation = $model->{$method};
-        
+
         if ( ! ($relation instanceof Relation)) {
             throw new UnexpectedValueException(
                 "Method '{$method}' on model " . get_class($model) . ' did not return a Relation instance'
-            );    
+            );
         }
-        
+
         return $relation;
     }
 
@@ -254,7 +266,7 @@ class NestingConfig implements NestingConfigInterface
      * @param Relation $relation
      * @return Model
      */
-    protected function getModelForRelation(Relation $relation)
+    protected function getModelForRelation(Relation $relation): Model
     {
         return $relation->getRelated();
     }
@@ -265,7 +277,7 @@ class NestingConfig implements NestingConfigInterface
      * @param Relation $relation
      * @return string
      */
-    protected function determinePrimaryKeyForRelation(Relation $relation)
+    protected function determinePrimaryKeyForRelation(Relation $relation): string
     {
         return $this->getModelForRelation($relation)->getKeyName();
     }
@@ -276,11 +288,12 @@ class NestingConfig implements NestingConfigInterface
      * @param Relation $relation
      * @return bool
      */
-    protected function isRelationSingular(Relation $relation)
+    protected function isRelationSingular(Relation $relation): bool
     {
         return in_array(
             get_class($relation),
-            Config::get('nestedmodelupdater.singular-relations', [])
+            Config::get('nestedmodelupdater.singular-relations', []),
+            true
         );
     }
 
@@ -291,11 +304,12 @@ class NestingConfig implements NestingConfigInterface
      * @param Relation $relation
      * @return bool
      */
-    protected function isRelationBelongsTo(Relation $relation)
+    protected function isRelationBelongsTo(Relation $relation): bool
     {
         return in_array(
             get_class($relation),
-            Config::get('nestedmodelupdater.belongs-to-relations', [])
+            Config::get('nestedmodelupdater.belongs-to-relations', []),
+            true
         );
     }
 
@@ -308,8 +322,12 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel
      * @return bool|string
      */
-    protected function getStringValueForKey($key, $configKey, $default = null, $parentModel = null)
-    {
+    protected function getStringValueForKey(
+        string $key, $configKey,
+        ?string $default = null,
+        ?string $parentModel = null
+    ) {
+
         if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
             return false;
         }
@@ -334,7 +352,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return string
      */
-    public function getValidatorClassForKey($key, $parentModel = null)
+    public function getValidatorClassForKey(string $key, ?string $parentModel = null): string
     {
         return $this->getStringValueForKey($key, 'validator', NestedValidatorInterface::class, $parentModel);
     }
@@ -346,7 +364,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return null|string
      */
-    public function getRulesClassForKey($key, $parentModel = null)
+    public function getRulesClassForKey(string $key, ?string $parentModel = null): ?string
     {
         return $this->getStringValueForKey($key, 'rules', null, $parentModel);
     }
@@ -359,7 +377,7 @@ class NestingConfig implements NestingConfigInterface
      * @param null|string $parentModel the FQN for the parent model
      * @return null|string
      */
-    public function getRulesMethodForKey($key, $parentModel = null)
+    public function getRulesMethodForKey(string $key, ?string $parentModel = null): ?string
     {
         return $this->getStringValueForKey($key, 'rules-method', null, $parentModel);
     }

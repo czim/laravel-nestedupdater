@@ -11,19 +11,19 @@ interface TemporaryIdsInterface
      *
      * @return string[]
      */
-    public function getKeys();
+    public function getKeys(): array;
 
     /**
      * @param string $key
      * @return bool
      */
-    public function hasId($key);
+    public function hasId(string $key): bool;
 
     /**
      * @param string $key
      * @return boolean
      */
-    public function isCreatedForKey($key);
+    public function isCreatedForKey(string $key): bool;
 
     /**
      * Gets nested data set for given temporary ID.
@@ -31,7 +31,7 @@ interface TemporaryIdsInterface
      * @param string $key
      * @return null|array
      */
-    public function getDataForId($key);
+    public function getDataForId(string $key): ?array;
 
     /**
      * Sets (nested) data for a given temporary ID key.
@@ -40,7 +40,7 @@ interface TemporaryIdsInterface
      * @param array  $data
      * @return $this
      */
-    public function setDataForId($key, array $data);
+    public function setDataForId(string $key, array $data): TemporaryIdsInterface;
 
     /**
      * Returns the model class associated with a temporary ID.
@@ -48,7 +48,7 @@ interface TemporaryIdsInterface
      * @param string $key
      * @return null|string
      */
-    public function getModelClassForId($key);
+    public function getModelClassForId(string $key): ?string;
 
     /**
      * Sets the model class associated with a temporary ID.
@@ -57,7 +57,7 @@ interface TemporaryIdsInterface
      * @param string $class
      * @return $this
      */
-    public function setModelClassForId($key, $class);
+    public function setModelClassForId(string $key, string $class): TemporaryIdsInterface;
 
     /**
      * Gets created model instance set for given temporary ID.
@@ -65,7 +65,7 @@ interface TemporaryIdsInterface
      * @param string $key
      * @return null|Model
      */
-    public function getModelForId($key);
+    public function getModelForId(string $key): ?Model;
 
     /**
      * Sets a (created) model for a temporary ID.
@@ -74,7 +74,7 @@ interface TemporaryIdsInterface
      * @param Model  $model
      * @return $this
      */
-    public function setModelForId($key, Model $model);
+    public function setModelForId(string $key, Model $model): TemporaryIdsInterface;
 
     /**
      * Marks whether the model for a given temporary may be created.
@@ -83,7 +83,7 @@ interface TemporaryIdsInterface
      * @param bool   $allowed
      * @return $this
      */
-    public function markAllowedToCreateForId($key, $allowed = true);
+    public function markAllowedToCreateForId(string $key, bool $allowed = true): TemporaryIdsInterface;
 
     /**
      * Returns whether create is allowed for a given temporary ID.
@@ -91,6 +91,6 @@ interface TemporaryIdsInterface
      * @param string $key
      * @return bool
      */
-    public function isAllowedToCreateForId($key);
-    
+    public function isAllowedToCreateForId(string $key): bool;
+
 }

@@ -2,6 +2,7 @@
 namespace Czim\NestedModelUpdater\Traits;
 
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
+use Czim\NestedModelUpdater\Contracts\TracksTemporaryIdsInterface;
 use Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException;
 
 trait TracksTemporaryIds
@@ -19,7 +20,7 @@ trait TracksTemporaryIds
      *
      * @return boolean
      */
-    public function isHandlingTemporaryIds()
+    public function isHandlingTemporaryIds(): bool
     {
         return (bool) config('nestedmodelupdater.allow-temporary-ids');
     }
@@ -28,9 +29,9 @@ trait TracksTemporaryIds
      * Sets the container for tracking temporary IDs.
      *
      * @param TemporaryIdsInterface $ids
-     * @return $this
+     * @return $this|TracksTemporaryIdsInterface
      */
-    public function setTemporaryIds(TemporaryIdsInterface $ids)
+    public function setTemporaryIds(TemporaryIdsInterface $ids): TracksTemporaryIdsInterface
     {
         $this->temporaryIds = $ids;
 
@@ -40,7 +41,7 @@ trait TracksTemporaryIds
     /**
      * @return TemporaryIdsInterface|null
      */
-    public function getTemporaryIds()
+    public function getTemporaryIds(): ?TemporaryIdsInterface
     {
         return $this->temporaryIds;
     }
@@ -50,7 +51,7 @@ trait TracksTemporaryIds
      *
      * @return bool
      */
-    protected function hasTemporaryIds()
+    protected function hasTemporaryIds(): bool
     {
         return null !== $this->temporaryIds;
     }
@@ -60,7 +61,7 @@ trait TracksTemporaryIds
      *
      * @return string
      */
-    protected function getTemporaryIdAttributeKey()
+    protected function getTemporaryIdAttributeKey(): string
     {
         return config('nestedmodelupdater.temporary-id-key');
     }
@@ -69,17 +70,17 @@ trait TracksTemporaryIds
      * Checks whether all the temporary ids are correctly set and
      * all of them have data that can be used.
      *
-     * @return $this
+     * @return $this|TracksTemporaryIdsInterface
      * @throws InvalidNestedDataException
      */
-    protected function checkTemporaryIdsUsage()
+    protected function checkTemporaryIdsUsage(): TracksTemporaryIdsInterface
     {
         foreach ($this->temporaryIds->getKeys() as $key) {
-            
+
             if (null === $this->temporaryIds->getDataForId($key)) {
                 throw new InvalidNestedDataException("No create data defined for temporary ID '{$key}'");
             }
-            
+
             if ( ! $this->temporaryIds->isAllowedToCreateForId($key)) {
                 throw new InvalidNestedDataException(
                     "Not allowed to create new model for temporary ID '{$key}' for any referenced nested relation"
@@ -95,10 +96,10 @@ trait TracksTemporaryIds
      *
      * @param string $key
      * @param array  $data
-     * @return $this
+     * @return $this|TracksTemporaryIdsInterface
      * @throws InvalidNestedDataException
      */
-    protected function checkDataAttributeKeysForTemporaryId($key, array $data)
+    protected function checkDataAttributeKeysForTemporaryId(string $key, array $data): TracksTemporaryIdsInterface
     {
         $modelClass = $this->temporaryIds->getModelClassForId($key);
         /** @var \Illuminate\Database\Eloquent\Model $model */
@@ -119,8 +120,8 @@ trait TracksTemporaryIds
                 "Multiple inconsistent create data definitions given for temporary ID '{$key}'."
             );
         }
-        
+
         return $this;
     }
-    
+
 }

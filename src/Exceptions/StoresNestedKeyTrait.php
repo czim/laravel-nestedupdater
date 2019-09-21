@@ -14,12 +14,12 @@ trait StoresNestedKeyTrait
     /**
      * Set the dot-notation nested key for the affected model
      *
-     * @param  string   $nestedKey
+     * @param  string|null   $nestedKey
      * @return $this
      */
-    public function setNestedKey($nestedKey)
+    public function setNestedKey(?string $nestedKey)
     {
-        $this->nestedKey = $nestedKey;
+        $this->nestedKey = $nestedKey ?? '';
 
         if ($nestedKey) {
             $this->message .= " (nesting: {$nestedKey})";
@@ -33,7 +33,7 @@ trait StoresNestedKeyTrait
      *
      * @return string
      */
-    public function getNestedKey()
+    public function getNestedKey(): string
     {
         return $this->nestedKey;
     }

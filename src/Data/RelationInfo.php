@@ -102,10 +102,7 @@ class RelationInfo
     protected $rulesMethod;
 
 
-    /**
-     * @return string
-     */
-    public function relationMethod()
+    public function relationMethod(): string
     {
         return $this->relationMethod;
     }
@@ -114,17 +111,14 @@ class RelationInfo
      * @param string $relationMethod
      * @return $this
      */
-    public function setRelationMethod($relationMethod)
+    public function setRelationMethod(string $relationMethod): RelationInfo
     {
         $this->relationMethod = $relationMethod;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function relationClass()
+    public function relationClass(): string
     {
         return $this->relationClass;
     }
@@ -133,17 +127,14 @@ class RelationInfo
      * @param string $relationClass
      * @return $this
      */
-    public function setRelationClass($relationClass)
+    public function setRelationClass($relationClass): RelationInfo
     {
         $this->relationClass = $relationClass;
 
         return $this;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isSingular()
+    public function isSingular(): bool
     {
         return $this->singular;
     }
@@ -152,17 +143,14 @@ class RelationInfo
      * @param boolean $singular
      * @return $this
      */
-    public function setSingular($singular)
+    public function setSingular(bool $singular): RelationInfo
     {
-        $this->singular = (bool) $singular;
+        $this->singular = $singular;
 
         return $this;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isBelongsTo()
+    public function isBelongsTo(): bool
     {
         return $this->belongsTo;
     }
@@ -171,17 +159,14 @@ class RelationInfo
      * @param boolean $belongsTo
      * @return $this
      */
-    public function setBelongsTo($belongsTo)
+    public function setBelongsTo(bool $belongsTo): RelationInfo
     {
-        $this->belongsTo = (bool) $belongsTo;
+        $this->belongsTo = $belongsTo;
 
         return $this;
     }
-    
-    /**
-     * @return null|Model
-     */
-    public function model()
+
+    public function model(): ?Model
     {
         return $this->model;
     }
@@ -190,17 +175,14 @@ class RelationInfo
      * @param null|Model $model
      * @return $this
      */
-    public function setModel($model)
+    public function setModel(?Model $model): RelationInfo
     {
         $this->model = $model;
 
         return $this;
     }
 
-    /**
-     * @return null|string
-     */
-    public function updater()
+    public function updater(): ?string
     {
         return $this->updater;
     }
@@ -209,17 +191,14 @@ class RelationInfo
      * @param null|string $updater
      * @return $this
      */
-    public function setUpdater($updater)
+    public function setUpdater(?string $updater): RelationInfo
     {
         $this->updater = $updater;
 
         return $this;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isUpdateAllowed()
+    public function isUpdateAllowed(): bool
     {
         return $this->updateAllowed;
     }
@@ -228,17 +207,14 @@ class RelationInfo
      * @param boolean $updateAllowed
      * @return $this
      */
-    public function setUpdateAllowed($updateAllowed)
+    public function setUpdateAllowed(bool $updateAllowed): RelationInfo
     {
-        $this->updateAllowed = (bool) $updateAllowed;
+        $this->updateAllowed = $updateAllowed;
 
         return $this;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isCreateAllowed()
+    public function isCreateAllowed(): bool
     {
         return $this->createAllowed;
     }
@@ -247,17 +223,14 @@ class RelationInfo
      * @param boolean $createAllowed
      * @return $this
      */
-    public function setCreateAllowed($createAllowed)
+    public function setCreateAllowed(bool $createAllowed): RelationInfo
     {
-        $this->createAllowed = (bool) $createAllowed;
+        $this->createAllowed = $createAllowed;
 
         return $this;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isDeleteDetached()
+    public function isDeleteDetached(): bool
     {
         return $this->deleteDetached;
     }
@@ -266,17 +239,14 @@ class RelationInfo
      * @param boolean $deleteDetached
      * @return $this
      */
-    public function setDeleteDetached($deleteDetached)
+    public function setDeleteDetached(bool $deleteDetached): RelationInfo
     {
         $this->deleteDetached = $deleteDetached;
 
         return $this;
     }
 
-    /**
-     * @return bool|null
-     */
-    public function getDetachMissing()
+    public function getDetachMissing(): ?bool
     {
         return $this->detachMissing;
     }
@@ -285,17 +255,14 @@ class RelationInfo
      * @param bool|null $detachMissing
      * @return $this
      */
-    public function setDetachMissing($detachMissing)
+    public function setDetachMissing(?bool $detachMissing): RelationInfo
     {
         $this->detachMissing = $detachMissing;
 
         return $this;
     }
 
-    /**
-     * @return null|string
-     */
-    public function validator()
+    public function validator(): ?string
     {
         return $this->validator;
     }
@@ -304,17 +271,14 @@ class RelationInfo
      * @param string $validator
      * @return $this
      */
-    public function setValidator($validator)
+    public function setValidator(?string $validator): RelationInfo
     {
         $this->validator = $validator;
 
         return $this;
     }
 
-    /**
-     * @return null|string
-     */
-    public function rulesClass()
+    public function rulesClass(): ?string
     {
         return $this->rulesClass;
     }
@@ -323,26 +287,23 @@ class RelationInfo
      * @param string $rulesClass
      * @return $this
      */
-    public function setRulesClass($rulesClass)
+    public function setRulesClass(?string $rulesClass): RelationInfo
     {
         $this->rulesClass = $rulesClass;
 
         return $this;
     }
 
-    /**
-     * @return null|string
-     */
-    public function rulesMethod()
+    public function rulesMethod(): ?string
     {
         return $this->rulesMethod;
     }
 
     /**
-     * @param string $rulesMethod
+     * @param null|string $rulesMethod
      * @return $this
      */
-    public function setRulesMethod($rulesMethod)
+    public function setRulesMethod(?string $rulesMethod): RelationInfo
     {
         $this->rulesMethod = $rulesMethod;
 

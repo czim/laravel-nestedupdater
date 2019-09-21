@@ -30,17 +30,14 @@ class UpdateResult
      * @param Model|null $model
      * @return $this
      */
-    public function setModel($model)
+    public function setModel(?Model $model): UpdateResult
     {
         $this->model = $model;
 
         return $this;
     }
 
-    /**
-     * @return Model|null
-     */
-    public function model()
+    public function model(): ?Model
     {
         return $this->model;
     }
@@ -49,17 +46,14 @@ class UpdateResult
      * @param boolean $success
      * @return $this
      */
-    public function setSuccess($success)
+    public function setSuccess(bool $success): UpdateResult
     {
-        $this->success = (bool) $success;
+        $this->success = $success;
 
         return $this;
     }
 
-    /**
-     * @return boolean
-     */
-    public function success()
+    public function success(): bool
     {
         return $this->success;
     }

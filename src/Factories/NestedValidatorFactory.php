@@ -8,7 +8,7 @@ use Czim\NestedModelUpdater\NestedValidator;
 use ReflectionClass;
 use UnexpectedValueException;
 
-class NestedvalidatorFactory implements NestedValidatorFactoryInterface
+class NestedValidatorFactory implements NestedValidatorFactoryInterface
 {
 
     /**
@@ -18,7 +18,7 @@ class NestedvalidatorFactory implements NestedValidatorFactoryInterface
      * @param array  $parameters    constructor parameters for validator
      * @return NestedValidatorInterface
      */
-    public function make($class, array $parameters = [])
+    public function make($class, array $parameters = []): NestedValidatorInterface
     {
         if ($class === NestedValidatorInterface::class) {
             $class = $this->getDefaultValidatorClass();
@@ -42,13 +42,13 @@ class NestedvalidatorFactory implements NestedValidatorFactoryInterface
 
         if ( ! $validator) {
             throw new UnexpectedValueException(
-                "Expected NestedValidatorInterface instance, got nothing for " . $class
+                "Expected NestedValidatorInterface instance, got nothing for '{$class}'"
             );
         }
 
         if ( ! ($validator instanceof NestedValidatorInterface)) {
             throw new UnexpectedValueException(
-                "Expected NestedValidatorInterface instance, got " . get_class($class) . ' instead'
+                'Expected NestedValidatorInterface instance, got ' . get_class($class) . ' instead'
             );
         }
 
@@ -60,7 +60,7 @@ class NestedvalidatorFactory implements NestedValidatorFactoryInterface
      *
      * @return string
      */
-    protected function getDefaultValidatorClass()
+    protected function getDefaultValidatorClass(): string
     {
         return NestedValidator::class;
     }

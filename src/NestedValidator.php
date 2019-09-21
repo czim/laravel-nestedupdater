@@ -1,11 +1,14 @@
 <?php
 namespace Czim\NestedModelUpdater;
 
+use Czim\NestedModelUpdater\Contracts\NestedParserInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\Data\RelationInfo;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Support\MessageBag as MessageBagContract;
 use Illuminate\Contracts\Validation\Factory;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\MessageBag;
 use ReflectionException;
@@ -20,7 +23,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     protected $validates = true;
 
     /**
-     * @var \Illuminate\Contracts\Support\MessageBag
+     * @var MessageBagContract
      */
     protected $messages;
 
@@ -33,7 +36,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * @param bool  $creating   if false, validate for update
      * @return bool
      */
-    public function validate(array $data, $creating = true)
+    public function validate(array $data, bool $creating = true): bool
     {
         $this->relationsAnalyzed = false;
 
@@ -43,7 +46,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
         $this->model      = null;
 
         $rules = $this->getValidationRules($creating);
-        
+
         $validator = $this->getValidationFactory()->make($data, $rules);
 
         if ($validator->fails()) {
@@ -61,7 +64,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * @param bool  $creating
      * @return array
      */
-    public function validationRules(array $data, $creating = true)
+    public function validationRules(array $data, bool $creating = true): array
     {
         $this->relationsAnalyzed = false;
 
@@ -73,9 +76,9 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     /**
      * Returns validation messages, if validation has been performed.
      *
-     * @return null|\Illuminate\Contracts\Support\MessageBag
+     * @return null|MessageBagContract
      */
-    public function messages()
+    public function messages(): ?MessageBagContract
     {
         return $this->messages;
     }
@@ -87,7 +90,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * @param bool $creating
      * @return array
      */
-    public function getDirectModelValidationRules($prefixNesting = false, $creating = true)
+    public function getDirectModelValidationRules(bool $prefixNesting = false, bool $creating = true): array
     {
         $rulesInstance = $this->makeModelRulesInstance();
 
@@ -120,7 +123,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * @param bool  $creating
      * @return array
      */
-    protected function getValidationRules($creating = true)
+    protected function getValidationRules(bool $creating = true): array
     {
         $this->config->setParentModel($this->modelClass);
         $this->analyzeNestedRelationsData();
@@ -138,34 +141,43 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
         return $rules;
     }
 
-    /**
-     * @return array
-     */
-    protected function getNestedRelationValidationRules()
+    protected function getNestedRelationValidationRules(): array
     {
         $rules = [];
 
-
         foreach ($this->relationInfo as $attribute => $info) {
-            if ( ! array_has($this->data, $attribute)) continue;
+
+            if ( ! Arr::has($this->data, $attribute)) {
+                continue;
+            }
 
             if ( ! $info->isSingular()) {
                 // make sure we force an array if we're expecting a plural relation,
                 // and make data-based rules for each item in the array
 
                 $rules[ $this->getNestedKeyPrefix() . $attribute ] = 'array';
-                
+
                 if (is_array($this->data[ $attribute ])) {
 
                     foreach (array_keys($this->data[ $attribute ]) as $index) {
 
-                        $rules = array_merge($rules, $this->getNestedRelationValidationRulesForSingleItem($info, $attribute, $index));
+                        $rules = array_merge(
+                            $rules,
+                            $this->getNestedRelationValidationRulesForSingleItem(
+                                $info,
+                                $attribute,
+                                $index
+                            )
+                        );
                     }
                 }
 
             } else {
 
-                $rules = array_merge($rules, $this->getNestedRelationValidationRulesForSingleItem($info, $attribute));
+                $rules = array_merge(
+                    $rules,
+                    $this->getNestedRelationValidationRulesForSingleItem($info, $attribute)
+                );
             }
         }
 
@@ -175,20 +187,24 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     /**
      * @param RelationInfo $info
      * @param string       $attribute   key of attribute
-     * @param null|int     $index       if data is plural for this attribute, the index for it
+     * @param null|mixed   $index       if data is plural for this attribute, the index for it
      * @return array
      */
-    protected function getNestedRelationValidationRulesForSingleItem(RelationInfo $info, $attribute, $index = null)
-    {
+    protected function getNestedRelationValidationRulesForSingleItem(
+        RelationInfo $info,
+        string $attribute,
+        $index = null
+    ): array {
+
         $rules = [];
-        
+
         $dotKey = $attribute . (null !== $index ? '.' . $index : '');
 
-        $data = array_get($this->data, $dotKey);
+        $data = Arr::get($this->data, $dotKey);
 
         // if the data is scalar, it is treated as the primary key in a link-only operation, which should be allowed
         // if the relation is allowed in nesting at all -- if the data is null, it should be considered a detach
-        // operation, which is allowed aswell. 
+        // operation, which is allowed aswell.
         if (is_scalar($data) || null === $data) {
 
             // add rule if we know that the primary key should be an integer
@@ -198,19 +214,19 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
 
             return $rules;
         }
-        
+
         // if not a scalar or null, the only other value allowed is an array
         $rules[ $this->getNestedKeyPrefix() . $dotKey ] = 'array';
-        
+
         $keyName = $info->model()->getKeyName();
         $keyIsRequired = false;
         $keyMustExist  = false;
-        
+
         // if it is a link-only or update-only nested relation, require a primary key field
         // it also helps to check whether the key actually exists, to prevent problems with
         // a non-existant non-incrementing keys, which would be interpreted as a create action
         if ( ! $info->isCreateAllowed()) {
-            
+
             $keyIsRequired = true;
             $keyMustExist  = true;
 
@@ -220,14 +236,14 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
 
             $keyIsRequired = true;
         }
-        
+
         // if the primary key is not present, this is a create operation, so we must apply the model's create rules
         // otherwise, it's an update operation -- if the model is non-incrementing, however, the create/update
         // distinction depends on whether the given key exists
         if ($info->model()->getIncrementing()) {
-            $creating = ! array_has($data, $keyName);
+            $creating = ! Arr::has($data, $keyName);
         } else {
-            $key = array_get($data, $keyName);
+            $key = Arr::get($data, $keyName);
             $creating = ! $key || ! $this->checkModelExistsByLookupAtribute($key, $keyName, get_class($info->model()));
         }
 
@@ -235,7 +251,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
             $keyMustExist = true;
         }
 
-        
+
         // build up rules for primary key
         $keyRules = [];
 
@@ -257,7 +273,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
 
 
         // get and merge rules for model fields by deferring to a nested validator
-        
+
         /** @var NestedValidatorInterface $validator */
         $validator = $this->makeNestedParser($info->validator(), [
             get_class($info->model()),
@@ -282,7 +298,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * @param array $custom
      * @return array
      */
-    protected function mergeInherentRulesWithCustomModelRules(array $inherent, array $custom)
+    protected function mergeInherentRulesWithCustomModelRules(array $inherent, array $custom): array
     {
         foreach ($custom as $key => $ruleSet) {
 
@@ -311,7 +327,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * @param mixed $rules
      * @return array
      */
-    protected function normalizeRulesForKeyAsArray($rules)
+    protected function normalizeRulesForKeyAsArray($rules): array
     {
         if ( ! is_array($rules)) {
             $rules = explode('|', $rules);
@@ -323,7 +339,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     /**
      * @return string
      */
-    protected function getNestedKeyPrefix()
+    protected function getNestedKeyPrefix(): string
     {
         return $this->nestedKey ? $this->nestedKey . '.' : '';
     }
@@ -335,13 +351,13 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * @param null|string $prefix   if not given, prefixes with nesting prefix for this validator level
      * @return array
      */
-    protected function prefixAllKeysInArray(array $array, $prefix = null)
+    protected function prefixAllKeysInArray(array $array, ?string $prefix = null): array
     {
-        $prefix = (null !== $prefix) ? $prefix : $this->getNestedKeyPrefix();
+        $prefix = $prefix ?? $this->getNestedKeyPrefix();
 
         return array_combine(
             array_map(
-                function ($key) use ($prefix) {
+                static function ($key) use ($prefix) {
                     return $prefix . $key;
                 },
                 array_keys($array)
@@ -355,7 +371,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      *
      * @return string
      */
-    protected function determineModelRulesClass()
+    protected function determineModelRulesClass(): string
     {
         $rulesClass = $this->parentRelationInfo ? $this->parentRelationInfo->rulesClass() : null;
 
@@ -364,7 +380,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
             $modelConfig = config('nestedmodelupdater.validation.model-rules.' . $this->modelClass);
 
             if (is_array($modelConfig)) {
-                $rulesClass = array_get($modelConfig, 'class');
+                $rulesClass = Arr::get($modelConfig, 'class');
             } else {
                 $rulesClass = $modelConfig;
             }
@@ -385,7 +401,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      *
      * @return string
      */
-    protected function determineModelRulesMethod()
+    protected function determineModelRulesMethod(): string
     {
         $rulesMethod = $this->parentRelationInfo ? $this->parentRelationInfo->rulesMethod() : null;
 
@@ -394,7 +410,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
             $modelConfig = config('nestedmodelupdater.validation.model-rules.' . $this->modelClass);
 
             if (is_array($modelConfig)) {
-                $rulesMethod = array_get($modelConfig, 'method');
+                $rulesMethod = Arr::get($modelConfig, 'method');
             }
         }
 
@@ -437,7 +453,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      * {@inheritdoc}
      * @return NestedValidatorInterface
      */
-    protected function makeNestedParser($class, array $parameters)
+    protected function makeNestedParser(string $class, array $parameters): NestedParserInterface
     {
         return $this->getNestedValidatorFactory()->make($class, $parameters);
     }
@@ -445,9 +461,9 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     /**
      * Get a validation factory instance
      *
-     * @return \Illuminate\Contracts\Validation\Factory
+     * @return Factory
      */
-    protected function getValidationFactory()
+    protected function getValidationFactory(): Factory
     {
         return app(Factory::class);
     }
@@ -455,7 +471,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
     /**
      * @return NestedValidatorFactoryInterface
      */
-    protected function getNestedValidatorFactory()
+    protected function getNestedValidatorFactory(): NestedValidatorFactoryInterface
     {
         return App::make(NestedValidatorFactoryInterface::class);
     }

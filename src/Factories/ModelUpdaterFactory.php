@@ -18,7 +18,7 @@ class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
      * @param array  $parameters    constructor parameters for model updater
      * @return ModelUpdaterInterface
      */
-    public function make($class, array $parameters = [])
+    public function make($class, array $parameters = []): ModelUpdaterInterface
     {
         if ($class === ModelUpdaterInterface::class) {
             $class = $this->getDefaultUpdaterClass();
@@ -42,13 +42,13 @@ class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
 
         if ( ! $updater) {
             throw new UnexpectedValueException(
-                "Expected ModelUpdaterInterface instance, got nothing for " . $class
+                "Expected ModelUpdaterInterface instance, got nothing for '{$class}'"
             );
         }
 
         if ( ! ($updater instanceof ModelUpdaterInterface)) {
             throw new UnexpectedValueException(
-                "Expected ModelUpdaterInterface instance, got " . get_class($class) . ' instead'
+                'Expected ModelUpdaterInterface instance, got ' . get_class($class) . ' instead'
             );
         }
 
@@ -60,7 +60,7 @@ class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
      *
      * @return string
      */
-    protected function getDefaultUpdaterClass()
+    protected function getDefaultUpdaterClass(): string
     {
         return ModelUpdater::class;
     }

@@ -99,15 +99,15 @@ abstract class AbstractNestedParser implements NestedParserInterface
      * @param null|string                 $nestedKey        dot-notation key for tree data (ex.: 'blog.comments.2.author')
      * @param null|Model                  $parentModel      the parent model, if this is a recursive/nested call
      * @param null|NestingConfigInterface $config
-     * @param null                        $parentModelClass if the parentModel is not known, but its class is, set this
+     * @param null|string                 $parentModelClass if the parentModel is not known, but its class is, set this
      */
     public function __construct(
-        $modelClass,
-        $parentAttribute = null,
-        $nestedKey = null,
+        string $modelClass,
+        ?string $parentAttribute = null,
+        ?string $nestedKey = null,
         Model $parentModel = null,
         NestingConfigInterface $config = null,
-        $parentModelClass = null
+        ?string $parentModelClass = null
     ) {
         if (null === $config) {
             /** @var NestingConfigInterface $config */
@@ -149,10 +149,13 @@ abstract class AbstractNestedParser implements NestedParserInterface
         // get the info for the next key, make sure that the info is loaded
 
         /** @var RelationInfo $info */
-        if ( ! ($info = array_get($this->relationInfo, $nextLevelKey))) {
+        if ( ! ($info = Arr::get($this->relationInfo, $nextLevelKey))) {
             $info = $this->getRelationInfoForKey($nextLevelKey);
         }
-        if ( ! $info) return false;
+
+        if ( ! $info) {
+            return false;
+        }
 
         // we only need the updater if we cannot derive the model
         // class directly from the relation info.
@@ -174,12 +177,15 @@ abstract class AbstractNestedParser implements NestedParserInterface
     /**
      * Analyzes data to find nested relations data, and stores information about each.
      */
-    protected function analyzeNestedRelationsData()
+    protected function analyzeNestedRelationsData(): void
     {
         $this->relationInfo = [];
 
         foreach ($this->data as $key => $value) {
-            if ( ! $this->config->isKeyNestedRelation($key)) continue;
+
+            if ( ! $this->config->isKeyNestedRelation($key)) {
+                continue;
+            }
 
             $this->relationInfo[$key] = $this->getRelationInfoForKey($key);
         }
@@ -193,7 +199,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
      *
      * @return array
      */
-    protected function getDirectModelData()
+    protected function getDirectModelData(): array
     {
         // this only works if the relations have been analyzed
         if ( ! $this->relationsAnalyzed) {
@@ -210,16 +216,16 @@ abstract class AbstractNestedParser implements NestedParserInterface
      * @param array  $parameters    parameters for model updater constructor
      * @return NestedParserInterface
      */
-    abstract protected function makeNestedParser($class, array $parameters);
+    abstract protected function makeNestedParser(string $class, array $parameters): NestedParserInterface;
 
     /**
      * Returns nested key for the current full-depth nesting.
      *
-     * @param string   $key
-     * @param null|int $index
+     * @param string          $key
+     * @param null|string|int $index
      * @return string
      */
-    protected function appendNestedKey($key, $index = null)
+    protected function appendNestedKey(string $key, $index = null): string
     {
         return ($this->nestedKey ? $this->nestedKey . '.' : '')
              . $key
@@ -232,7 +238,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
      * @param string $key
      * @return RelationInfo
      */
-    protected function getRelationInfoForKey($key)
+    protected function getRelationInfoForKey(string $key): RelationInfo
     {
         $this->relationInfo[$key] = $this->config->getRelationInfo($key, $this->modelClass);
 
@@ -245,7 +251,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
      *
      * @return boolean
      */
-    protected function isTopLevel()
+    protected function isTopLevel(): bool
     {
         return null === $this->parentAttribute && null === $this->parentRelationInfo;
     }
@@ -261,11 +267,12 @@ abstract class AbstractNestedParser implements NestedParserInterface
      */
     protected function getModelByLookupAtribute(
         $id,
-        $attribute = null,
-        $modelClass = null,
-        $nestedKey = null,
-        $exceptionIfNotFound = true
-    ) {
+        ?string $attribute = null,
+        ?string $modelClass = null,
+        ?string $nestedKey = null,
+        bool $exceptionIfNotFound = true
+    ): ?Model {
+
         $class     = $modelClass ?: $this->modelClass;
         $model     = new $class;
         $nestedKey = $nestedKey ?: $this->nestedKey;
@@ -298,9 +305,10 @@ abstract class AbstractNestedParser implements NestedParserInterface
      */
     protected function checkModelExistsByLookupAtribute(
         $id,
-        $attribute = null,
-        $modelClass = null
-    ) {
+        ?string $attribute = null,
+        ?string $modelClass = null
+    ): bool {
+
         $class = $modelClass ?: $this->modelClass;
         $model = new $class;
 

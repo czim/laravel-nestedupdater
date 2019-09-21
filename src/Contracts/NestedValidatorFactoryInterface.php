@@ -11,6 +11,6 @@ interface NestedValidatorFactoryInterface
      * @param array  $parameters    constructor parameters for validator
      * @return NestedValidatorInterface
      */
-    public function make($class, array $parameters = []);
+    public function make(string $class, array $parameters = []): NestedValidatorInterface;
 
 }

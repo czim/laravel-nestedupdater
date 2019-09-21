@@ -1,6 +1,8 @@
 <?php
 namespace Czim\NestedModelUpdater\Contracts;
 
+use Illuminate\Contracts\Support\MessageBag;
+
 interface NestedValidatorInterface extends NestedParserInterface
 {
 
@@ -11,7 +13,7 @@ interface NestedValidatorInterface extends NestedParserInterface
      * @param bool  $creating   if false, validate for update
      * @return bool
      */
-    public function validate(array $data, $creating = true);
+    public function validate(array $data, bool $creating = true): bool;
 
     /**
      * Returns validation rules array for full nested data.
@@ -20,14 +22,14 @@ interface NestedValidatorInterface extends NestedParserInterface
      * @param bool  $creating
      * @return array
      */
-    public function validationRules(array $data, $creating = true);
+    public function validationRules(array $data, bool $creating = true): array;
 
     /**
      * Returns validation messages, if validation has been performed.
      *
-     * @return null|\Illuminate\Contracts\Support\MessageBag
+     * @return null|MessageBag
      */
-    public function messages();
+    public function messages(): ?MessageBag;
 
     /**
      * Returns validation rules for the current model only
@@ -36,6 +38,6 @@ interface NestedValidatorInterface extends NestedParserInterface
      * @param bool $creating
      * @return array
      */
-    public function getDirectModelValidationRules($prefixNesting = false, $creating = true);
+    public function getDirectModelValidationRules(bool $prefixNesting = false, bool $creating = true): array;
 
 }

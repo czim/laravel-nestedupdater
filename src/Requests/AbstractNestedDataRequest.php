@@ -24,7 +24,7 @@ abstract class AbstractNestedDataRequest extends FormRequest
      *
      * @return string
      */
-    abstract protected function getNestedModelClass();
+    abstract protected function getNestedModelClass(): string;
 
     /**
      * Returns whether we are creating, as opposed to updating, the top
@@ -32,13 +32,13 @@ abstract class AbstractNestedDataRequest extends FormRequest
      *
      * @return bool
      */
-    abstract protected function isCreating();
+    abstract protected function isCreating(): bool;
 
 
     /**
      * Validate the class instance.
      */
-    public function validateResolved()
+    public function validateResolved(): void
     {
         $validator = $this->makeNestedValidator();
 
@@ -73,7 +73,7 @@ abstract class AbstractNestedDataRequest extends FormRequest
      *
      * @return NestedValidatorInterface
      */
-    protected function makeNestedValidator()
+    protected function makeNestedValidator(): NestedValidatorInterface
     {
         return $this->getNestedValidatorFactory()
             ->make($this->getNestedValidatorClass(), [ $this->getNestedModelClass() ]);
@@ -84,7 +84,7 @@ abstract class AbstractNestedDataRequest extends FormRequest
      *
      * @return string
      */
-    protected function getNestedValidatorClass()
+    protected function getNestedValidatorClass(): string
     {
         return $this->validatorClass;
     }
@@ -92,7 +92,7 @@ abstract class AbstractNestedDataRequest extends FormRequest
     /**
      * @return NestedValidatorFactoryInterface
      */
-    protected function getNestedValidatorFactory()
+    protected function getNestedValidatorFactory(): NestedValidatorFactoryInterface
     {
         return App::make(NestedValidatorFactoryInterface::class);
     }

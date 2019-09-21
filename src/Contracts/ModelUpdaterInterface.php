@@ -10,7 +10,7 @@ interface ModelUpdaterInterface extends
     TracksTemporaryIdsInterface,
     HandlesUnguardedAttributesInterface
 {
-    
+
     /**
      * Creates a new model with (potential) nested data
      *
@@ -18,7 +18,7 @@ interface ModelUpdaterInterface extends
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function create(array $data);
+    public function create(array $data): UpdateResult;
 
     /**
      * Updates an existing model with (potential) nested update data
@@ -30,6 +30,11 @@ interface ModelUpdaterInterface extends
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function update(array $data, $model, $attribute = null, array $saveOptions = []);
+    public function update(
+        array $data,
+        $model,
+        string $attribute = null,
+        array $saveOptions = []
+    ): UpdateResult;
 
 }
