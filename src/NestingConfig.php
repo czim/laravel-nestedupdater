@@ -235,32 +235,6 @@ class NestingConfig implements NestingConfigInterface
     }
 
     /**
-     * Returns the Relation object returned by calling the relation method on a model.
-     *
-     * @param Model  $model
-     * @param string $method
-     * @return Relation
-     */
-    protected function makeRelation(Model $model, string $method): Relation
-    {
-        if ( ! method_exists($model, $method)) {
-            throw new UnexpectedValueException(
-                "Relation method '{$method}' on model " . get_class($model) . ' does not exist'
-            );
-        }
-
-        $relation = $model->{$method};
-
-        if ( ! ($relation instanceof Relation)) {
-            throw new UnexpectedValueException(
-                "Method '{$method}' on model " . get_class($model) . ' did not return a Relation instance'
-            );
-        }
-
-        return $relation;
-    }
-
-    /**
      * Returns FQN for related model.
      *
      * @param Relation $relation
@@ -269,17 +243,6 @@ class NestingConfig implements NestingConfigInterface
     protected function getModelForRelation(Relation $relation): Model
     {
         return $relation->getRelated();
-    }
-
-    /**
-     * Returns primary key attribute for related model.
-     *
-     * @param Relation $relation
-     * @return string
-     */
-    protected function determinePrimaryKeyForRelation(Relation $relation): string
-    {
-        return $this->getModelForRelation($relation)->getKeyName();
     }
 
     /**
