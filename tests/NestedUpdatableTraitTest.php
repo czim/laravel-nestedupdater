@@ -22,8 +22,8 @@ class NestedUpdatableTraitTest extends TestCase
 
         $post = Post::create($data);
 
-        $this->assertInstanceOf(Post::class, $post);
-        $this->assertTrue($post->exists);
+        static::assertInstanceOf(Post::class, $post);
+        static::assertTrue($post->exists);
 
         $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
@@ -46,7 +46,7 @@ class NestedUpdatableTraitTest extends TestCase
 
         $result = $post->update($data);
 
-        $this->assertTrue($result, 'Update call should return boolean true');
+        static::assertTrue($result, 'Update call should return boolean true');
 
         $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
@@ -76,11 +76,11 @@ class NestedUpdatableTraitTest extends TestCase
 
         $post = Post::create($data);
 
-        $this->assertInstanceOf(Post::class, $post);
-        $this->assertTrue($post->exists);
+        static::assertInstanceOf(Post::class, $post);
+        static::assertTrue($post->exists);
 
         $author = Author::latest()->first();
-        $this->assertInstanceOf(Author::class, $author, 'Author model should have been created');
+        static::assertInstanceOf(Author::class, $author, 'Author model should have been created');
 
         $this->assertDatabaseHas('posts', [
             'id'    => $post->id,
@@ -120,7 +120,7 @@ class NestedUpdatableTraitTest extends TestCase
 
         $result = $post->update($data);
 
-        $this->assertTrue($result, 'Update call should return boolean true');
+        static::assertTrue($result, 'Update call should return boolean true');
 
         $this->assertDatabaseHas('comments', [
             'id'      => $comment->id,

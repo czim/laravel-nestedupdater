@@ -11,6 +11,8 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Tag;
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Schema;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
@@ -27,7 +29,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     /**
      * Define environment setup.
      *
-     * @param \Illuminate\Foundation\Application $app
+     * @param Application $app
      */
     protected function getEnvironmentSetUp($app): void
     {
@@ -74,22 +76,22 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         $app['config']->set('nestedmodelupdater.validation.allow-missing-rules', true);
     }
 
-    protected function migrateDatabase()
+    protected function migrateDatabase(): void
     {
-        Schema::create('genres', function ($table) {
+        Schema::create('genres', static function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 50);
             $table->timestamps();
         });
 
-        Schema::create('authors', function ($table) {
+        Schema::create('authors', static function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 255);
             $table->enum('gender', [ 'm', 'f' ])->default('f');
             $table->timestamps();
         });
 
-        Schema::create('posts', function ($table) {
+        Schema::create('posts', static function (Blueprint $table) {
             $table->increments('id');
             $table->integer('genre_id')->nullable()->unsigned();
             $table->string('title', 50);
@@ -98,7 +100,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->timestamps();
         });
 
-        Schema::create('comments', function ($table) {
+        Schema::create('comments', static function (Blueprint $table) {
             $table->increments('id');
             $table->integer('post_id')->unsigned();
             $table->integer('author_id')->nullable()->unsigned();
@@ -107,13 +109,13 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->timestamps();
         });
 
-        Schema::create('author_post', function ($table) {
+        Schema::create('author_post', static function (Blueprint $table) {
             $table->increments('id');
             $table->integer('author_id')->unsigned();
             $table->integer('post_id')->unsigned();
         });
 
-        Schema::create('tags', function ($table) {
+        Schema::create('tags', static function (Blueprint $table) {
             $table->increments('id');
             $table->integer('taggable_id')->unsigned()->nullable();
             $table->string('taggable_type', 255)->nullable();
@@ -121,7 +123,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->timestamps();
         });
 
-        Schema::create('specials', function ($table) {
+        Schema::create('specials', static function (Blueprint $table) {
             $table->string('special', 20)->unique();
             $table->integer('post_id')->unsigned()->nullable();
             $table->string('name', 50);
@@ -228,9 +230,12 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
         $regex = $isRegex ? $like : '#' . preg_quote($like, '#') . '#i';
 
-        $matched = array_filter($messages->get($key), function ($message) use ($regex) {
-            return preg_match($regex, $message);
-        });
+        $matched = array_filter(
+            $messages->get($key),
+            static function ($message) use ($regex) {
+                return preg_match($regex, $message);
+            }
+        );
 
         if ( ! count($matched)) {
             $this->fail("Messages does not contain error for key '{$key}' that matches '{$regex}'.");
@@ -273,7 +278,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         if ($strictKeys && count($rules) > count($findRules)) {
 
             $this->fail(
-                "Not strictly the same rules: "
+                'Not strictly the same rules: '
                 . (count($rules) - count($findRules)) . ' more keys present than expected'
                 . ' (' . implode(', ', array_diff(array_keys($rules), array_keys($findRules))) . ').'
             );

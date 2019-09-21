@@ -1,15 +1,16 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 /** @noinspection ReturnTypeCanBeDeclaredInspection */
 /** @noinspection AccessModifierPresentedInspection */
 
 namespace Czim\NestedModelUpdater\Test;
 
-use Czim\NestedModelUpdater\Data\UpdateResult;
 use Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\ArrayableData;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
+use UnexpectedValueException;
 
 class BasicModelUpdaterTest extends TestCase
 {
@@ -31,8 +32,7 @@ class BasicModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $result = $updater->create($data);
 
-        $this->assertInstanceOf(UpdateResult::class, $result);
-        $this->assertTrue($result->model()->exists, 'Created model should exist');
+        static::assertTrue($result->model()->exists, 'Created model should exist');
 
         $this->assertDatabaseHas('posts', [
             'id'    => $result->model()->id,
@@ -87,7 +87,7 @@ class BasicModelUpdaterTest extends TestCase
 
         $post = Post::find($post->id);
 
-        $this->assertEquals(1, $post->genre_id, "New Genre should be associated with Post");
+        static::assertEquals(1, $post->genre_id, 'New Genre should be associated with Post');
 
         $this->assertDatabaseHas('genres', [
             'name' => 'New Genre',
@@ -303,7 +303,7 @@ class BasicModelUpdaterTest extends TestCase
      */
     function it_throws_an_exception_if_nested_relation_data_is_of_incorrect_type()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessageRegExp('#genre\)#i');
 
         $post  = $this->createPost();

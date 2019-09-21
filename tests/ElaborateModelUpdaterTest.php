@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 /** @noinspection ReturnTypeCanBeDeclaredInspection */
 /** @noinspection AccessModifierPresentedInspection */
 
@@ -72,7 +73,7 @@ class ElaborateModelUpdaterTest extends TestCase
         ]);
 
         $comment = $post->commentHasOne()->first();
-        $this->assertInstanceOf(Comment::class, $comment);
+        static::assertInstanceOf(Comment::class, $comment);
 
 
         // and update it
@@ -309,7 +310,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater->update($data, $post);
 
         $genre = Genre::where('name', 'replacement genre')->first();
-        $this->assertInstanceOf(Genre::class, $genre);
+        static::assertInstanceOf(Genre::class, $genre);
 
         $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $genre->id ]);
         $this->assertDatabaseMissing('genres', [ 'id' => $oldGenreId ]);
@@ -342,13 +343,13 @@ class ElaborateModelUpdaterTest extends TestCase
             ],
         ];
 
-        // test
+        // Test
 
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
         $authorC = Author::latest()->first();
-        $this->assertInstanceOf(Author::class, $authorC);
+        static::assertInstanceOf(Author::class, $authorC);
 
         $this->assertDatabaseHas('authors', [ 'id' => $authorB->id ]);
         $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
@@ -577,15 +578,15 @@ class ElaborateModelUpdaterTest extends TestCase
         // check the whole structure
 
         $post = Post::latest()->first();
-        $this->assertInstanceOf(Post::class, $post);
+        static::assertInstanceOf(Post::class, $post);
 
         $genre = Genre::latest()->first();
-        $this->assertInstanceOf(Genre::class, $genre);
+        static::assertInstanceOf(Genre::class, $genre);
 
         $commentAuthorB = Author::where('name', 'Author B')->first();
-        $this->assertInstanceOf(Author::class, $commentAuthorB);
+        static::assertInstanceOf(Author::class, $commentAuthorB);
         $commentAuthorC = Author::where('name', 'Author C')->first();
-        $this->assertInstanceOf(Author::class, $commentAuthorC);
+        static::assertInstanceOf(Author::class, $commentAuthorC);
 
         $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
@@ -621,7 +622,7 @@ class ElaborateModelUpdaterTest extends TestCase
      */
     function it_creates_a_deeply_nested_structure_with_linked_models()
     {
-        $genre  = $this->createGenre();
+        $genre   = $this->createGenre();
         $authorA = $this->createAuthor();
         $authorB = $this->createAuthor();
 
@@ -657,7 +658,7 @@ class ElaborateModelUpdaterTest extends TestCase
         // check the whole structure
 
         $post = Post::latest()->first();
-        $this->assertInstanceOf(Post::class, $post);
+        static::assertInstanceOf(Post::class, $post);
 
         $this->assertDatabaseHas('posts', [
             'id'       => $post->id,
@@ -702,13 +703,13 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
 
         $updater->setUnguardedAttribute('unfillable', 'testing');
-        $this->assertEquals([ 'unfillable' => 'testing' ], $updater->getUnguardedAttributes());
+        static::assertEquals([ 'unfillable' => 'testing' ], $updater->getUnguardedAttributes());
 
         $updater->setUnguardedAttributes([ 'test' => 'a', 'test_b' => '2' ]);
-        $this->assertEquals([ 'test' => 'a', 'test_b' => '2' ], $updater->getUnguardedAttributes());
+        static::assertEquals([ 'test' => 'a', 'test_b' => '2' ], $updater->getUnguardedAttributes());
 
         $updater->clearUnguardedAttributes();
-        $this->assertEmpty($updater->getUnguardedAttributes());
+        static::assertEmpty($updater->getUnguardedAttributes());
     }
 
     /**
@@ -756,11 +757,11 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $updater->setUnguardedAttribute('unfillable', 'testing');
 
-        $this->assertNotEmpty($updater->getUnguardedAttributes());
+        static::assertNotEmpty($updater->getUnguardedAttributes());
 
         $updater->update($data, $post);
 
-        $this->assertEmpty($updater->getUnguardedAttributes());
+        static::assertEmpty($updater->getUnguardedAttributes());
     }
 
 }

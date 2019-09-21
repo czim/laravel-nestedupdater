@@ -14,7 +14,7 @@ class NestedValidatorFormRequestTest extends TestCase
         parent::setUp();
 
         // will return 'ok' if the validation passes or json errors if it fails
-        $this->app['router']->any('testing', function (NestedPostRequest $request) {
+        $this->app['router']->any('testing', static function (NestedPostRequest $request) {
             return response('ok');
         });
     }

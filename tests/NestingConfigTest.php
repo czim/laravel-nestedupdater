@@ -6,7 +6,6 @@ namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
-use Czim\NestedModelUpdater\Data\RelationInfo;
 use Czim\NestedModelUpdater\NestingConfig;
 use Czim\NestedModelUpdater\Test\Helpers\AlternativeUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
@@ -24,8 +23,8 @@ class NestingConfigTest extends TestCase
     {
         $config = new NestingConfig();
 
-        $this->assertTrue($config->isKeyNestedRelation('genre', Post::class));
-        $this->assertFalse($config->isKeyNestedRelation('does_not_exist', Post::class));
+        static::assertTrue($config->isKeyNestedRelation('genre', Post::class));
+        static::assertFalse($config->isKeyNestedRelation('does_not_exist', Post::class));
     }
 
     /**
@@ -37,22 +36,20 @@ class NestingConfigTest extends TestCase
 
         $info = $config->getRelationInfo('genre', Post::class);
 
-        $this->assertInstanceOf(RelationInfo::class, $info);
+        static::assertTrue($info->isBelongsTo(), 'genre should have belongsTo = true');
+        static::assertTrue($info->isSingular(), 'genre should have singular = true');
+        static::assertTrue($info->isUpdateAllowed(), 'genre should be allowed updates');
+        static::assertNull($info->getDetachMissing(), 'genre should have detach missing null');
+        static::assertFalse($info->isDeleteDetached(), 'genre should not delete detached');
 
-        $this->assertTrue($info->isBelongsTo(), "genre should have belongsTo = true");
-        $this->assertTrue($info->isSingular(), "genre should have singular = true");
-        $this->assertTrue($info->isUpdateAllowed(), "genre should be allowed updates");
-        $this->assertNull($info->getDetachMissing(), "genre should have detach missing null");
-        $this->assertFalse($info->isDeleteDetached(), "genre should not delete detached");
+        static::assertInstanceOf(Genre::class, $info->model());
+        static::assertEquals('genre', $info->relationMethod());
+        static::assertEquals(BelongsTo::class, $info->relationClass());
+        static::assertEquals(ModelUpdaterInterface::class, $info->updater());
 
-        $this->assertInstanceOf(Genre::class, $info->model());
-        $this->assertEquals('genre', $info->relationMethod());
-        $this->assertEquals(BelongsTo::class, $info->relationClass());
-        $this->assertEquals(ModelUpdaterInterface::class, $info->updater());
-
-        $this->assertEquals(NestedValidatorInterface::class, $info->validator());
-        $this->assertEquals(false, $info->rulesClass());
-        $this->assertEquals(null, $info->rulesMethod());
+        static::assertEquals(NestedValidatorInterface::class, $info->validator());
+        static::assertEquals(false, $info->rulesClass());
+        static::assertEquals(null, $info->rulesMethod());
     }
 
     /**
@@ -64,15 +61,15 @@ class NestingConfigTest extends TestCase
 
         // check exception for updater
         $info = $config->getRelationInfo('comments', Author::class);
-        $this->assertEquals(AlternativeUpdater::class, $info->updater());
+        static::assertEquals(AlternativeUpdater::class, $info->updater());
 
         // check exception for relation method
         $info = $config->getRelationInfo('exceptional_attribute_name', Post::class);
-        $this->assertEquals('someOtherRelationMethod', $info->relationMethod());
+        static::assertEquals('someOtherRelationMethod', $info->relationMethod());
 
         // only allow links
         $info = $config->getRelationInfo('authors', Post::class);
-        $this->assertFalse($info->isUpdateAllowed());
+        static::assertFalse($info->isUpdateAllowed());
     }
 
 }

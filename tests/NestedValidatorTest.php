@@ -30,8 +30,8 @@ class NestedValidatorTest extends TestCase
 
         $validator = new NestedValidator(Post::class);
 
-        $this->assertTrue($validator->validate($data), 'Validation should succeed');
-        $this->assertTrue($validator->messages()->isEmpty(), 'Validation messages should be empty');
+        static::assertTrue($validator->validate($data), 'Validation should succeed');
+        static::assertTrue($validator->messages()->isEmpty(), 'Validation messages should be empty');
     }
 
     /**
@@ -51,7 +51,7 @@ class NestedValidatorTest extends TestCase
 
         $validator = new NestedValidator(Post::class);
 
-        $this->assertFalse($validator->validate($data), 'Validation should fail');
+        static::assertFalse($validator->validate($data), 'Validation should fail');
 
         $messages = $validator->messages();
 
@@ -88,7 +88,7 @@ class NestedValidatorTest extends TestCase
 
         $validator = new NestedValidator(Post::class);
 
-        $this->assertFalse($validator->validate($data), 'Validation should fail');
+        static::assertFalse($validator->validate($data), 'Validation should fail');
 
         $messages = $validator->messages();
 
@@ -101,7 +101,7 @@ class NestedValidatorTest extends TestCase
         $this->assertHasValidationErrorLike($messages, 'comments.2', 'integer');
         $this->assertHasValidationErrorLike($messages, 'tags', 'array');
 
-        $this->assertCount(8, $messages);
+        static::assertCount(8, $messages);
     }
 
     /**
@@ -127,7 +127,7 @@ class NestedValidatorTest extends TestCase
 
         $validator = new NestedValidator(Post::class);
 
-        $this->assertFalse($validator->validate($data), 'Validation should fail');
+        static::assertFalse($validator->validate($data), 'Validation should fail');
 
         $messages = $validator->messages();
 
@@ -137,7 +137,7 @@ class NestedValidatorTest extends TestCase
         $this->assertHasValidationErrorLike($messages, 'comments.3948.id', 'invalid');
         $this->assertHasValidationErrorLike($messages, 'comments.3948.body', 'required');
 
-        $this->assertCount(5, $messages);
+        static::assertCount(5, $messages);
     }
 
 
@@ -351,8 +351,8 @@ class NestedValidatorTest extends TestCase
         $validator = new NestedValidator(Post::class);
         $rules = $validator->getDirectModelValidationRules(false);
 
-        $this->assertIsArray($rules);
-        $this->assertEquals('required|string|max:50', Arr::get($rules, 'title'));
+        static::assertIsArray($rules);
+        static::assertEquals('required|string|max:50', Arr::get($rules, 'title'));
     }
 
     /**
@@ -363,8 +363,8 @@ class NestedValidatorTest extends TestCase
         $validator = new NestedValidator(Post::class);
         $rules = $validator->getDirectModelValidationRules(false, false);
 
-        $this->assertIsArray($rules);
-        $this->assertEquals('string|max:10', Arr::get($rules, 'title'));
+        static::assertIsArray($rules);
+        static::assertEquals('string|max:10', Arr::get($rules, 'title'));
     }
 
     /**
@@ -375,8 +375,8 @@ class NestedValidatorTest extends TestCase
         $validator = new NestedValidator(Special::class);
         $rules = $validator->getDirectModelValidationRules();
 
-        $this->assertIsArray($rules);
-        $this->assertCount(0, $rules);
+        static::assertIsArray($rules);
+        static::assertCount(0, $rules);
     }
 
     /**

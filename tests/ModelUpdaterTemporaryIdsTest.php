@@ -1,16 +1,17 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 /** @noinspection ReturnTypeCanBeDeclaredInspection */
 /** @noinspection AccessModifierPresentedInspection */
 
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException;
-use Illuminate\Support\Facades\Config;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
+use Illuminate\Support\Facades\Config;
 
 class ModelUpdaterTemporaryIdsTest extends TestCase
 {
@@ -53,7 +54,7 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertEquals(1, Author::count(), 'Exactly one author should have been created');
+        static::assertEquals(1, Author::count(), 'Exactly one author should have been created');
 
         /** @var Author $author */
         $author = Author::first();
@@ -118,15 +119,15 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertEquals(1, Author::count(), 'Exactly one author should have been created');
+        static::assertEquals(1, Author::count(), 'Exactly one author should have been created');
         /** @var Author $author */
         $author = Author::first();
 
-        $this->assertEquals(1, Genre::count(), 'Exactly one tag should have been created');
+        static::assertEquals(1, Genre::count(), 'Exactly one tag should have been created');
         /** @var Genre $genre */
         $genre = Genre::first();
 
-        $this->assertEquals(2, Post::count(), 'Exactly two posts should exist (1 created by nesting)');
+        static::assertEquals(2, Post::count(), 'Exactly two posts should exist (1 created by nesting)');
         /** @var Post $newPost */
         $newPost = Post::orderBy('id', 'desc')->first();
 
