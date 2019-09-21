@@ -5,6 +5,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int         $id
+ * @property string|null $name
+ * @property string|null $gender
+ */
 class Author extends Model
 {
     /**

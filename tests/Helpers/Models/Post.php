@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property int         $id
+ * @property string|null $title
+ * @property string|null $body
+ */
 class Post extends Model
 {
     use NestedUpdatable;

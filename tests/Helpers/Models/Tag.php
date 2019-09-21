@@ -4,6 +4,12 @@ namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property int         $id
+ * @property int         $taggable_id
+ * @property string      $taggable_type
+ * @property string|null $name
+ */
 class Tag extends Model
 {
     /**
