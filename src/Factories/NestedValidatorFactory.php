@@ -1,7 +1,7 @@
 <?php
 namespace Czim\NestedModelUpdater\Factories;
 
-use App;
+use Illuminate\Support\Facades\App;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\NestedValidator;

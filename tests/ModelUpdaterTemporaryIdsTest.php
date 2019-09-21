@@ -1,7 +1,7 @@
 <?php
 namespace Czim\NestedModelUpdater\Test;
 
-use Config;
+use Illuminate\Support\Facades\Config;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Author;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Comment;

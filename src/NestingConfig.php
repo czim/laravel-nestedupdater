@@ -2,7 +2,6 @@
 namespace Czim\NestedModelUpdater;
 
 use BadMethodCallException;
-use Config;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\Contracts\NestingConfigInterface;
@@ -10,6 +9,7 @@ use Czim\NestedModelUpdater\Data\RelationInfo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use RuntimeException;
 use UnexpectedValueException;

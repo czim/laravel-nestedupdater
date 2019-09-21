@@ -8,6 +8,7 @@ use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\Traits\TracksTemporaryIds;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
 use UnexpectedValueException;
 
 abstract class AbstractNestedParser implements NestedParserInterface
@@ -111,7 +112,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
     ) {
         if (null === $config) {
             /** @var NestingConfigInterface $config */
-            $config = app(NestingConfigInterface::class);
+            $config = App::make(NestingConfigInterface::class);
         }
 
         $this->modelClass       = $modelClass;

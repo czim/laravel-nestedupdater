@@ -1,7 +1,7 @@
 <?php
 namespace Czim\NestedModelUpdater\Test;
 
-use Config;
+use Illuminate\Support\Facades\Config;
 use Czim\NestedModelUpdater\NestedValidator;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
