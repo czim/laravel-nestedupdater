@@ -98,7 +98,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     ): UpdateResult {
 
         if ( ! ($model instanceof Model)) {
-            $model = $this->getModelByLookupAtribute($model, $attribute);
+            $model = $this->getModelByLookupAttribute($model, $attribute);
         }
 
         $this->isCreating  = false;
@@ -535,7 +535,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         if ($info->isDeleteDetached() && isset($deleteKeys) && count($deleteKeys)) {
 
             foreach ($deleteKeys as $key) {
-                $model = $this->getModelByLookupAtribute($key, null, get_class($info->model()));
+                $model = $this->getModelByLookupAttribute($key, null, get_class($info->model()));
                 if ( ! $model) continue;
 
                 $this->deleteFormerlyRelatedModel($model, $info);
@@ -740,7 +740,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         // get the existing model, if we have an update ID, or null if no match exists
         if ( ! empty($updateId)) {
-            $existingModel = $this->getModelByLookupAtribute(
+            $existingModel = $this->getModelByLookupAttribute(
                 $updateId,
                 $info->model()->getKeyName(),
                 get_class($info->model()),

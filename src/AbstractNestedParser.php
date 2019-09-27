@@ -266,7 +266,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
      * @return Model|null
      * @throws NestedModelNotFoundException
      */
-    protected function getModelByLookupAtribute(
+    protected function getModelByLookupAttribute(
         $id,
         ?string $attribute = null,
         ?string $modelClass = null,
