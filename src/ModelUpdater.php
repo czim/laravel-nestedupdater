@@ -381,7 +381,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             return false;
         }
 
-        return ! $this->parentRelationInfo->isBelongsTo();
+        return  ! $this->parentRelationInfo->isBelongsTo()
+            &&  ! is_a($this->parentRelationInfo->relationClass(), BelongsToMany::class, true);
     }
 
     /**
