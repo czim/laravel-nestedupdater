@@ -109,12 +109,12 @@ form requests. To use it, extend `Czim\NestedModelUpdater\Requests\AbstractNeste
     class YourNestedDataRequest extends AbstractNestedDataRequest
     {
     
-        protected function getNestedModelClass()
+        protected function getNestedModelClass(): string
         {
             return \App\Model\YourModel::class;
         }
     
-        protected function isCreating()
+        protected function isCreating(): bool
         {
             // As an example, the difference between creating and updating here is
             // simulated as that of the difference between using a POST and PUT method.
