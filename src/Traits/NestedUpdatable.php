@@ -1,7 +1,7 @@
 <?php
 namespace Czim\NestedModelUpdater\Traits;
 
-use App;
+use Illuminate\Support\Facades\App;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 
