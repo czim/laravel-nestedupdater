@@ -63,7 +63,7 @@ class TemporaryIds implements TemporaryIdsInterface
      * @param Model  $model
      * @return $this
      */
-    public function setModelForId($key, Model $model): TemporaryIdsInterface
+    public function setModelForId(string $key, Model $model): TemporaryIdsInterface
     {
         $this->getOrCreateByKey($key)->setModel($model);
 
@@ -77,7 +77,7 @@ class TemporaryIds implements TemporaryIdsInterface
      * @param string $class
      * @return $this
      */
-    public function setModelClassForId($key, $class): TemporaryIdsInterface
+    public function setModelClassForId(string $key, string $class): TemporaryIdsInterface
     {
         $this->getOrCreateByKey($key)->setModelClass($class);
 

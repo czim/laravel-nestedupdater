@@ -18,7 +18,7 @@ class NestedValidatorFactory implements NestedValidatorFactoryInterface
      * @param array  $parameters    constructor parameters for validator
      * @return NestedValidatorInterface
      */
-    public function make($class, array $parameters = []): NestedValidatorInterface
+    public function make(string $class, array $parameters = []): NestedValidatorInterface
     {
         if ($class === NestedValidatorInterface::class) {
             $class = $this->getDefaultValidatorClass();
