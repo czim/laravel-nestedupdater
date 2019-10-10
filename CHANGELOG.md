@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.2] - 2019-09-27
+
+Fixed a few incorrect method signatures (not compatible with the PHP 7+ strict hints).
+Replaced a reference to the `App` alias with a direct reference to the facade.
+
 ## [2.0.1] - 2019-09-27
 
 Fixed an issue with BelongsToMany where saving on the relation causes duplicates to be added (or SQL errors to occur).
