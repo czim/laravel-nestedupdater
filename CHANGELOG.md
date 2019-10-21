@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.3] - 2019-10-21
+
+Added Dennis' feature to allow `forceCreate()` and `forceUpdate()`, which ignores fillable guarding.
+
 ## [2.0.2] - 2019-09-27
 
 Fixed a few incorrect method signatures (not compatible with the PHP 7+ strict hints).
@@ -15,5 +19,7 @@ Introduced strict return types and scalar typehints.
 Added test setup for Laravel 6.0 context.
 
 
+[2.0.3]: https://github.com/czim/laravel-nestedupdater/compare/2.0.2...2.0.3
+[2.0.2]: https://github.com/czim/laravel-nestedupdater/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/czim/laravel-nestedupdater/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/czim/laravel-nestedupdater/compare/1.5.0...2.0.0

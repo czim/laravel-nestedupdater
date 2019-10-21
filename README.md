@@ -300,10 +300,34 @@ There are no deep checks for cyclical references or (fairly unlikely) dependency
  
 ## Unguarded Attributes
 
-Updates and creates adhere to the `fillable` guards for the relevant models.
+Updates and creates adhere to the `fillable` guards for the relevant models by default.
 
-It is possible to prepare the model updater to set attributes bypassing the guard.
+There are two ways to circumvent this.
+
+### Force fill attributes
+
+It is possible to let the model updater entirely disregard the fillable guard.
+
+You can do this either by calling `force()` on the updater before `update()` or `create()`,
+or directly by calling `forceUpdate()` or `forceCreate()`.
+
+ ```php
+<?php
+    // Instantiate the modelupdater
+    $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
+    
+    // Perform a nested data create operation, disregarding any fillable guard
+    $model = $updater->forceCreate([ 'user_id' => 1, 'some' => 'create', 'data' => 'here' ]);
+```
+
+
+### Setting specific values for top-level model attributes 
+
+It is possible to prepare the model updater to set attributes bypassing the guard for specific
+model attributes, by passing in the values to be set on the top-level model separately.
 This may be done using the `setUnguardedAttribute()` method on the model updater, before calling `update()` or `create()`.
+
+This allows settings some specific values without changing the main data tree.
 
 Example:
 
@@ -313,7 +337,7 @@ Example:
     $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
     
     // Queue an non-fillable attribute to be stored on the create model
-    $updater->setUnguardedAttribute('user_id', \Auth::user()->id);
+    $updater->setUnguardedAttribute('user_id', 1);
     
     // Perform a nested data create operation
     $model = $updater->create([ 'some' => 'create', 'data' => 'here' ]);
