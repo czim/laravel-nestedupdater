@@ -5,6 +5,7 @@
 
 namespace Czim\NestedModelUpdater\Test;
 
+use Czim\NestedModelUpdater\Data\UpdateResult;
 use Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\ModelUpdater;
