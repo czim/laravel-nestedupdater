@@ -63,6 +63,14 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      */
     protected $unguardedAttributes = [];
 
+    /**
+     * Whether to execute a forceFill() on the model attributes, which
+     * ignores the fillable guards, instead of a regular fill().
+     *
+     * @var bool
+     */
+    protected $forceFill = false;
+
 
     /**
      * Creates a new model with (potential) nested data
@@ -78,6 +86,20 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $this->model      = null;
 
         return $this->createOrUpdate();
+    }
+
+    /**
+     * Force creates a new model with (potential) nested data
+     *
+     * @param array $data
+     * @return UpdateResult
+     * @throws ModelSaveFailureException
+     */
+    public function forceCreate(array $data)
+    {
+        return $this
+            ->force(true)
+            ->create($data);
     }
 
     /**
@@ -107,6 +129,43 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $this->saveOptions = $saveOptions;
 
         return $this->createOrUpdate();
+    }
+
+    /**
+     * Force updates an existing model with (potential) nested update data
+     *
+     * @param array       $data
+     * @param mixed|Model $model        either an existing model or its ID
+     * @param string      $attribute    lookup column, if not primary key, only if $model is int
+     * @param array       $saveOptions  options to pass on to the save() Eloquent method
+     * @return UpdateResult
+     * @throws ModelSaveFailureException
+     */
+    public function forceUpdate(
+        array $data,
+        $model,
+        ?string $attribute = null,
+        array $saveOptions = []
+    ) {
+        return $this
+                ->force(true)
+                ->update($data, $model, $attribute, $saveOptions);
+    }
+
+    /**
+     * Sets the forceFill property on the current instance. When
+     * set to true, forceFill() will be used to set attributes
+     * on the model, rather than the regular fill(), which takes
+     * guarded attributes into consideration.
+     *
+     * @param bool $force
+     * @return $this
+     */
+    public function force(bool $force)
+    {
+        $this->forceFill = $force;
+
+        return $this;
     }
 
     /**
@@ -336,6 +395,12 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         }
 
         $this->model->fill($modelData);
+
+        if ($this->forceFill) {
+            $this->model->forceFill($modelData);
+        } else {
+            $this->model->fill($modelData);
+        }
 
         $this->storeUnguardedAttributes();
 

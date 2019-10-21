@@ -9,6 +9,7 @@ use Czim\NestedModelUpdater\Exceptions\DisallowedNestedActionException;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\ModelUpdater;
 use Czim\NestedModelUpdater\Test\Helpers\ArrayableData;
+use Czim\NestedModelUpdater\Test\Helpers\Models\Genre;
 use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 use UnexpectedValueException;
 
@@ -30,7 +31,7 @@ class BasicModelUpdaterTest extends TestCase
         ];
 
         $updater = new ModelUpdater(Post::class);
-        $result = $updater->create($data);
+        $result  = $updater->create($data);
 
         static::assertTrue($result->model()->exists, 'Created model should exist');
 
@@ -81,8 +82,8 @@ class BasicModelUpdaterTest extends TestCase
         $updater->update($data, $post);
 
         $this->assertDatabaseHas('posts', [
-            'id'       => $post->id,
-            'title'    => 'updated aswell',
+            'id'    => $post->id,
+            'title' => 'updated aswell',
         ]);
 
         $post = Post::find($post->id);
@@ -218,6 +219,90 @@ class BasicModelUpdaterTest extends TestCase
     }
 
     // ------------------------------------------------------------------------------
+    //      Force updating / creating
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @test
+     */
+    public function it_force_updates_deleted_at_on_an_existing_model_through_force_update()
+    {
+        $genre = $this->createGenre();
+
+        $updater = new ModelUpdater(Genre::class);
+        $updater->forceUpdate([
+            'deleted_at' => '2019-10-12 09:00:00',
+        ], $genre);
+
+        $this->assertDatabaseHas('genres', [
+            'id'         => $genre->id,
+            'deleted_at' => '2019-10-12 09:00:00',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_force_updates_deleted_at_on_an_existing_model_through_setting_force_first()
+    {
+        $genre = $this->createGenre();
+
+        $updater = new ModelUpdater(Genre::class);
+        $updater->force(true);
+        $updater->update([
+            'deleted_at' => '2019-10-12 09:00:00',
+        ], $genre);
+
+        $this->assertDatabaseHas('genres', [
+            'id'         => $genre->id,
+            'deleted_at' => '2019-10-12 09:00:00',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_force_creates_model_with_deleted_at_through_force_create()
+    {
+        $updater = new ModelUpdater(Genre::class);
+        $result  = $updater->forceCreate([
+            'name'       => 'Test genre',
+            'deleted_at' => '2019-10-12 09:00:00',
+        ]);
+
+        $this->assertInstanceOf(UpdateResult::class, $result);
+        $this->assertTrue($result->model()->exists, "Created model should exist");
+
+        $this->assertDatabaseHas('genres', [
+            'id'         => $result->model()->id,
+            'name'       => 'Test genre',
+            'deleted_at' => '2019-10-12 09:00:00',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_force_creates_model_with_deleted_at_through_setting_force_first()
+    {
+        $updater = new ModelUpdater(Genre::class);
+        $updater->force(true);
+        $result = $updater->create([
+            'name'       => 'Test genre',
+            'deleted_at' => '2019-10-12 09:00:00',
+        ]);
+
+        $this->assertInstanceOf(UpdateResult::class, $result);
+        $this->assertTrue($result->model()->exists, "Created model should exist");
+
+        $this->assertDatabaseHas('genres', [
+            'id'         => $result->model()->id,
+            'name'       => 'Test genre',
+            'deleted_at' => '2019-10-12 09:00:00',
+        ]);
+    }
+
+    // ------------------------------------------------------------------------------
     //      Normalization
     // ------------------------------------------------------------------------------
 
@@ -276,7 +361,7 @@ class BasicModelUpdaterTest extends TestCase
             'genre' => new ArrayableData([
                 'id'   => $genre->id,
                 'name' => 'updated',
-            ])
+            ]),
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -415,7 +500,7 @@ class BasicModelUpdaterTest extends TestCase
             'comments' => [
                 [
                     'id' => 999,  // does not exist
-                ]
+                ],
             ],
         ];
 
@@ -453,7 +538,7 @@ class BasicModelUpdaterTest extends TestCase
             'comments' => [
                 [
                     'id' => 999,  // does not exist
-                ]
+                ],
             ],
         ];
 
