@@ -82,6 +82,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             $table->increments('id');
             $table->string('name', 50);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('authors', static function (Blueprint $table) {
