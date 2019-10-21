@@ -394,8 +394,6 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             return;
         }
 
-        $this->model->fill($modelData);
-
         if ($this->forceFill) {
             $this->model->forceFill($modelData);
         } else {
