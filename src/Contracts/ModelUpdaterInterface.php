@@ -39,12 +39,7 @@ interface ModelUpdaterInterface extends
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function update(
-        array $data,
-        $model,
-        string $attribute = null,
-        array $saveOptions = []
-    ): UpdateResult;
+    public function update(array $data, $model, string $attribute = null, array $saveOptions = []): UpdateResult;
 
     /**
      * Force updates an existing model with (potential) nested update data
