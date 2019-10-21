@@ -95,7 +95,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function forceCreate(array $data)
+    public function forceCreate(array $data): UpdateResult
     {
         return $this
             ->force(true)
@@ -146,7 +146,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $model,
         ?string $attribute = null,
         array $saveOptions = []
-    ) {
+    ): UpdateResult {
         return $this
                 ->force(true)
                 ->update($data, $model, $attribute, $saveOptions);
@@ -161,7 +161,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * @param bool $force
      * @return $this
      */
-    public function force(bool $force)
+    public function force(bool $force): ModelUpdaterInterface
     {
         $this->forceFill = $force;
 

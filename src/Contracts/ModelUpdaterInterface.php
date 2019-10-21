@@ -27,7 +27,7 @@ interface ModelUpdaterInterface extends
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function forceCreate(array $data);
+    public function forceCreate(array $data): UpdateResult;
 
     /**
      * Updates an existing model with (potential) nested update data
@@ -56,7 +56,7 @@ interface ModelUpdaterInterface extends
      * @return UpdateResult
      * @throws ModelSaveFailureException
      */
-    public function forceUpdate(array $data, $model, ?string $attribute = null, array $saveOptions = []);
+    public function forceUpdate(array $data, $model, ?string $attribute = null, array $saveOptions = []): UpdateResult;
 
     /**
      * Sets the forceFill property on the current instance. When
@@ -67,6 +67,6 @@ interface ModelUpdaterInterface extends
      * @param bool $force
      * @return $this
      */
-    public function force(bool $force);
+    public function force(bool $force): self;
 
 }
