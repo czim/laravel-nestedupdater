@@ -284,7 +284,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater->update($data, $post);
 
         $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => null ]);
-        $this->assertDatabaseMissing('genres', [ 'id' => $oldGenreId ]);
+        $this->assertSoftDeleted('genres', [ 'id' => $oldGenreId ]);
 
         // reset
 
@@ -313,7 +313,7 @@ class ElaborateModelUpdaterTest extends TestCase
         static::assertInstanceOf(Genre::class, $genre);
 
         $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $genre->id ]);
-        $this->assertDatabaseMissing('genres', [ 'id' => $oldGenreId ]);
+        $this->assertSoftDeleted('genres', [ 'id' => $oldGenreId ]);
     }
 
     /**
