@@ -16,6 +16,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
@@ -120,7 +121,19 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     ): UpdateResult {
 
         if ( ! ($model instanceof Model)) {
-            $model = $this->getModelByLookupAttribute($model, $attribute);
+            $model = $this->getModelByLookupAttribute(
+                $model,
+                $attribute,
+                null,
+                null,
+                true,
+                $this->allowUpdatingTrashedModels()
+            );
+        }
+
+        if ( ! $this->isUpdateAllowed($model)) {
+            throw (new NestedModelNotFoundException())
+                ->setModel($this->modelClass);
         }
 
         $this->isCreating  = false;
@@ -129,6 +142,32 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $this->saveOptions = $saveOptions;
 
         return $this->createOrUpdate();
+    }
+
+    /**
+     * Determines whether updating given model is allowed. Trashed
+     * models may be updated if 'allow-trashed' is set to true in
+     * the config.
+     *
+     * @param Model|null $model
+     * @return bool
+     */
+    protected function isUpdateAllowed(?Model $model)
+    {
+        if ($model === null) {
+            return true;
+        }
+
+        if ( ! in_array(SoftDeletes::class, class_uses($model))) {
+            return true;
+        }
+
+        /** @var SoftDeletes|Model $model */
+        if ( ! $model->trashed()) {
+            return true;
+        }
+
+        return $this->allowUpdatingTrashedModels();
     }
 
     /**
@@ -448,6 +487,11 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
             &&  ! is_a($this->parentRelationInfo->relationClass(), BelongsToMany::class, true);
     }
 
+    protected function allowUpdatingTrashedModels(): bool
+    {
+        return Config::get('nestedmodelupdater.allow-trashed', false);
+    }
+
     /**
      * Handles the relations that need to be updated/created before the main
      * model is. Returns an array with results keyed by attribute.
@@ -598,7 +642,14 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         if ($info->isDeleteDetached() && isset($deleteKeys) && count($deleteKeys)) {
 
             foreach ($deleteKeys as $key) {
-                $model = $this->getModelByLookupAttribute($key, null, get_class($info->model()));
+                $model = $this->getModelByLookupAttribute(
+                    $key,
+                    null,
+                    get_class($info->model()),
+                    null,
+                    true,
+                    $this->allowUpdatingTrashedModels()
+                );
                 if ( ! $model) continue;
 
                 $this->deleteFormerlyRelatedModel($model, $info);
@@ -808,7 +859,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
                 $info->model()->getKeyName(),
                 get_class($info->model()),
                 $nestedKey,
-                false
+                false,
+                $this->allowUpdatingTrashedModels()
             );
         } else {
             $existingModel = null;

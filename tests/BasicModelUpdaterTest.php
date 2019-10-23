@@ -202,21 +202,114 @@ class BasicModelUpdaterTest extends TestCase
         $commentA  = $this->createComment($otherPost);
         $commentB  = $this->createComment($otherPost);
 
-        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'post_id' => $otherPost->id ]);
-        $this->assertDatabaseHas('comments', [ 'id' => $commentB->id, 'post_id' => $otherPost->id ]);
+        $this->assertDatabaseHas('comments', ['id' => $commentA->id, 'post_id' => $otherPost->id]);
+        $this->assertDatabaseHas('comments', ['id' => $commentB->id, 'post_id' => $otherPost->id]);
 
         $data = [
             'comments' => [
                 $commentA->id,
-                [ 'id' => $commentB->id ],
+                ['id' => $commentB->id],
             ],
         ];
 
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'post_id' => $post->id ]);
-        $this->assertDatabaseHas('comments', [ 'id' => $commentB->id, 'post_id' => $post->id ]);
+        $this->assertDatabaseHas('comments', ['id' => $commentA->id, 'post_id' => $post->id]);
+        $this->assertDatabaseHas('comments', ['id' => $commentB->id, 'post_id' => $post->id]);
+    }
+
+    // ------------------------------------------------------------------------------
+    //      Trashed model updating
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @test
+     */
+    public function it_throws_an_exception_when_updating_trashed_models_is_not_allowed()
+    {
+        $this->app['config']->set('nestedmodelupdater.allow-trashed', false);
+        $genre = $this->createGenre();
+        $genre->delete();
+
+        $this->expectException(NestedModelNotFoundException::class);
+        $this->expectExceptionMessage("No query results for model [" . Genre::class . "]");
+        $updater = new ModelUpdater(Genre::class);
+
+        $updater->update(['name' => 'Some new name'], $genre);
+    }
+
+    /**
+     * @test
+     */
+    public function it_updates_a_single_trashed_model_when_updating_trashed_models_is_allowed()
+    {
+        $this->app['config']->set('nestedmodelupdater.allow-trashed', true);
+        $genre = $this->createGenre();
+        $genre->delete();
+
+        $updater = new ModelUpdater(Genre::class);
+        $updater->update(['name' => 'Some new name'], $genre);
+
+        $this->assertDatabaseHas('genres', [
+            'id'   => $genre->id,
+            'name' => 'Some new name',
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_throws_an_exception_trying_to_updated_nested_trashed_models_when_updating_trashed_models_is_not_allowed()
+    {
+        $this->app['config']->set('nestedmodelupdater.allow-trashed', false);
+
+        $post  = $this->createPost();
+        $genre = $this->createGenre('original name');
+        $post->genre()->associate($genre);
+        $post->save();
+        $genre->delete();
+
+        $data = [
+            'genre' => [
+                'id'   => $genre->id,
+                'name' => 'updated',
+            ],
+        ];
+
+        $this->expectException(NestedModelNotFoundException::class);
+        $this->expectExceptionMessage("No query results for model [" . Genre::class . "]. (nesting: genre)");
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+    }
+
+    /**
+     * @test
+     */
+    public function it_updates_a_nested_trashed_model_when_updating_trashed_models_is_allowed()
+    {
+        $this->app['config']->set('nestedmodelupdater.allow-trashed', true);
+
+        $post  = $this->createPost();
+        $genre = $this->createGenre('original name');
+        $post->genre()->associate($genre);
+        $post->save();
+        $genre->delete();
+
+        $data = [
+            'genre' => [
+                'id'   => $genre->id,
+                'name' => 'updated',
+            ],
+        ];
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->assertDatabaseHas('genres', [
+            'id'   => $genre->id,
+            'name' => 'updated',
+        ]);
     }
 
     // ------------------------------------------------------------------------------
@@ -312,7 +405,7 @@ class BasicModelUpdaterTest extends TestCase
      */
     function it_normalizes_nested_data_for_null_value()
     {
-        $post  = $this->createPost();
+        $post = $this->createPost();
         $post->genre()->associate($post);
         $post->save();
 
@@ -392,10 +485,10 @@ class BasicModelUpdaterTest extends TestCase
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessageRegExp('#genre\)#i');
 
-        $post  = $this->createPost();
+        $post = $this->createPost();
 
         $data = [
-            'genre' => (object) [ 'incorrect' => 'data' ],
+            'genre' => (object)['incorrect' => 'data'],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -450,8 +543,8 @@ class BasicModelUpdaterTest extends TestCase
         $this->expectExceptionMessageRegExp('#authors\.0#i');
 
         $data = [
-            'title' => 'Problem Post',
-            'body'  => 'Body',
+            'title'   => 'Problem Post',
+            'body'    => 'Body',
             'authors' => [
                 [ 'name' => 'New Name' ]
             ]
@@ -475,8 +568,8 @@ class BasicModelUpdaterTest extends TestCase
         ]);
 
         $data = [
-            'title' => 'Problem Post',
-            'body'  => 'Body',
+            'title'   => 'Problem Post',
+            'body'    => 'Body',
             'authors' => [
                 [ 'name' => 'New Name' ]
             ]
@@ -494,8 +587,8 @@ class BasicModelUpdaterTest extends TestCase
         $post = $this->createPost();
 
         $data = [
-            'title' => 'this should be',
-            'body'  => 'rolled back',
+            'title'    => 'this should be',
+            'body'     => 'rolled back',
             // comments is a HasMany relation, so the model is
             // updated and persisted before this is parsed
             'comments' => [
@@ -532,8 +625,8 @@ class BasicModelUpdaterTest extends TestCase
         $post = $this->createPost();
 
         $data = [
-            'title' => 'this should be',
-            'body'  => 'rolled back',
+            'title'    => 'this should be',
+            'body'     => 'rolled back',
             // comments is a HasMany relation, so the model is
             // updated and persisted before this is parsed
             'comments' => [
