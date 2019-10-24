@@ -8,9 +8,12 @@ return [
     // Allows using temporary ids to refer to records that are not created yet.
     'allow-temporary-ids' => false,
 
+    // Allows updating of trashed (nested) models.
+    'allow-trashed' => false,
+
     // If allowed, the key to look for temporary create ids to look for
     'temporary-id-key' => '_tmp_id',
-    
+
     // List of FQNs of relation classes that are of the to One type. Every
     // other relation is considered plural.
     'singular-relations' => [

@@ -7,6 +7,8 @@ use Czim\NestedModelUpdater\Data\RelationInfo;
 use Czim\NestedModelUpdater\Exceptions\NestedModelNotFoundException;
 use Czim\NestedModelUpdater\Traits\TracksTemporaryIds;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use UnexpectedValueException;
@@ -263,15 +265,16 @@ abstract class AbstractNestedParser implements NestedParserInterface
      * @param null|string $modelClass optional, if not looking up the main model
      * @param null|string $nestedKey  optional, if not looking up the main model
      * @param bool        $exceptionIfNotFound
+     * @param bool        $withTrashed
      * @return Model|null
-     * @throws NestedModelNotFoundException
      */
     protected function getModelByLookupAttribute(
         $id,
         ?string $attribute = null,
         ?string $modelClass = null,
         ?string $nestedKey = null,
-        bool $exceptionIfNotFound = true
+        bool $exceptionIfNotFound = true,
+        bool $withTrashed = false
     ): ?Model {
 
         $class     = $modelClass ?: $this->modelClass;
@@ -282,12 +285,15 @@ abstract class AbstractNestedParser implements NestedParserInterface
             throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
         }
 
-        /** @var Model $model */
-        if (null === $attribute) {
-            $model = $model::find($id);
-        } else {
-            $model = $model::where($attribute, $id)->first();
+        /** @var Builder $queryBuilder */
+        $queryBuilder = $model::query();
+
+        if ($withTrashed && $queryBuilder->hasMacro('withTrashed')) {
+            $queryBuilder->withoutGlobalScope(SoftDeletingScope::class);
         }
+
+        /** @var Model $model */
+        $model = $queryBuilder->where($attribute ?? $model->getKeyName(), $id)->first();
 
         if ( ! $model && $exceptionIfNotFound) {
             throw (new NestedModelNotFoundException())
