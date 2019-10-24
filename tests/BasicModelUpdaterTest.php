@@ -488,7 +488,7 @@ class BasicModelUpdaterTest extends TestCase
         $post = $this->createPost();
 
         $data = [
-            'genre' => (object)['incorrect' => 'data'],
+            'genre' => (object) ['incorrect' => 'data'],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -587,8 +587,8 @@ class BasicModelUpdaterTest extends TestCase
         $post = $this->createPost();
 
         $data = [
-            'title'    => 'this should be',
-            'body'     => 'rolled back',
+            'title' => 'this should be',
+            'body'  => 'rolled back',
             // comments is a HasMany relation, so the model is
             // updated and persisted before this is parsed
             'comments' => [
@@ -625,8 +625,8 @@ class BasicModelUpdaterTest extends TestCase
         $post = $this->createPost();
 
         $data = [
-            'title'    => 'this should be',
-            'body'     => 'rolled back',
+            'title' => 'this should be',
+            'body'  => 'rolled back',
             // comments is a HasMany relation, so the model is
             // updated and persisted before this is parsed
             'comments' => [
