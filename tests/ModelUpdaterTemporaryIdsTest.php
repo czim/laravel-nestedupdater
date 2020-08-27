@@ -174,7 +174,7 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
     function it_throws_an_exception_if_a_temporary_id_is_used_for_different_models()
     {
         $this->expectException(InvalidNestedDataException::class);
-        $this->expectExceptionMessageRegExp('#[\'"]auth_1[\'"]#');
+        $this->expectExceptionMessageMatches('#[\'"]auth_1[\'"]#');
 
         $post    = $this->createPost();
         $comment = $this->createComment($post);
@@ -207,7 +207,7 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
     function it_throws_an_exception_if_a_no_data_is_defined_for_a_temporary_id()
     {
         $this->expectException(InvalidNestedDataException::class);
-        $this->expectExceptionMessageRegExp('#data defined.*[\'"]auth_1[\'"]#');
+        $this->expectExceptionMessageMatches('#data defined.*[\'"]auth_1[\'"]#');
 
         $post    = $this->createPost();
         $comment = $this->createComment($post);
@@ -241,7 +241,7 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
     function it_throws_an_exception_if_a_create_data_for_a_temporary_id_contains_a_primary_key_value()
     {
         $this->expectException(InvalidNestedDataException::class);
-        $this->expectExceptionMessageRegExp('#[\'"]auth_1[\'"].*primary key#');
+        $this->expectExceptionMessageMatches('#[\'"]auth_1[\'"].*primary key#');
 
         $post    = $this->createPost();
         $comment = $this->createComment($post);
@@ -276,7 +276,7 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
     function it_throws_an_exception_if_multiple_inconsistent_sets_of_create_data_for_a_temporary_id_are_defined()
     {
         $this->expectException(InvalidNestedDataException::class);
-        $this->expectExceptionMessageRegExp('#inconsistent.*[\'"]auth_1[\'"]#');
+        $this->expectExceptionMessageMatches('#inconsistent.*[\'"]auth_1[\'"]#');
 
         $post    = $this->createPost();
         $comment = $this->createComment($post);
@@ -312,7 +312,7 @@ class ModelUpdaterTemporaryIdsTest extends TestCase
     function it_throws_an_exception_if_not_allowed_to_create_for_any_nested_use_of_a_temporary_id()
     {
         $this->expectException(InvalidNestedDataException::class);
-        $this->expectExceptionMessageRegExp('#allowed.*[\'"]auth_1[\'"]#');
+        $this->expectExceptionMessageMatches('#allowed.*[\'"]auth_1[\'"]#');
 
         Config::set('nestedmodelupdater.relations.'  . Comment::class . '.author', [ 'update-only' => true ]);
 

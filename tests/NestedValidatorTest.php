@@ -385,7 +385,7 @@ class NestedValidatorTest extends TestCase
     function it_throws_an_exception_when_attempting_to_retrieve_nonexistent_rules_if_configured_to()
     {
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessageRegExp('#not bound#i');
+        $this->expectExceptionMessageMatches('#not bound#i');
 
         Config::set('nestedmodelupdater.validation.allow-missing-rules', false);
 
@@ -404,7 +404,7 @@ class NestedValidatorTest extends TestCase
     function it_throws_an_exception_if_a_rules_class_for_a_model_does_not_have_the_rules_method()
     {
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessageRegExp('#no method \'rules\'#i');
+        $this->expectExceptionMessageMatches('#no method \'rules\'#i');
 
         // set a 'rules' class that does not have rules()
         Config::set('nestedmodelupdater.relations.' . Post::class . '.genre', [ 'rules' => Post::class ]);
@@ -426,7 +426,7 @@ class NestedValidatorTest extends TestCase
     function it_throws_an_exception_if_a_rules_class_method_does_not_return_an_array()
     {
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessageRegExp('#array#i');
+        $this->expectExceptionMessageMatches('#array#i');
 
         Config::set('nestedmodelupdater.relations.' . Post::class . '.genre', [
             'rules'        => Genre::class,

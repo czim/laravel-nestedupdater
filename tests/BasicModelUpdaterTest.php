@@ -483,7 +483,7 @@ class BasicModelUpdaterTest extends TestCase
     function it_throws_an_exception_if_nested_relation_data_is_of_incorrect_type()
     {
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessageRegExp('#genre\)#i');
+        $this->expectExceptionMessageMatches('#genre\)#i');
 
         $post = $this->createPost();
 
@@ -501,7 +501,7 @@ class BasicModelUpdaterTest extends TestCase
     function it_throws_an_exception_if_it_cannot_find_the_top_level_model_by_id()
     {
         $this->expectException(NestedModelNotFoundException::class);
-        $this->expectExceptionMessageRegExp('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Post#');
+        $this->expectExceptionMessageMatches('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Post#');
 
         $data = [
             'genre' => [
@@ -519,7 +519,7 @@ class BasicModelUpdaterTest extends TestCase
     function it_throws_an_exception_with_nested_key_if_it_cannot_find_a_nested_model_by_id()
     {
         $this->expectException(NestedModelNotFoundException::class);
-        $this->expectExceptionMessageRegExp('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Genre.*\(nesting: genre\)#i');
+        $this->expectExceptionMessageMatches('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Genre.*\(nesting: genre\)#i');
 
         $post = $this->createPost();
 
@@ -540,7 +540,7 @@ class BasicModelUpdaterTest extends TestCase
     function it_throws_an_exception_if_not_allowed_to_create_a_nested_model_record_that_has_no_id()
     {
         $this->expectException(DisallowedNestedActionException::class);
-        $this->expectExceptionMessageRegExp('#authors\.0#i');
+        $this->expectExceptionMessageMatches('#authors\.0#i');
 
         $data = [
             'title'   => 'Problem Post',
@@ -560,7 +560,7 @@ class BasicModelUpdaterTest extends TestCase
     function it_throws_an_exception_if_not_allowed_to_create_an_update_only_nested_model_record()
     {
         $this->expectException(DisallowedNestedActionException::class);
-        $this->expectExceptionMessageRegExp('#authors\.0#i');
+        $this->expectExceptionMessageMatches('#authors\.0#i');
 
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors', [
             'link-only'   => false,
