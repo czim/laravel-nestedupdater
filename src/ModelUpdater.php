@@ -768,7 +768,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         $data,
         RelationInfo $info,
         string $attribute,
-        ?int $index = null
+        $index = null
     ) {
         // handle model before, use results to save foreign key on the model later
         $nestedKey = $this->appendNestedKey($attribute, $index);
