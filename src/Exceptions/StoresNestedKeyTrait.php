@@ -1,9 +1,9 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Exceptions;
 
 trait StoresNestedKeyTrait
 {
-
     /**
      * Dot-notation nested key for the record in the data array
      *
@@ -37,5 +37,4 @@ trait StoresNestedKeyTrait
     {
         return $this->nestedKey;
     }
-
 }

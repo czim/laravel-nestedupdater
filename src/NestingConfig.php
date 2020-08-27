@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater;
 
 use BadMethodCallException;
@@ -16,7 +17,6 @@ use UnexpectedValueException;
 
 class NestingConfig implements NestingConfigInterface
 {
-
     /**
      * @var null|string
      */
@@ -344,5 +344,4 @@ class NestingConfig implements NestingConfigInterface
     {
         return $this->getStringValueForKey($key, 'rules-method', null, $parentModel);
     }
-
 }

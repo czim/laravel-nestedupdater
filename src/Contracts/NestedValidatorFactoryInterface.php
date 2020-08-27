@@ -1,9 +1,9 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 interface NestedValidatorFactoryInterface
 {
-
     /**
      * Makes a nested model validator instance.
      *
@@ -12,5 +12,4 @@ interface NestedValidatorFactoryInterface
      * @return NestedValidatorInterface
      */
     public function make(string $class, array $parameters = []): NestedValidatorInterface;
-
 }

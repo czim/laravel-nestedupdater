@@ -1,16 +1,14 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Data;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class UpdateResult
- *
  * Container for the results of a nested update or create operation
  */
 class UpdateResult
 {
-
     /**
      * @var null|Model
      */
@@ -57,5 +55,4 @@ class UpdateResult
     {
         return $this->success;
     }
-
 }

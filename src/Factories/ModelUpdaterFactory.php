@@ -1,7 +1,7 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Factories;
 
-use Illuminate\Support\Facades\App;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\ModelUpdater;
@@ -10,7 +10,6 @@ use UnexpectedValueException;
 
 class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
 {
-
     /**
      * Makes a model updater instance.
      *
@@ -26,7 +25,7 @@ class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
 
         if ( ! count($parameters)) {
 
-            $updater = App::make($class);
+            $updater = app($class);
 
         } else {
 
@@ -64,5 +63,4 @@ class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
     {
         return ModelUpdater::class;
     }
-
 }

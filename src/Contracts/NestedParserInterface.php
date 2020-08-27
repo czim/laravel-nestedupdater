@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 use Czim\NestedModelUpdater\Data\RelationInfo;
@@ -6,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 interface NestedParserInterface
 {
-
     /**
      * @param string                      $modelClass       FQN for model
      * @param null|string                 $parentAttribute  the name of the attribute on the parent's data array
@@ -31,5 +31,4 @@ interface NestedParserInterface
      * @return RelationInfo|false     false if data could not be determined
      */
     public function getRelationInfoForDataKeyInDotNotation($key);
-
 }

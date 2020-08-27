@@ -1,11 +1,11 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 use Illuminate\Database\Eloquent\Model;
 
 interface TemporaryIdsInterface
 {
-
     /**
      * Returns all keys for temporary IDs.
      *
@@ -92,5 +92,4 @@ interface TemporaryIdsInterface
      * @return bool
      */
     public function isAllowedToCreateForId(string $key): bool;
-
 }

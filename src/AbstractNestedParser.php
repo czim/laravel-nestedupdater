@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\NestedParserInterface;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
 use UnexpectedValueException;
 
 abstract class AbstractNestedParser implements NestedParserInterface
@@ -114,7 +114,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
     ) {
         if (null === $config) {
             /** @var NestingConfigInterface $config */
-            $config = App::make(NestingConfigInterface::class);
+            $config = app(NestingConfigInterface::class);
         }
 
         $this->modelClass       = $modelClass;
@@ -323,12 +323,11 @@ abstract class AbstractNestedParser implements NestedParserInterface
             throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
         }
 
-        /** @var Model $model */
+        /** @var Model|Builder $model */
         if (null === $attribute) {
             return null !== $model::find($id);
         }
 
         return $model::where($attribute, $id)->count() > 0;
     }
-
 }

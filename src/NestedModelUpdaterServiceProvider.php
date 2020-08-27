@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
@@ -12,15 +13,14 @@ use Illuminate\Support\ServiceProvider;
 
 class NestedModelUpdaterServiceProvider extends ServiceProvider
 {
-
-    public function boot()
+    public function boot(): void
     {
         $this->publishes([
             __DIR__ . '/config/nestedmodelupdater.php' => config_path('nestedmodelupdater.php'),
         ]);
     }
 
-    public function register()
+    public function register(): void
     {
         $this->mergeConfigFrom(
             __DIR__ . '/config/nestedmodelupdater.php', 'nestedmodelupdater'
@@ -29,9 +29,6 @@ class NestedModelUpdaterServiceProvider extends ServiceProvider
         $this->registerInterfaceBindings();
     }
 
-    /**
-     * Registers interface bindings
-     */
     protected function registerInterfaceBindings(): void
     {
         $this->app->bind(ModelUpdaterFactoryInterface::class, ModelUpdaterFactory::class);
@@ -39,5 +36,4 @@ class NestedModelUpdaterServiceProvider extends ServiceProvider
         $this->app->bind(NestingConfigInterface::class, NestingConfig::class);
         $this->app->bind(TemporaryIdsInterface::class, TemporaryIds::class);
     }
-
 }

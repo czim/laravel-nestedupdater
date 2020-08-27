@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\NestedParserInterface;
@@ -9,14 +10,12 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Support\MessageBag as MessageBagContract;
 use Illuminate\Contracts\Validation\Factory;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\MessageBag;
 use ReflectionException;
 use UnexpectedValueException;
 
 class NestedValidator extends AbstractNestedParser implements NestedValidatorInterface
 {
-
     /**
      * @var bool
      */
@@ -427,7 +426,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
         $class  = $this->determineModelRulesClass();
 
         try {
-            $instance = App::make($class);
+            $instance = app($class);
         } catch (BindingResolutionException $e) {
             $instance = null;
         } catch (ReflectionException $e) {
@@ -473,7 +472,6 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
      */
     protected function getNestedValidatorFactory(): NestedValidatorFactoryInterface
     {
-        return App::make(NestedValidatorFactoryInterface::class);
+        return app(NestedValidatorFactoryInterface::class);
     }
-
 }

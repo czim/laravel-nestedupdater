@@ -1,9 +1,9 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 interface HandlesUnguardedAttributesInterface
 {
-
     /**
      * Returns list of currently queued unguarded attributes.
      *
@@ -34,5 +34,4 @@ interface HandlesUnguardedAttributesInterface
      * @return $this
      */
     public function clearUnguardedAttributes(): HandlesUnguardedAttributesInterface;
-
 }

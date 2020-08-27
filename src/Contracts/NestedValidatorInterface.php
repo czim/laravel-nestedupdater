@@ -1,11 +1,11 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 use Illuminate\Contracts\Support\MessageBag;
 
 interface NestedValidatorInterface extends NestedParserInterface
 {
-
     /**
      * Performs validation and returns whether it succeeds.
      *
@@ -39,5 +39,4 @@ interface NestedValidatorInterface extends NestedParserInterface
      * @return array
      */
     public function getDirectModelValidationRules(bool $prefixNesting = false, bool $creating = true): array;
-
 }

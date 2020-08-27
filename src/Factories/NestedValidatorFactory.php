@@ -1,7 +1,7 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Factories;
 
-use Illuminate\Support\Facades\App;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\NestedValidator;
@@ -10,7 +10,6 @@ use UnexpectedValueException;
 
 class NestedValidatorFactory implements NestedValidatorFactoryInterface
 {
-
     /**
      * Makes a nested model validator instance.
      *
@@ -26,7 +25,7 @@ class NestedValidatorFactory implements NestedValidatorFactoryInterface
 
         if ( ! count($parameters)) {
 
-            $validator = App::make($class);
+            $validator = app($class);
 
         } else {
 
@@ -64,5 +63,4 @@ class NestedValidatorFactory implements NestedValidatorFactoryInterface
     {
         return NestedValidator::class;
     }
-
 }

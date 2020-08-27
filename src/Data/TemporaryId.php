@@ -1,16 +1,14 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Data;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class TemporaryId
- *
  * Container for information about a single temporary ID's status.
  */
 class TemporaryId
 {
-
     /**
      * Wether the model has been created for this temporary ID
      *
@@ -132,7 +130,7 @@ class TemporaryId
     }
 
     /**
-     * @param string $class
+     * @param string|null $class
      * @return $this
      */
     public function setModelClass(?string $class): TemporaryId
@@ -146,5 +144,4 @@ class TemporaryId
     {
         return $this->modelClass;
     }
-
 }

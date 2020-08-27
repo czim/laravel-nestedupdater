@@ -1,11 +1,11 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 use Czim\NestedModelUpdater\Data\RelationInfo;
 
 interface TracksTemporaryIdsInterface
 {
-
     /**
      * Returns whether temporary ID handling is enabled.
      *
@@ -33,5 +33,4 @@ interface TracksTemporaryIdsInterface
      * @return RelationInfo|false     false if data could not be determined
      */
     public function getRelationInfoForDataKeyInDotNotation(string $key);
-
 }

@@ -1,18 +1,16 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Data;
 
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class TemporaryIds
- *
  * Container for information about temporary IDs used (so far) in the
  * update/create process.
  */
 class TemporaryIds implements TemporaryIdsInterface
 {
-
     /**
      * @var TemporaryId[]   assoc, keyed by temporary key attribute
      */
@@ -198,5 +196,4 @@ class TemporaryIds implements TemporaryIdsInterface
 
         return $temp ? $temp->isAllowedToCreate() : false;
     }
-
 }

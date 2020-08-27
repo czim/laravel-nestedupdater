@@ -1,9 +1,9 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 interface ModelUpdaterFactoryInterface
 {
-
     /**
      * Makes a model updater instance.
      *
@@ -12,5 +12,4 @@ interface ModelUpdaterFactoryInterface
      * @return ModelUpdaterInterface
      */
     public function make(string $class, array $parameters = []): ModelUpdaterInterface;
-
 }

@@ -1,11 +1,11 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 use Czim\NestedModelUpdater\Data\RelationInfo;
 
 interface NestingConfigInterface
 {
-
     /**
      * Sets the parent model FQN to be used if not explicitly provided
      * in other methods
@@ -63,5 +63,4 @@ interface NestingConfigInterface
      * @return boolean
      */
     public function isKeyCreatableNestedRelation(string $key, ?string $parentModel = null): bool;
-
 }

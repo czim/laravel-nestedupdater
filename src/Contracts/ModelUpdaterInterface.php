@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Contracts;
 
 use Czim\NestedModelUpdater\Data\UpdateResult;
@@ -10,7 +11,6 @@ interface ModelUpdaterInterface extends
     TracksTemporaryIdsInterface,
     HandlesUnguardedAttributesInterface
 {
-
     /**
      * Creates a new model with (potential) nested data
      *
@@ -34,7 +34,7 @@ interface ModelUpdaterInterface extends
      *
      * @param array       $data
      * @param mixed|Model $model        either an existing model or its ID
-     * @param string      $attribute    lookup column, if not primary key, only if $model is int
+     * @param string|null $attribute    lookup column, if not primary key, only if $model is int
      * @param array       $saveOptions  options to pass on to the save() Eloquent method
      * @return UpdateResult
      * @throws ModelSaveFailureException
@@ -46,7 +46,7 @@ interface ModelUpdaterInterface extends
      *
      * @param array       $data
      * @param mixed|Model $model        either an existing model or its ID
-     * @param string      $attribute    lookup column, if not primary key, only if $model is int
+     * @param string|null $attribute    lookup column, if not primary key, only if $model is int
      * @param array       $saveOptions  options to pass on to the save() Eloquent method
      * @return UpdateResult
      * @throws ModelSaveFailureException
@@ -63,5 +63,4 @@ interface ModelUpdaterInterface extends
      * @return $this
      */
     public function force(bool $force): self;
-
 }

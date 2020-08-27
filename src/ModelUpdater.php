@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\HandlesUnguardedAttributesInterface;
@@ -18,14 +19,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
 
 class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 {
-
     /**
      * Whether we're currently creating or just updating
      *
@@ -108,7 +107,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @param array       $data
      * @param mixed|Model $model        either an existing model or its ID
-     * @param string      $attribute    lookup column, if not primary key, only if $model is int
+     * @param string|null $attribute    lookup column, if not primary key, only if $model is int
      * @param array       $saveOptions  options to pass on to the save() Eloquent method
      * @return UpdateResult
      * @throws ModelSaveFailureException
@@ -175,7 +174,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      *
      * @param array       $data
      * @param mixed|Model $model        either an existing model or its ID
-     * @param string      $attribute    lookup column, if not primary key, only if $model is int
+     * @param string|null $attribute    lookup column, if not primary key, only if $model is int
      * @param array       $saveOptions  options to pass on to the save() Eloquent method
      * @return UpdateResult
      * @throws ModelSaveFailureException
@@ -758,10 +757,10 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * Handles a nested update, link or create for a single model, returning
      * the result.
      *
-     * @param mixed        $data
-     * @param RelationInfo $info
-     * @param string       $attribute
-     * @param null|int     $index       optional, for to-many list indexes to append after attribute
+     * @param mixed           $data
+     * @param RelationInfo    $info
+     * @param string          $attribute
+     * @param null|int|string $index       optional, for to-many list indexes to append after attribute
      * @return UpdateResult|false       false if no model available
      * @throws DisallowedNestedActionException
      */
@@ -771,7 +770,6 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         string $attribute,
         ?int $index = null
     ) {
-
         // handle model before, use results to save foreign key on the model later
         $nestedKey = $this->appendNestedKey($attribute, $index);
 
@@ -927,7 +925,6 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         string $keyAttribute = 'id',
         ?string $nestedKey = null
     ): array {
-
         // data may be a scalar, in which case it is assumed
         // to be the primary key
 
@@ -972,8 +969,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
     /**
      * Returns UpdateResult instance for standard precluded responses.
      *
-     * @param Model $model
-     * @param bool  $success
+     * @param Model|null $model
+     * @param bool       $success
      * @return UpdateResult
      */
     protected function makeUpdateResult(Model $model = null, bool $success = true): UpdateResult
@@ -1004,7 +1001,7 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      */
     protected function getUpdaterFactory(): ModelUpdaterFactoryInterface
     {
-        return App::make(ModelUpdaterFactoryInterface::class);
+        return app(ModelUpdaterFactoryInterface::class);
     }
 
     // ------------------------------------------------------------------------------
@@ -1030,5 +1027,4 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
 
         return $this;
     }
-
 }

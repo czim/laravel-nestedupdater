@@ -1,16 +1,15 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Data;
+
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class RelationInfo
- *
  * Container for information about a given relation that the NestingConfig may
  * determine and provide.
  */
 class RelationInfo
 {
-
     /**
      * The name of the relation method
      *
@@ -284,7 +283,7 @@ class RelationInfo
     }
 
     /**
-     * @param string $rulesClass
+     * @param string|null $rulesClass
      * @return $this
      */
     public function setRulesClass(?string $rulesClass): RelationInfo
@@ -309,5 +308,4 @@ class RelationInfo
 
         return $this;
     }
-
 }

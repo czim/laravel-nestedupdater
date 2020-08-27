@@ -1,4 +1,5 @@
 <?php
+
 namespace Czim\NestedModelUpdater\Traits;
 
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
@@ -7,7 +8,6 @@ use Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException;
 
 trait TracksTemporaryIds
 {
-
     /**
      * Information about temporary ids so far analyzed
      *
@@ -123,5 +123,4 @@ trait TracksTemporaryIds
 
         return $this;
     }
-
 }
