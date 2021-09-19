@@ -10,7 +10,11 @@ The [nested model updater configuration](CONFIG.md) may be used to set a default
 to look for classes that contain rules, or specific rules classes may be defined for specific models, or for
 specific nested relations.
 
-However it is set up, the end result should be a model that may be instantiated and provide a method like
+**Important**: do _not_ use Laravel FormRequest classes as rule classes, and do not perform nested validation logic
+in rules classes on construction. Otherwise, you run the risk of endless recursion as nested validation is performed
+by the rules class, which needs to instantiate a rules class, which performs validation, etc. etc.
+
+However it is set up, the end result should be a class that may be instantiated and provide a method like
 this:
 
 ```php
