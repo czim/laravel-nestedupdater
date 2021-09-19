@@ -74,7 +74,7 @@ The validation defaults are configured in the `nestedmodelupdater.validation` se
 
 ### Rules class fallback
 
-The default fallback for rules classes ([see the readme section on validation](VALIDATON.md)) works as follows:
+The default fallback for rules classes ([see the readme section on validation](VALIDATION.md)) works as follows:
 Given a model, say `App\Models\Post`, the class name will be constructed as follows:
 
     model-rules-namespace + basename of model class + optional postfix
