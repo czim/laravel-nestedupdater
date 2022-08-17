@@ -208,7 +208,7 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
 
             // add rule if we know that the primary key should be an integer
             if ($info->model()->getIncrementing()) {
-                $rules[ $this->getNestedKeyPrefix() . $dotKey ] = 'integer';
+                $rules[ $this->getNestedKeyPrefix() . $dotKey ] = 'nullable|integer';
             }
 
             return $rules;
