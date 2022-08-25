@@ -208,7 +208,22 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
 
             // add rule if we know that the primary key should be an integer
             if ($info->model()->getIncrementing()) {
-                $rules[ $this->getNestedKeyPrefix() . $dotKey ] = 'nullable|integer';
+                $isRequired = false;
+                $key = $this->getNestedKeyPrefix() . $dotKey;
+                $validationRules = $this->getDirectModelValidationRules();
+
+                // check if the field is required in model validation
+                if (array_key_exists($key, $validationRules)) {
+                    $validationRule = $validationRules[$key];
+
+                    if (is_string($validationRule) && preg_match('/\brequired\b/', $validationRule) !== false ||
+                        in_array('required', $validationRule)
+                    ) {
+                        $isRequired = true;
+                    }
+                }
+
+                $rules[$key] = ($isRequired ? 'required' : 'nullable') . '|integer';
             }
 
             return $rules;
