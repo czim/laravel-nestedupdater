@@ -21,7 +21,7 @@ interface TemporaryIdsInterface
 
     /**
      * @param string $key
-     * @return boolean
+     * @return bool
      */
     public function isCreatedForKey(string $key): bool;
 
@@ -29,15 +29,15 @@ interface TemporaryIdsInterface
      * Gets nested data set for given temporary ID.
      *
      * @param string $key
-     * @return null|array
+     * @return null|array<string, mixed>
      */
     public function getDataForId(string $key): ?array;
 
     /**
      * Sets (nested) data for a given temporary ID key.
      *
-     * @param string $key
-     * @param array  $data
+     * @param string               $key
+     * @param array<string, mixed> $data
      * @return $this
      */
     public function setDataForId(string $key, array $data): TemporaryIdsInterface;
@@ -46,15 +46,15 @@ interface TemporaryIdsInterface
      * Returns the model class associated with a temporary ID.
      *
      * @param string $key
-     * @return null|string
+     * @return null|class-string<Model>
      */
     public function getModelClassForId(string $key): ?string;
 
     /**
      * Sets the model class associated with a temporary ID.
      *
-     * @param string $key
-     * @param string $class
+     * @param string              $key
+     * @param class-string<Model> $class
      * @return $this
      */
     public function setModelClassForId(string $key, string $class): TemporaryIdsInterface;
@@ -74,7 +74,7 @@ interface TemporaryIdsInterface
      * @param Model  $model
      * @return $this
      */
-    public function setModelForId(string $key, Model $model): TemporaryIdsInterface;
+    public function setModelForId(string $key, Model $model): static;
 
     /**
      * Marks whether the model for a given temporary may be created.
@@ -83,7 +83,7 @@ interface TemporaryIdsInterface
      * @param bool   $allowed
      * @return $this
      */
-    public function markAllowedToCreateForId(string $key, bool $allowed = true): TemporaryIdsInterface;
+    public function markAllowedToCreateForId(string $key, bool $allowed = true): static;
 
     /**
      * Returns whether create is allowed for a given temporary ID.

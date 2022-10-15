@@ -9,8 +9,8 @@ interface NestedValidatorInterface extends NestedParserInterface
     /**
      * Performs validation and returns whether it succeeds.
      *
-     * @param array $data
-     * @param bool  $creating   if false, validate for update
+     * @param array<string, mixed> $data
+     * @param bool                 $creating if false, validate for update
      * @return bool
      */
     public function validate(array $data, bool $creating = true): bool;
@@ -18,9 +18,9 @@ interface NestedValidatorInterface extends NestedParserInterface
     /**
      * Returns validation rules array for full nested data.
      *
-     * @param array $data
-     * @param bool  $creating
-     * @return array
+     * @param array<string, mixed> $data
+     * @param bool                 $creating
+     * @return array<string, mixed>
      */
     public function validationRules(array $data, bool $creating = true): array;
 
@@ -32,11 +32,11 @@ interface NestedValidatorInterface extends NestedParserInterface
     public function messages(): ?MessageBag;
 
     /**
-     * Returns validation rules for the current model only
+     * Returns validation rules for the current model only.
      *
-     * @param bool $prefixNesting   if true, prefixes the validation rules with the relevant key nesting.
+     * @param bool $prefixNesting if true, prefixes the validation rules with the relevant key nesting.
      * @param bool $creating
-     * @return array
+     * @return array<string, mixed>
      */
     public function getDirectModelValidationRules(bool $prefixNesting = false, bool $creating = true): array;
 }

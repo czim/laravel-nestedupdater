@@ -9,7 +9,7 @@ interface TracksTemporaryIdsInterface
     /**
      * Returns whether temporary ID handling is enabled.
      *
-     * @return boolean
+     * @return bool
      */
     public function isHandlingTemporaryIds(): bool;
 
@@ -19,18 +19,15 @@ interface TracksTemporaryIdsInterface
      * @param TemporaryIdsInterface $ids
      * @return $this
      */
-    public function setTemporaryIds(TemporaryIdsInterface $ids): TracksTemporaryIdsInterface;
+    public function setTemporaryIds(TemporaryIdsInterface $ids): static;
 
-    /**
-     * @return TemporaryIdsInterface|null
-     */
     public function getTemporaryIds(): ?TemporaryIdsInterface;
 
     /**
      * Returns RelationInfo instance for nested data element by dot notation data key.
      *
      * @param string $key
-     * @return RelationInfo|false     false if data could not be determined
+     * @return RelationInfo|false false if data could not be determined
      */
-    public function getRelationInfoForDataKeyInDotNotation(string $key);
+    public function getRelationInfoForDataKeyInDotNotation(string $key): RelationInfo|false;
 }
