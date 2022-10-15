@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.0] - 2022
+
+Breaking changes: refactored entirely for PHP 8.1.
+Many interfaces and method signatures are updated, strict typing is enforced.
+
 ## [2.0.4] - 2019-10-24
 
 Added Dennis' feature to better handle soft deleting models, including a configuration option that
