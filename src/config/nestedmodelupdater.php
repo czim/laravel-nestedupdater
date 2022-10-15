@@ -1,5 +1,11 @@
 <?php
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Znck\Eloquent\Relations\BelongsToThrough;
+
 return [
 
     // Enable database transactions for top-level create/update operations.
@@ -17,12 +23,11 @@ return [
     // List of FQNs of relation classes that are of the to One type. Every
     // other relation is considered plural.
     'singular-relations' => [
-        \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
-        \Illuminate\Database\Eloquent\Relations\HasOne::class,
-        \Illuminate\Database\Eloquent\Relations\MorphOne::class,
-        \Illuminate\Database\Eloquent\Relations\MorphTo::class,
-
-        '\Znck\Eloquent\Relations\BelongsToThrough',
+        BelongsTo::class,
+        HasOne::class,
+        MorphOne::class,
+        MorphTo::class,
+        BelongsToThrough::class,
     ],
 
     // List of FQNs of relation classes that have their ids stored as
@@ -30,8 +35,8 @@ return [
     // operation on one of these will be performed before updating or
     // creating the parent model.
     'belongs-to-relations' => [
-        \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
-        \Illuminate\Database\Eloquent\Relations\MorphTo::class,
+        BelongsTo::class,
+        MorphTo::class,
     ],
 
     // Definitions for nested updatable relations, per parent model FQN as key.
@@ -65,7 +70,7 @@ return [
     //          'Some\Model\Class\' => [ 'relation_key' => true ]
     //
     // If a relation is not present in this config, no nested updating or linking will
-    // allowed at all.
+    // be allowed at all.
     //
     'relations' => [
     ],
