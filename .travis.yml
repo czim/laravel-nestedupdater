@@ -1,18 +1,14 @@
 language: php
 
 php:
-  - 7.2
-  - 7.3
+  - 8.1
 
 install:
   - COMPOSER_MEMORY_LIMIT=-1 travis_retry composer install --prefer-dist --no-interaction
 
 script:
   - mkdir -p build/logs
-  - vendor/bin/phpunit --coverage-clover build/logs/clover.xml
-
-after_script:
-  - vendor/bin/coveralls -v
+  - vendor/bin/phpunit
 
 notifications:
   email:
