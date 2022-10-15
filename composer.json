@@ -11,20 +11,19 @@
     "authors": [
         {
             "name": "Coen Zimmerman",
-            "email": "coen@pxlwidgets.com",
+            "email": "coen.zimmerman@endeavour.nl",
             "homepage": "https://github.com/czim",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": ">=7.1.3"
+        "php": "^8.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^7.0|^8.0",
-        "mockery/mockery": "~1.0",
-        "orchestra/testbench": "^3.0|^4.0",
-        "orchestra/database": "^3.0|^4.0",
-        "php-coveralls/php-coveralls": "^1.0"
+        "phpunit/phpunit": "^9.5",
+        "mockery/mockery": "^1.9",
+        "orchestra/testbench": "^7.0",
+        "orchestra/database": "^9.0"
     },
     "autoload": {
         "psr-4": {
