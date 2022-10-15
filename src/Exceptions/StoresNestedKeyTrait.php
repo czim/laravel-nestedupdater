@@ -1,23 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Exceptions;
 
 trait StoresNestedKeyTrait
 {
     /**
-     * Dot-notation nested key for the record in the data array
+     * Dot-notation nested key for the record in the data array.
      *
      * @var string
      */
     protected $nestedKey;
 
     /**
-     * Set the dot-notation nested key for the affected model
+     * Set the dot-notation nested key for the affected model.
      *
-     * @param  string|null   $nestedKey
+     * @param string|null $nestedKey
      * @return $this
      */
-    public function setNestedKey(?string $nestedKey)
+    public function setNestedKey(?string $nestedKey): static
     {
         $this->nestedKey = $nestedKey ?? '';
 
@@ -29,7 +31,7 @@ trait StoresNestedKeyTrait
     }
 
     /**
-     * Get the dot-notation nested key for the affected model
+     * Get the dot-notation nested key for the affected model.
      *
      * @return string
      */

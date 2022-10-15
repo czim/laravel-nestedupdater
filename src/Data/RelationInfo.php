@@ -2,11 +2,15 @@
 
 namespace Czim\NestedModelUpdater\Data;
 
+use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
+use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
- * Container for information about a given relation that the NestingConfig may
- * determine and provide.
+ * Container for information about a given relation that the NestingConfig may determine and provide.
+ *
+ * @template TModel of \Illuminate\Database\Eloquent\Model
  */
 class RelationInfo
 {
@@ -15,21 +19,21 @@ class RelationInfo
      *
      * @var string
      */
-    protected $relationMethod;
+    protected string $relationMethod;
 
     /**
      * The FQN of the relation class returned by the relation method
      *
-     * @var string
+     * @var class-string<Relation<TModel>>
      */
-    protected $relationClass;
+    protected string $relationClass;
 
     /**
      * Whether the relationship is of a One, as opposed to a Many, type
      *
      * @var bool
      */
-    protected $singular = true;
+    protected bool $singular = true;
 
     /**
      * Whether the relationship is of the belongsTo type, that is, whether
@@ -37,68 +41,66 @@ class RelationInfo
      *
      * @var bool
      */
-    protected $belongsTo = false;
+    protected bool $belongsTo = false;
 
     /**
      * An instance of the child model for the relation
      *
-     * @var Model|null
+     * @var TModel|null
      */
-    protected $model;
+    protected ?Model $model = null;
 
     /**
      * The FQN of the ModelUpdater that should handle update or create process
      *
-     * @var string|null
+     * @var class-string<ModelUpdaterInterface>|null
      */
-    protected $updater;
+    protected ?string $updater = null;
 
     /**
-     * Whether it is allowed to update data (and relations) of the nested related
-     * records. If this is false, only (dis)connecting relationships should be
-     * allowed.
+     * Whether it is allowed to update data (and relations) of the nested related records.
+     * If this is false, only (dis)connecting relationships should be allowed.
      *
-     * @var boolean
+     * @var bool
      */
-    protected $updateAllowed = false;
+    protected bool $updateAllowed = false;
 
     /**
      * Whether it is allowed to create nested records for this relation.
      *
-     * @var boolean
+     * @var bool
      */
-    protected $createAllowed = false;
+    protected bool $createAllowed = false;
 
     /**
      * Whether missing records in a set of nested data should be detached.
      * If null, default is true for BelongsToMany and false for everything else.
      *
-     * @var null|boolean
+     * @var bool|null
      */
-    protected $detachMissing;
+    protected ?bool $detachMissing = null;
 
     /**
-     * Whether, if detachMissing is true, detached models should be deleted
-     * instead of merely dissociated.
+     * Whether, if detachMissing is true, detached models should be deleted instead of merely dissociated.
      *
-     * @var boolean
+     * @var bool
      */
-    protected $deleteDetached = false;
+    protected bool $deleteDetached = false;
 
     /**
-     * @var null|string     FQN for nested validator that should handle nested validation
+     * @var class-string<NestedValidatorInterface>|null FQN for nested validator that should handle nested validation
      */
-    protected $validator;
+    protected ?string $validator = null;
 
     /**
-     * @var null|string     FQN for the class that provides the rules for the model
+     * @var null|class-string FQN for the class that provides the rules for the model
      */
-    protected $rulesClass;
+    protected ?string $rulesClass = null;
 
     /**
-     * @var null|string     name of the method that provides the array with rules
+     * @var string|null name of the method that provides the array with rules
      */
-    protected $rulesMethod;
+    protected ?string $rulesMethod = null;
 
 
     public function relationMethod(): string
@@ -110,23 +112,26 @@ class RelationInfo
      * @param string $relationMethod
      * @return $this
      */
-    public function setRelationMethod(string $relationMethod): RelationInfo
+    public function setRelationMethod(string $relationMethod): static
     {
         $this->relationMethod = $relationMethod;
 
         return $this;
     }
 
+    /**
+     * @return class-string<Relation<TModel>>
+     */
     public function relationClass(): string
     {
         return $this->relationClass;
     }
 
     /**
-     * @param string $relationClass
+     * @param class-string<Relation<TModel>> $relationClass
      * @return $this
      */
-    public function setRelationClass($relationClass): RelationInfo
+    public function setRelationClass(string $relationClass): static
     {
         $this->relationClass = $relationClass;
 
@@ -139,10 +144,10 @@ class RelationInfo
     }
 
     /**
-     * @param boolean $singular
+     * @param bool $singular
      * @return $this
      */
-    public function setSingular(bool $singular): RelationInfo
+    public function setSingular(bool $singular): static
     {
         $this->singular = $singular;
 
@@ -155,42 +160,48 @@ class RelationInfo
     }
 
     /**
-     * @param boolean $belongsTo
+     * @param bool $belongsTo
      * @return $this
      */
-    public function setBelongsTo(bool $belongsTo): RelationInfo
+    public function setBelongsTo(bool $belongsTo): static
     {
         $this->belongsTo = $belongsTo;
 
         return $this;
     }
 
+    /**
+     * @return TModel|null
+     */
     public function model(): ?Model
     {
         return $this->model;
     }
 
     /**
-     * @param null|Model $model
+     * @param null|TModel $model
      * @return $this
      */
-    public function setModel(?Model $model): RelationInfo
+    public function setModel(?Model $model): static
     {
         $this->model = $model;
 
         return $this;
     }
 
+    /**
+     * @return class-string<ModelUpdaterInterface>|null
+     */
     public function updater(): ?string
     {
         return $this->updater;
     }
 
     /**
-     * @param null|string $updater
+     * @param class-string<ModelUpdaterInterface>|null $updater
      * @return $this
      */
-    public function setUpdater(?string $updater): RelationInfo
+    public function setUpdater(?string $updater): static
     {
         $this->updater = $updater;
 
@@ -203,10 +214,10 @@ class RelationInfo
     }
 
     /**
-     * @param boolean $updateAllowed
+     * @param bool $updateAllowed
      * @return $this
      */
-    public function setUpdateAllowed(bool $updateAllowed): RelationInfo
+    public function setUpdateAllowed(bool $updateAllowed): static
     {
         $this->updateAllowed = $updateAllowed;
 
@@ -219,10 +230,10 @@ class RelationInfo
     }
 
     /**
-     * @param boolean $createAllowed
+     * @param bool $createAllowed
      * @return $this
      */
-    public function setCreateAllowed(bool $createAllowed): RelationInfo
+    public function setCreateAllowed(bool $createAllowed): static
     {
         $this->createAllowed = $createAllowed;
 
@@ -235,10 +246,10 @@ class RelationInfo
     }
 
     /**
-     * @param boolean $deleteDetached
+     * @param bool $deleteDetached
      * @return $this
      */
-    public function setDeleteDetached(bool $deleteDetached): RelationInfo
+    public function setDeleteDetached(bool $deleteDetached): static
     {
         $this->deleteDetached = $deleteDetached;
 
@@ -254,20 +265,23 @@ class RelationInfo
      * @param bool|null $detachMissing
      * @return $this
      */
-    public function setDetachMissing(?bool $detachMissing): RelationInfo
+    public function setDetachMissing(?bool $detachMissing): static
     {
         $this->detachMissing = $detachMissing;
 
         return $this;
     }
 
+    /**]
+     * @return class-string<NestedValidatorInterface>|null
+     */
     public function validator(): ?string
     {
         return $this->validator;
     }
 
     /**
-     * @param string $validator
+     * @param class-string<NestedValidatorInterface>|null $validator
      * @return $this
      */
     public function setValidator(?string $validator): RelationInfo
@@ -277,16 +291,19 @@ class RelationInfo
         return $this;
     }
 
+    /**
+     * @return class-string|null
+     */
     public function rulesClass(): ?string
     {
         return $this->rulesClass;
     }
 
     /**
-     * @param string|null $rulesClass
+     * @param class-string|null $rulesClass
      * @return $this
      */
-    public function setRulesClass(?string $rulesClass): RelationInfo
+    public function setRulesClass(?string $rulesClass): static
     {
         $this->rulesClass = $rulesClass;
 
@@ -299,10 +316,10 @@ class RelationInfo
     }
 
     /**
-     * @param null|string $rulesMethod
+     * @param string|null $rulesMethod
      * @return $this
      */
-    public function setRulesMethod(?string $rulesMethod): RelationInfo
+    public function setRulesMethod(?string $rulesMethod): static
     {
         $this->rulesMethod = $rulesMethod;
 

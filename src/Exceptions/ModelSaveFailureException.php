@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Exceptions;
 
-use Exception;
+use RuntimeException;
 
 /**
  * Hard failure when attempting to persist a model.
  */
-class ModelSaveFailureException extends Exception
+class ModelSaveFailureException extends RuntimeException
 {
     use StoresNestedKeyTrait;
 }

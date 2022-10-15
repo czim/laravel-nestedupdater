@@ -1,20 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Data;
 
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Container for information about temporary IDs used (so far) in the
- * update/create process.
+ * Container for information about temporary IDs used (so far) in the update/create process.
  */
 class TemporaryIds implements TemporaryIdsInterface
 {
     /**
-     * @var TemporaryId[]   assoc, keyed by temporary key attribute
+     * @var array<int|string, TemporaryId> keyed by temporary key attribute
      */
-    protected $temporaryIds = [];
+    protected array $temporaryIds = [];
 
     /**
      * Returns all keys for temporary IDs.
@@ -38,11 +39,11 @@ class TemporaryIds implements TemporaryIdsInterface
     /**
      * Sets (nested) data for a given temporary ID key.
      *
-     * @param string $key
-     * @param array  $data
+     * @param string               $key
+     * @param array<string, mixed> $data
      * @return $this
      */
-    public function setDataForId(string $key, array $data): TemporaryIdsInterface
+    public function setDataForId(string $key, array $data): static
     {
         // do not overwrite if we have a model already
         if ($this->hasId($key) && $this->getByKey($key)->isCreated()) {
@@ -61,7 +62,7 @@ class TemporaryIds implements TemporaryIdsInterface
      * @param Model  $model
      * @return $this
      */
-    public function setModelForId(string $key, Model $model): TemporaryIdsInterface
+    public function setModelForId(string $key, Model $model): static
     {
         $this->getOrCreateByKey($key)->setModel($model);
 
@@ -71,11 +72,11 @@ class TemporaryIds implements TemporaryIdsInterface
     /**
      * Sets the model class associated with a temporary ID.
      *
-     * @param string $key
-     * @param string $class
+     * @param string              $key
+     * @param class-string<Model> $class
      * @return $this
      */
-    public function setModelClassForId(string $key, string $class): TemporaryIdsInterface
+    public function setModelClassForId(string $key, string $class): static
     {
         $this->getOrCreateByKey($key)->setModelClass($class);
 
@@ -86,53 +87,47 @@ class TemporaryIds implements TemporaryIdsInterface
     {
         $temp = $this->getByKey($key);
 
-        return $temp ? $temp->isCreated() : false;
+        return $temp && $temp->isCreated();
     }
 
     /**
      * Gets nested data set for given temporary ID.
      *
      * @param string $key
-     * @return null|array
+     * @return array<string, mixed>|null
      */
     public function getDataForId(string $key): ?array
     {
-        $temp = $this->getByKey($key);
-
-        return $temp ? $temp->getData() : null;
+        return $this->getByKey($key)?->getData();
     }
 
     /**
      * Gets created model instance set for given temporary ID.
      *
      * @param string $key
-     * @return null|Model
+     * @return Model|null
      */
     public function getModelForId(string $key): ?Model
     {
-        $temp = $this->getByKey($key);
-
-        return $temp ? $temp->getModel() : null;
+        return $this->getByKey($key)?->getModel();
     }
 
     /**
      * Returns the model class associated with a temporary ID.
      *
      * @param string $key
-     * @return null|string
+     * @return class-string<Model>|null
      */
     public function getModelClassForId(string $key): ?string
     {
-        $temp = $this->getByKey($key);
-
-        return $temp ? $temp->getModelClass() : null;
+        return $this->getByKey($key)?->getModelClass();
     }
 
     /**
      * Returns temporary ID container for a given key
      *
      * @param string $key
-     * @return null|TemporaryId
+     * @return TemporaryId|null
      */
     protected function getByKey(string $key): ?TemporaryId
     {
@@ -161,9 +156,7 @@ class TemporaryIds implements TemporaryIdsInterface
     }
 
     /**
-     * Get the instance as an array.
-     *
-     * @return array
+     * @return array<int|string, TemporaryId>
      */
     public function toArray(): array
     {
@@ -177,7 +170,7 @@ class TemporaryIds implements TemporaryIdsInterface
      * @param bool   $allowed
      * @return $this
      */
-    public function markAllowedToCreateForId(string $key, bool $allowed = true): TemporaryIdsInterface
+    public function markAllowedToCreateForId(string $key, bool $allowed = true): static
     {
         $this->getOrCreateByKey($key)->setAllowedToCreate($allowed);
 
@@ -194,6 +187,6 @@ class TemporaryIds implements TemporaryIdsInterface
     {
         $temp = $this->getByKey($key);
 
-        return $temp ? $temp->isAllowedToCreate() : false;
+        return $temp && $temp->isAllowedToCreate();
     }
 }

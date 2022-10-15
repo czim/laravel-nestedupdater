@@ -1,59 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Data;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Container for information about a single temporary ID's status.
+ *
+ * @template TModel of \Illuminate\Database\Eloquent\Model
  */
 class TemporaryId
 {
     /**
-     * Wether the model has been created for this temporary ID
+     * Wether the model has been created for this temporary ID.
      *
-     * @var boolean
+     * @var bool
      */
-    protected $created = false;
+    protected bool $created = false;
 
     /**
-     * The data to use to create the model
+     * The data to use to create the model.
      *
-     * @var null|array
+     * @var array<string, mixed>|null
      */
-    protected $data;
+    protected ?array $data = null;
 
     /**
-     * The created model, if it is created
+     * The created model, if it is created.
      *
-     * @var null|Model
+     * @var TModel|null
      */
-    protected $model;
+    protected ?Model $model = null;
 
     /**
-     * The model class FQN, if it is known
+     * The model class FQN, if it is known.
      *
-     * @var null|string
+     * @var class-string<TModel>|null
      */
-    protected $modelClass;
+    protected ?string $modelClass = null;
 
     /**
      * Whether any of the temporary ID usages allow the model to be created.
      * This should be true if ANY of the nested usages allow this; all the others
      * may be treated as linking the model created only once.
      *
-     * @var boolean
+     * @var bool
      */
-    protected $allowedToCreate = false;
+    protected bool $allowedToCreate = false;
 
 
     /**
      * Sets whether the model was created.
      *
-     * @param boolean $created
+     * @param bool $created
      * @return $this
      */
-    public function setCreated(bool $created = true): TemporaryId
+    public function setCreated(bool $created = true): static
     {
         $this->created = $created;
 
@@ -63,7 +67,7 @@ class TemporaryId
     /**
      * Returns whether the model has been created so far.
      *
-     * @return boolean
+     * @return bool
      */
     public function isCreated(): bool
     {
@@ -73,10 +77,10 @@ class TemporaryId
     /**
      * Marks whether the temporary ID's data may be used to create anything.
      *
-     * @param boolean $allowedToCreate
+     * @param bool $allowedToCreate
      * @return $this
      */
-    public function setAllowedToCreate(bool $allowedToCreate = true): TemporaryId
+    public function setAllowedToCreate(bool $allowedToCreate = true): static
     {
         $this->allowedToCreate = $allowedToCreate;
 
@@ -86,7 +90,7 @@ class TemporaryId
     /**
      * Returns whether the temporary ID is allowed to be created at any point.
      *
-     * @return boolean
+     * @return bool
      */
     public function isAllowedToCreate(): bool
     {
@@ -94,26 +98,29 @@ class TemporaryId
     }
 
     /**
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return $this
      */
-    public function setData(array $data): TemporaryId
+    public function setData(array $data): static
     {
         $this->data = $data;
 
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getData(): ?array
     {
         return $this->data;
     }
 
     /**
-     * @param Model|null $model
+     * @param TModel $model
      * @return $this
      */
-    public function setModel(Model $model): TemporaryId
+    public function setModel(Model $model): static
     {
         $this->model = $model;
 
@@ -124,22 +131,28 @@ class TemporaryId
         return $this;
     }
 
+    /**
+     * @return TModel|null
+     */
     public function getModel(): ?Model
     {
         return $this->model;
     }
 
     /**
-     * @param string|null $class
+     * @param class-string<TModel>|null $class
      * @return $this
      */
-    public function setModelClass(?string $class): TemporaryId
+    public function setModelClass(?string $class): static
     {
         $this->modelClass = $class;
 
         return $this;
     }
 
+    /**
+     * @return class-string<TModel>|null
+     */
     public function getModelClass(): ?string
     {
         return $this->modelClass;

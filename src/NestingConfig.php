@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater;
 
 use BadMethodCallException;
@@ -15,21 +17,26 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use UnexpectedValueException;
 
+/**
+ * @template TParent of \Illuminate\Database\Eloquent\Model
+ *
+ * @implements NestingConfigInterface<TParent>
+ */
 class NestingConfig implements NestingConfigInterface
 {
     /**
-     * @var null|string
+     * @var class-string<TParent>|null
      */
-    protected $parentModel;
+    protected ?string $parentModel = null;
 
     /**
      * Sets the parent model FQN to be used if not explicitly provided
      * in other methods
      *
-     * @param string $parentModel FQN of the parent model
+     * @param class-string<TParent> $parentModel FQN of the parent model
      * @return $this
      */
-    public function setParentModel(string $parentModel): NestingConfigInterface
+    public function setParentModel(string $parentModel): static
     {
         $this->parentModel = $parentModel;
 
@@ -39,13 +46,13 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns a container with information about the nested relation by key
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return RelationInfo
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return RelationInfo<TParent>
      */
     public function getRelationInfo(string $key, ?string $parentModel = null): RelationInfo
     {
-        if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
+        if (! $this->isKeyNestedRelation($key, $parentModel)) {
             throw new RuntimeException(
                 "{$key} is not a nested relation, cannot gather data"
                 . ' for model ' . ($parentModel ?: $this->parentModel)
@@ -74,11 +81,11 @@ class NestingConfig implements NestingConfigInterface
     }
 
     /**
-     * @param string      $key
-     * @param null|string $parentModel
-     * @return array|boolean
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel
+     * @return array<string, mixed>|false
      */
-    public function getNestedRelationConfigByKey(string $key, ?string $parentModel = null)
+    public function getNestedRelationConfigByKey(string $key, ?string $parentModel = null): array|false
     {
         $parentModel = $parentModel ?: $this->parentModel;
 
@@ -88,81 +95,83 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns whether a key, for the given model, is a nested relation at all.
      *
-     * @param string      $key
-     * @param null|string $parentModel      the FQN for the parent model
-     * @return boolean
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return bool
      */
     public function isKeyNestedRelation(string $key, ?string $parentModel = null): bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        return false !== $config && null !== $config;
+        return (bool) $config;
     }
 
     /**
-     * Returns whether a key, for the given model, is an updatable nested relation.
+     * Returns whether a key, for the given model, is an update able nested relation.
+     *
      * Updatable relations are relations that may have their contents updated through
      * the nested update operation. This returns false if related models may only be
      * linked, but not modified.
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return boolean
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return bool
      */
     public function isKeyUpdatableNestedRelation(string $key, ?string $parentModel = null): bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        if (true === $config) {
+        if ($config === true) {
             return true;
         }
 
-        if ( ! is_array($config)) {
+        if (! is_array($config)) {
             return false;
         }
 
-        return ! (bool) Arr::get($config, 'link-only', false);
+        return ! Arr::get($config, 'link-only', false);
     }
 
     /**
-     * Returns whether a key, for the given model, is a nested relation for which
-     * new models may be created.
+     * Returns whether a key, for the given model, is a nested relation for which new models may be created.
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return boolean
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return bool
      */
     public function isKeyCreatableNestedRelation(string $key, ?string $parentModel = null): bool
     {
-        if ( ! $this->isKeyUpdatableNestedRelation($key, $parentModel)) {
+        if (! $this->isKeyUpdatableNestedRelation($key, $parentModel)) {
             return false;
         }
 
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        if (true === $config) {
+        if ($config === true) {
             return true;
         }
 
-        if ( ! is_array($config)) {
+        if (! is_array($config)) {
             return false;
         }
 
-        return ! (bool) Arr::get($config, 'update-only', false);
+        return ! Arr::get($config, 'update-only', false);
     }
 
     /**
      * Returns whether a nested relation detaches missing records in update data.
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return null|boolean
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return bool|null
      */
     public function isKeyDetachingNestedRelation(string $key, ?string $parentModel = null): ?bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        if (true === $config || ! is_array($config)) return null;
+        if (! is_array($config)) {
+            return null;
+        }
 
         $detach = Arr::get($config, 'detach');
 
@@ -172,15 +181,15 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns whether a nested relation deletes detached missing records in update data.
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return boolean
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return bool
      */
     public function isKeyDeletingNestedRelation(string $key, ?string $parentModel = null): bool
     {
         $config = $this->getNestedRelationConfigByKey($key, $parentModel);
 
-        if (true === $config || ! is_array($config)) {
+        if (! is_array($config)) {
             return false;
         }
 
@@ -190,11 +199,11 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns the name of the method on the parent model for the relation.
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
      * @return string|false
      */
-    public function getRelationMethod(string $key, ?string $parentModel = null)
+    public function getRelationMethod(string $key, ?string $parentModel = null): string|false
     {
         return $this->getStringValueForKey($key, 'method', Str::camel($key), $parentModel);
     }
@@ -202,8 +211,8 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns the FQN for the ModelUpdater to be used for a specific nested relation key
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
      * @return string
      */
     public function getUpdaterClassForKey(string $key, ?string $parentModel = null): string
@@ -214,20 +223,20 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns a fresh instance of the parent model for the relation.
      *
-     * @param null|string $parentClass
-     * @return Model
+     * @param class-string<TParent>|null $parentClass
+     * @return TParent
      */
     protected function makeParentModel(?string $parentClass = null): Model
     {
         $parentClass = $parentClass ?: $this->parentModel;
 
-        if ( ! $parentClass) {
+        if (! $parentClass) {
             throw new BadMethodCallException("Could not create parent model, no class name given.");
         }
 
         $model = new $parentClass;
 
-        if ( ! ($model instanceof Model)) {
+        if (! $model instanceof Model) {
             throw new UnexpectedValueException("Expected Model for parentModel, got {$parentClass} instead.");
         }
 
@@ -237,7 +246,7 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns FQN for related model.
      *
-     * @param Relation $relation
+     * @param Relation<Model> $relation
      * @return Model
      */
     protected function getModelForRelation(Relation $relation): Model
@@ -248,7 +257,7 @@ class NestingConfig implements NestingConfigInterface
     /**
      * Returns wether relation is of singular type.
      *
-     * @param Relation $relation
+     * @param Relation<Model> $relation
      * @return bool
      */
     protected function isRelationSingular(Relation $relation): bool
@@ -261,10 +270,9 @@ class NestingConfig implements NestingConfigInterface
     }
 
     /**
-     * Returns wether relation is of the 'belongs to' type (foreign key
-     * stored on the parent).
+     * Returns wether relation is of the 'belongs to' type (foreign key stored on the parent).
      *
-     * @param Relation $relation
+     * @param Relation<Model> $relation
      * @return bool
      */
     protected function isRelationBelongsTo(Relation $relation): bool
@@ -277,21 +285,22 @@ class NestingConfig implements NestingConfigInterface
     }
 
     /**
-     * Returns a string relation config value for a given nested data key
+     * Returns a string relation config value for a given nested data key.
      *
-     * @param string      $key
-     * @param string      $configKey
-     * @param string      $default
-     * @param null|string $parentModel
-     * @return bool|string
+     * @param string                     $key
+     * @param string                     $configKey
+     * @param string|null                $default
+     * @param class-string<TParent>|null $parentModel
+     * @return string|false
      */
     protected function getStringValueForKey(
-        string $key, $configKey,
+        string $key,
+        string $configKey,
         ?string $default = null,
-        ?string $parentModel = null
-    ) {
+        ?string $parentModel = null,
+    ): string|false {
 
-        if ( ! $this->isKeyNestedRelation($key, $parentModel)) {
+        if (! $this->isKeyNestedRelation($key, $parentModel)) {
             return false;
         }
 
@@ -309,10 +318,10 @@ class NestingConfig implements NestingConfigInterface
     // ------------------------------------------------------------------------------
 
     /**
-     * Returns the FQN for the nested validator to be used for a specific nested relation key
+     * Returns the FQN for the nested validator to be used for a specific nested relation key.
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
      * @return string
      */
     public function getValidatorClassForKey(string $key, ?string $parentModel = null): string
@@ -321,11 +330,11 @@ class NestingConfig implements NestingConfigInterface
     }
 
     /**
-     * Returns the FQN for the class that has the rules for the nested model
+     * Returns the FQN for the class that has the rules for the nested model.
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return null|string
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return string|null
      */
     public function getRulesClassForKey(string $key, ?string $parentModel = null): ?string
     {
@@ -336,9 +345,9 @@ class NestingConfig implements NestingConfigInterface
      * Returns the FQN for the method on the rules class that should be called to
      * get the rules array
      *
-     * @param string      $key
-     * @param null|string $parentModel the FQN for the parent model
-     * @return null|string
+     * @param string                     $key
+     * @param class-string<TParent>|null $parentModel the FQN for the parent model
+     * @return string|null
      */
     public function getRulesMethodForKey(string $key, ?string $parentModel = null): ?string
     {

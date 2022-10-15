@@ -725,8 +725,8 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
      * for the same type of relation by another model. Note that this is not
      * safe by any means -- use on your own risk.
      *
-     * @param Model        $model
-     * @param RelationInfo $info
+     * @param Model               $model
+     * @param RelationInfo<Model> $info
      */
     protected function deleteFormerlyRelatedModel(Model $model, RelationInfo $info): void
     {
