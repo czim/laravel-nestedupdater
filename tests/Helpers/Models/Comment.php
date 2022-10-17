@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,9 +16,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Comment extends Model
 {
     /**
-     * @var array
+     * @var string[]
      */
-    protected $fillable = [ 'title', 'body' ];
+    protected $fillable = [
+        'title',
+        'body',
+    ];
 
     public function post(): BelongsTo
     {
@@ -31,5 +37,4 @@ class Comment extends Model
     {
         return $this->morphMany(Tag::class, 'taggable');
     }
-
 }

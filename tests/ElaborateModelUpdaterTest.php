@@ -1,7 +1,6 @@
 <?php
-/** @noinspection PhpUnhandledExceptionInspection */
-/** @noinspection ReturnTypeCanBeDeclaredInspection */
-/** @noinspection AccessModifierPresentedInspection */
+
+declare(strict_types=1);
 
 namespace Czim\NestedModelUpdater\Test;
 
@@ -14,11 +13,10 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Special;
 
 class ElaborateModelUpdaterTest extends TestCase
 {
-
     /**
      * @test
      */
-    function it_creates_and_updates_a_nested_hasmany_relation()
+    public function it_creates_and_updates_a_nested_hasmany_relation(): void
     {
         $post    = $this->createPost();
         $comment = $this->createComment($post);
@@ -32,8 +30,8 @@ class ElaborateModelUpdaterTest extends TestCase
                 [
                     'title' => 'new title',
                     'body'  => 'new body',
-                ]
-            ]
+                ],
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -53,7 +51,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_and_updates_a_nested_hasone_relation()
+    public function it_creates_and_updates_a_nested_hasone_relation(): void
     {
         $post = $this->createPost();
 
@@ -97,7 +95,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_and_updates_a_nested_belongstomany_relation()
+    public function it_creates_and_updates_a_nested_belongstomany_relation(): void
     {
         $post   = $this->createPost();
         $author = $this->createAuthor();
@@ -105,15 +103,15 @@ class ElaborateModelUpdaterTest extends TestCase
         $data = [
             'posts' => [
                 [
-                    'id'     => $post->id,
-                    'title'  => 'updated title',
-                    'body'   => 'updated body',
+                    'id'    => $post->id,
+                    'title' => 'updated title',
+                    'body'  => 'updated body',
                 ],
                 [
-                    'title'  => 'very new title',
-                    'body'   => 'very new body',
-                ]
-            ]
+                    'title' => 'very new title',
+                    'body'  => 'very new body',
+                ],
+            ],
         ];
 
         $updater = new ModelUpdater(Author::class);
@@ -139,7 +137,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_and_updates_a_nested_morphmany_relation()
+    public function it_creates_and_updates_a_nested_morphmany_relation(): void
     {
         $post = $this->createPost();
         $tag  = $this->createTag();
@@ -152,8 +150,8 @@ class ElaborateModelUpdaterTest extends TestCase
                 ],
                 [
                     'name' => 'new tag',
-                ]
-            ]
+                ],
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -176,7 +174,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_updates_a_nested_related_record_with_nonstandard_primary_key()
+    public function it_updates_a_nested_related_record_with_nonstandard_primary_key(): void
     {
         $post    = $this->createPost();
         $special = $this->createSpecial('special-1');
@@ -187,7 +185,7 @@ class ElaborateModelUpdaterTest extends TestCase
                     'special' => $special->getKey(),
                     'name'    => 'updated special',
                 ],
-            ]
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -202,7 +200,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_a_nested_related_record_with_nonincrementing_primary_key_if_the_key_does_not_exist()
+    public function it_creates_a_nested_related_record_with_nonincrementing_primary_key_if_the_key_does_not_exist(): void
     {
         $post = $this->createPost();
 
@@ -212,7 +210,7 @@ class ElaborateModelUpdaterTest extends TestCase
                     'special' => 'special-new',
                     'name'    => 'new special',
                 ],
-            ]
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -227,7 +225,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_links_a_nested_related_record_with_nonincrementing_primary_key_if_it_exists()
+    public function it_links_a_nested_related_record_with_nonincrementing_primary_key_if_it_exists(): void
     {
         $post    = $this->createPost();
         $special = $this->createSpecial('special-exists', 'original name');
@@ -240,7 +238,7 @@ class ElaborateModelUpdaterTest extends TestCase
                     'special' => 'special-exists',
                     'name'    => 'updated name',
                 ],
-            ]
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -261,7 +259,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_deletes_omitted_nested_belongsto_relations_on_replacement_and_dissociation_if_configured_to()
+    public function it_deletes_omitted_nested_belongsto_relations_on_replacement_and_dissociation_if_configured_to(): void
     {
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.genre.delete-detached', true);
 
@@ -272,7 +270,7 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $oldGenreId = $genre->id;
 
-        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', ['id' => $post->id, 'genre_id' => $oldGenreId]);
 
         // check if it is deleted after dissociation
 
@@ -283,8 +281,8 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => null ]);
-        $this->assertSoftDeleted('genres', [ 'id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', ['id' => $post->id, 'genre_id' => null]);
+        $this->assertSoftDeleted('genres', ['id' => $oldGenreId]);
 
         // reset
 
@@ -296,13 +294,13 @@ class ElaborateModelUpdaterTest extends TestCase
 
         $oldGenreId = $genre->id;
 
-        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', ['id' => $post->id, 'genre_id' => $oldGenreId]);
 
         // check if it is deleted after replacement
 
         $data = [
             'genre' => [
-                'name' => 'replacement genre'
+                'name' => 'replacement genre',
             ],
         ];
 
@@ -312,14 +310,14 @@ class ElaborateModelUpdaterTest extends TestCase
         $genre = Genre::where('name', 'replacement genre')->first();
         static::assertInstanceOf(Genre::class, $genre);
 
-        $this->assertDatabaseHas('posts', [ 'id' => $post->id, 'genre_id' => $genre->id ]);
-        $this->assertSoftDeleted('genres', [ 'id' => $oldGenreId ]);
+        $this->assertDatabaseHas('posts', ['id' => $post->id, 'genre_id' => $genre->id]);
+        $this->assertSoftDeleted('genres', ['id' => $oldGenreId]);
     }
 
     /**
      * @test
      */
-    function it_detaches_omitted_nested_belongstomany_relations()
+    public function it_detaches_omitted_nested_belongstomany_relations(): void
     {
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.link-only', false);
 
@@ -328,10 +326,10 @@ class ElaborateModelUpdaterTest extends TestCase
         $post    = $this->createPost();
         $authorA = $this->createAuthor();
         $authorB = $this->createAuthor();
-        $post->authors()->sync([ $authorA->id, $authorB->id ]);
+        $post->authors()->sync([$authorA->id, $authorB->id]);
 
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorA->id]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorB->id]);
 
         $data = [
             'authors' => [
@@ -339,7 +337,7 @@ class ElaborateModelUpdaterTest extends TestCase
                 [
                     'name'   => 'New Author',
                     'gender' => 'f',
-                ]
+                ],
             ],
         ];
 
@@ -351,16 +349,16 @@ class ElaborateModelUpdaterTest extends TestCase
         $authorC = Author::latest()->first();
         static::assertInstanceOf(Author::class, $authorC);
 
-        $this->assertDatabaseHas('authors', [ 'id' => $authorB->id ]);
-        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorC->id ]);
-        $this->assertDatabaseMissing('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('authors', ['id' => $authorB->id]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorA->id]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorC->id]);
+        $this->assertDatabaseMissing('author_post', ['post_id' => $post->id, 'author_id' => $authorB->id]);
     }
 
     /**
      * @test
      */
-    function it_does_not_detach_omitted_nested_belongstomany_relations_if_configured_not_to()
+    public function it_does_not_detach_omitted_nested_belongstomany_relations_if_configured_not_to(): void
     {
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.detach', false);
 
@@ -369,45 +367,10 @@ class ElaborateModelUpdaterTest extends TestCase
         $post    = $this->createPost();
         $authorA = $this->createAuthor();
         $authorB = $this->createAuthor();
-        $post->authors()->sync([ $authorA->id, $authorB->id ]);
+        $post->authors()->sync([$authorA->id, $authorB->id]);
 
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
-
-        $data = [
-            'authors' => [
-                $authorA->id,
-            ],
-        ];
-
-        // test
-
-        $updater = new ModelUpdater(Post::class);
-        $updater->update($data, $post);
-
-        $this->assertDatabaseHas('authors', [ 'id' => $authorB->id ]);
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
-    }
-
-
-    /**
-     * @test
-     */
-    function it_deletes_detached_belongstomany_related_records_if_configured_to()
-    {
-        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.delete-detached', true);
-        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.link-only', false);
-
-        // setup
-
-        $post    = $this->createPost();
-        $authorA = $this->createAuthor();
-        $authorB = $this->createAuthor();
-        $post->authors()->sync([ $authorA->id, $authorB->id ]);
-
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->assertDatabaseHas('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorA->id]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorB->id]);
 
         $data = [
             'authors' => [
@@ -420,15 +383,16 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->assertDatabaseMissing('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
-        $this->assertDatabaseMissing('authors', [ 'id' => $authorB->id ]);
+        $this->assertDatabaseHas('authors', ['id' => $authorB->id]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorA->id]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorB->id]);
     }
+
 
     /**
      * @test
      */
-    function it_does_not_delete_detached_belongstomany_related_records_if_they_are_related_to_other_models()
+    public function it_deletes_detached_belongstomany_related_records_if_configured_to(): void
     {
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.delete-detached', true);
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.link-only', false);
@@ -438,10 +402,45 @@ class ElaborateModelUpdaterTest extends TestCase
         $post    = $this->createPost();
         $authorA = $this->createAuthor();
         $authorB = $this->createAuthor();
-        $post->authors()->sync([ $authorA->id, $authorB->id ]);
+        $post->authors()->sync([$authorA->id, $authorB->id]);
+
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorA->id]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorB->id]);
+
+        $data = [
+            'authors' => [
+                $authorA->id,
+            ],
+        ];
+
+        // test
+
+        $updater = new ModelUpdater(Post::class);
+        $updater->update($data, $post);
+
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorA->id]);
+        $this->assertDatabaseMissing('author_post', ['post_id' => $post->id, 'author_id' => $authorB->id]);
+        $this->assertDatabaseMissing('authors', ['id' => $authorB->id]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_does_not_delete_detached_belongstomany_related_records_if_they_are_related_to_other_models(
+    ): void
+    {
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.delete-detached', true);
+        $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors.link-only', false);
+
+        // setup
+
+        $post    = $this->createPost();
+        $authorA = $this->createAuthor();
+        $authorB = $this->createAuthor();
+        $post->authors()->sync([$authorA->id, $authorB->id]);
 
         $otherPost = $this->createPost();
-        $otherPost->authors()->sync([ $authorB->id ]);
+        $otherPost->authors()->sync([$authorB->id]);
 
         $data = [
             'authors' => [
@@ -454,15 +453,15 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertDatabaseHas('author_post',     [ 'post_id' => $post->id, 'author_id' => $authorA->id ]);
-        $this->assertDatabaseMissing('author_post', [ 'post_id' => $post->id, 'author_id' => $authorB->id ]);
-        $this->assertDatabaseHas('authors', [ 'id' => $authorB->id ]);
+        $this->assertDatabaseHas('author_post', ['post_id' => $post->id, 'author_id' => $authorA->id]);
+        $this->assertDatabaseMissing('author_post', ['post_id' => $post->id, 'author_id' => $authorB->id]);
+        $this->assertDatabaseHas('authors', ['id' => $authorB->id]);
     }
 
     /**
      * @test
      */
-    function it_detaches_omitted_nested_hasmany_and_hasone_relations()
+    public function it_detaches_omitted_nested_hasmany_and_hasone_relations(): void
     {
         $this->app['config']->set('nestedmodelupdater.relations.' . Author::class . '.comments.detach', true);
 
@@ -476,7 +475,7 @@ class ElaborateModelUpdaterTest extends TestCase
         $author->comments()->save($commentA);
         $author->comments()->save($commentB);
 
-        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'author_id' => $author->id ]);
+        $this->assertDatabaseHas('comments', ['id' => $commentA->id, 'author_id' => $author->id]);
 
         $data = [
             'comments' => [
@@ -491,14 +490,14 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater->update($data, $author);
 
 
-        $this->assertDatabaseHas('comments', [ 'id' => $commentA->id, 'author_id' => null ]);
-        $this->assertDatabaseHas('comments', [ 'id' => $commentB->id, 'author_id' => $author->id ]);
+        $this->assertDatabaseHas('comments', ['id' => $commentA->id, 'author_id' => null]);
+        $this->assertDatabaseHas('comments', ['id' => $commentB->id, 'author_id' => $author->id]);
     }
 
     /**
      * @test
      */
-    function it_deletes_detached_hasmany_and_hasone_related_records_if_configured_to()
+    public function it_deletes_detached_hasmany_and_hasone_related_records_if_configured_to(): void
     {
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.comments.detach', true);
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.comments.delete-detached', true);
@@ -523,9 +522,9 @@ class ElaborateModelUpdaterTest extends TestCase
         $updater = new ModelUpdater(Post::class);
         $updater->update($data, $post);
 
-        $this->assertDatabaseMissing('comments', [ 'id' => $commentA->id ]);
-        $this->assertDatabaseHas('comments',     [ 'id' => $commentB->id, 'post_id' => $post->id ]);
-        $this->assertDatabaseHas('comments',     [ 'id' => $commentC->id, 'post_id' => $post->id ]);
+        $this->assertDatabaseMissing('comments', ['id' => $commentA->id]);
+        $this->assertDatabaseHas('comments', ['id' => $commentB->id, 'post_id' => $post->id]);
+        $this->assertDatabaseHas('comments', ['id' => $commentC->id, 'post_id' => $post->id]);
     }
 
     // ------------------------------------------------------------------------------
@@ -535,7 +534,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_deeply_nested_structure_of_all_new_models()
+    public function it_creates_deeply_nested_structure_of_all_new_models(): void
     {
         // allow creating authors through posts
         $this->app['config']->set('nestedmodelupdater.relations.' . Post::class . '.authors', [
@@ -543,9 +542,9 @@ class ElaborateModelUpdaterTest extends TestCase
         ]);
 
         $data = [
-            'title' => 'new title',
-            'body' => 'new body',
-            'genre' => [
+            'title'    => 'new title',
+            'body'     => 'new body',
+            'genre'    => [
                 'name' => 'new genre',
             ],
             'comments' => [
@@ -562,9 +561,9 @@ class ElaborateModelUpdaterTest extends TestCase
                     'author' => [
                         'name' => 'Author C',
                     ],
-                ]
+                ],
             ],
-            'authors' => [
+            'authors'  => [
                 [
                     'name'   => 'Author A',
                     'gender' => 'f',
@@ -620,16 +619,16 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_a_deeply_nested_structure_with_linked_models()
+    public function it_creates_a_deeply_nested_structure_with_linked_models(): void
     {
         $genre   = $this->createGenre();
         $authorA = $this->createAuthor();
         $authorB = $this->createAuthor();
 
         $data = [
-            'title' => 'new title',
-            'body' => 'new body',
-            'genre' => $genre->id,
+            'title'    => 'new title',
+            'body'     => 'new body',
+            'genre'    => $genre->id,
             'comments' => [
                 [
                     'title'  => 'title 1',
@@ -642,9 +641,9 @@ class ElaborateModelUpdaterTest extends TestCase
                     'title'  => 'title 2',
                     'body'   => 'body 2',
                     'author' => $authorB->id,
-                ]
+                ],
             ],
-            'authors' => [
+            'authors'  => [
                 $authorA->id,
                 [
                     'id' => $authorB->id,
@@ -698,15 +697,15 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_sets_and_clears_unguarded_attributes()
+    public function it_sets_and_clears_unguarded_attributes(): void
     {
         $updater = new ModelUpdater(Post::class);
 
         $updater->setUnguardedAttribute('unfillable', 'testing');
-        static::assertEquals([ 'unfillable' => 'testing' ], $updater->getUnguardedAttributes());
+        static::assertEquals(['unfillable' => 'testing'], $updater->getUnguardedAttributes());
 
-        $updater->setUnguardedAttributes([ 'test' => 'a', 'test_b' => '2' ]);
-        static::assertEquals([ 'test' => 'a', 'test_b' => '2' ], $updater->getUnguardedAttributes());
+        $updater->setUnguardedAttributes(['test' => 'a', 'test_b' => '2']);
+        static::assertEquals(['test' => 'a', 'test_b' => '2'], $updater->getUnguardedAttributes());
 
         $updater->clearUnguardedAttributes();
         static::assertEmpty($updater->getUnguardedAttributes());
@@ -715,7 +714,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_updates_an_unguarded_unfillable_attribute()
+    public function it_updates_an_unguarded_unfillable_attribute(): void
     {
         $post = $this->createPost();
 
@@ -724,8 +723,8 @@ class ElaborateModelUpdaterTest extends TestCase
                 [
                     'title' => 'new title',
                     'body'  => 'new body',
-                ]
-            ]
+                ],
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -747,7 +746,7 @@ class ElaborateModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_clears_unguarded_attributes_after_update()
+    public function it_clears_unguarded_attributes_after_update(): void
     {
         $post = $this->createPost();
 
@@ -763,5 +762,4 @@ class ElaborateModelUpdaterTest extends TestCase
 
         static::assertEmpty($updater->getUnguardedAttributes());
     }
-
 }

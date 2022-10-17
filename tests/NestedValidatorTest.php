@@ -1,6 +1,6 @@
 <?php
-/** @noinspection ReturnTypeCanBeDeclaredInspection */
-/** @noinspection AccessModifierPresentedInspection */
+
+declare(strict_types=1);
 
 namespace Czim\NestedModelUpdater\Test;
 
@@ -15,11 +15,10 @@ use UnexpectedValueException;
 
 class NestedValidatorTest extends TestCase
 {
-
     /**
      * @test
      */
-    function it_performs_validation_on_a_nested_data_set_without_errors()
+    public function it_performs_validation_on_a_nested_data_set_without_errors(): void
     {
         $data = [
             'title' => 'allowed title',
@@ -37,7 +36,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_performs_validation_on_a_nested_data_set_with_errors()
+    public function it_performs_validation_on_a_nested_data_set_with_errors(): void
     {
         $this->createGenre('existing genre name');
 
@@ -62,7 +61,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_performs_validation_on_a_deeply_nested_data_set_with_errors()
+    public function it_performs_validation_on_a_deeply_nested_data_set_with_errors(): void
     {
         $data = [
             'title' => 'disallowed title that is way and way too long to be allowed '
@@ -107,7 +106,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_performs_validation_correctly_for_associative_plural_relation_array()
+    public function it_performs_validation_correctly_for_associative_plural_relation_array(): void
     {
         $data = [
             'title' => 'required',
@@ -148,7 +147,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_returns_validation_rules_for_a_nested_data_set_with_a_belongs_to_create_data_set()
+    public function it_returns_validation_rules_for_a_nested_data_set_with_a_belongs_to_create_data_set(): void
     {
         $data = [
             'title' => 'allowed title',
@@ -171,7 +170,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_returns_validation_rules_for_a_nested_data_set_with_a_belongs_to_update_data_set()
+    public function it_returns_validation_rules_for_a_nested_data_set_with_a_belongs_to_update_data_set(): void
     {
         $data = [
             'title' => 'allowed title',
@@ -201,7 +200,7 @@ class NestedValidatorTest extends TestCase
      *
      * @test
      */
-    function it_correctly_merges_custom_model_primary_key_rules_with_inherent_nesting_rules()
+    public function it_correctly_merges_custom_model_primary_key_rules_with_inherent_nesting_rules(): void
     {
         Config::set('nestedmodelupdater.relations.' . Post::class . '.tags', [ 'link-only' => true ]);
 
@@ -234,7 +233,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_returns_correct_validation_rules_for_non_incrementing_nested_relation_model()
+    public function it_returns_correct_validation_rules_for_non_incrementing_nested_relation_model(): void
     {
         $this->createSpecial('special-1');
 
@@ -265,7 +264,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_uses_custom_rules_for_a_related_nested_model_if_configured_to()
+    public function it_uses_custom_rules_for_a_related_nested_model_if_configured_to(): void
     {
         Config::set('nestedmodelupdater.relations.' . Post::class . '.genre', [
             'rules'        => Genre::class,
@@ -290,7 +289,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_uses_model_specific_rules_if_configured_to_unless_nested_relation_rules_overrule_them()
+    public function it_uses_model_specific_rules_if_configured_to_unless_nested_relation_rules_overrule_them(): void
     {
         // set up some models to use specific rules classes & methods
         // and set up a single overruling nested relation rules class & method
@@ -346,7 +345,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_returns_create_validation_rules_for_a_model()
+    public function it_returns_create_validation_rules_for_a_model(): void
     {
         $validator = new NestedValidator(Post::class);
         $rules = $validator->getDirectModelValidationRules(false);
@@ -358,7 +357,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_returns_update_validation_rules_for_a_model()
+    public function it_returns_update_validation_rules_for_a_model(): void
     {
         $validator = new NestedValidator(Post::class);
         $rules = $validator->getDirectModelValidationRules(false, false);
@@ -370,7 +369,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_returns_empty_validation_rules_if_rules_model_not_found()
+    public function it_returns_empty_validation_rules_if_rules_model_not_found(): void
     {
         $validator = new NestedValidator(Special::class);
         $rules = $validator->getDirectModelValidationRules();
@@ -382,7 +381,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_when_attempting_to_retrieve_nonexistent_rules_if_configured_to()
+    public function it_throws_an_exception_when_attempting_to_retrieve_nonexistent_rules_if_configured_to(): void
     {
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessageMatches('#not bound#i');
@@ -401,7 +400,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_if_a_rules_class_for_a_model_does_not_have_the_rules_method()
+    public function it_throws_an_exception_if_a_rules_class_for_a_model_does_not_have_the_rules_method(): void
     {
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessageMatches('#no method \'rules\'#i');
@@ -423,7 +422,7 @@ class NestedValidatorTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_if_a_rules_class_method_does_not_return_an_array()
+    public function it_throws_an_exception_if_a_rules_class_method_does_not_return_an_array(): void
     {
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessageMatches('#array#i');
@@ -443,5 +442,4 @@ class NestedValidatorTest extends TestCase
         $validator = new NestedValidator(Post::class);
         $validator->validate($data);
     }
-
 }

@@ -1,9 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test\Helpers\Rules;
 
 class PostRules
 {
-
+    /**
+     * @return array<string, string>
+     */
     public function rules(string $type = 'create'): array
     {
         if ($type !== 'create') {
@@ -11,12 +16,11 @@ class PostRules
                 'title' => 'string|max:10',
                 'body'  => 'required|string',
             ];
-        } else {
-            return [
-                'title' => 'required|string|max:50',
-                'body'  => 'string',
-            ];
         }
-    }
 
+        return [
+            'title' => 'required|string|max:50',
+            'body'  => 'string',
+        ];
+    }
 }

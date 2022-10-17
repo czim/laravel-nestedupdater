@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test;
 
 use Czim\NestedModelUpdater\NestedModelUpdaterServiceProvider;
@@ -14,11 +17,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Schema;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
-abstract class TestCase extends \Orchestra\Testbench\TestCase
+abstract class TestCase extends OrchestraTestCase
 {
-
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -27,8 +30,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     }
 
     /**
-     * Define environment setup.
-     *
      * @param Application $app
      */
     protected function getEnvironmentSetUp($app): void
@@ -45,7 +46,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
         // Setup basic config for nested relation testing
         $app['config']->set('nestedmodelupdater.relations', [
-            Author::class => [
+            Author::class  => [
                 'posts'    => true,
                 'comments' => [
                     'updater' => AlternativeUpdater::class,
@@ -56,18 +57,18 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
                 'author' => true,
                 'tags'   => true,
             ],
-            Post::class => [
-                'comments' => true,
-                'genre'    => true,
-                'authors'  => [
+            Post::class    => [
+                'comments'                   => true,
+                'genre'                      => true,
+                'authors'                    => [
                     'link-only' => true,
                 ],
-                'tags' => true,
+                'tags'                       => true,
                 'exceptional_attribute_name' => [
                     'method' => 'someOtherRelationMethod',
                 ],
-                'comment_has_one' => true,
-                'specials' => true,
+                'comment_has_one'            => true,
+                'specials'                   => true,
             ],
         ]);
 
@@ -88,7 +89,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         Schema::create('authors', static function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 255);
-            $table->enum('gender', [ 'm', 'f' ])->default('f');
+            $table->enum('gender', ['m', 'f'])->default('f');
             $table->timestamps();
         });
 
@@ -188,7 +189,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     protected function createTag(Model $taggable = null, string $name = 'test tag'): Tag
     {
         $tag = new Tag([
-            'name'  => $name,
+            'name' => $name,
         ]);
 
         if ($taggable) {
@@ -209,7 +210,6 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         ]);
     }
 
-
     /**
      * Asserts that a given MessageBag contains a validation error for a key,
      * based on a loosy or regular expression match.
@@ -219,13 +219,18 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * @param string $like
      * @param bool   $isRegex if true, $like is already a regex string
      */
-    protected function assertHasValidationErrorLike($messages, string $key, string $like, bool $isRegex = false): void
-    {
-        if ( ! ($messages instanceof MessageBag)) {
+    protected function assertHasValidationErrorLike(
+        mixed $messages,
+        string $key,
+        string $like,
+        bool $isRegex = false,
+    ): void {
+        if (! $messages instanceof MessageBag) {
             $this->fail("Messages should be a MessageBag instance, cannot look up presence of '{$like}' for '{$key}'.");
         }
+
         /** @var MessageBag $messages */
-        if ( ! $messages->has($key)) {
+        if (! $messages->has($key)) {
             $this->fail("Messages does not contain key '{$key}' (cannot look up presence of '{$like}').");
         }
 
@@ -238,7 +243,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             }
         );
 
-        if ( ! count($matched)) {
+        if (! count($matched)) {
             $this->fail("Messages does not contain error for key '{$key}' that matches '{$regex}'.");
         }
     }
@@ -251,27 +256,25 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * @param string $key
      * @param string $regex
      */
-    protected function assertHasValidationErrorRegex($messages, string $key, string $regex): void
+    protected function assertHasValidationErrorRegex(mixed $messages, string $key, string $regex): void
     {
         $this->assertHasValidationErrorLike($messages, $key, $regex, true);
     }
 
     /**
-     * Asserts whether a set of validation rules per key are present in an array
-     * with validation rules.
+     * Asserts whether a set of validation rules per key are present in an array with validation rules.
      *
-     * @param array|mixed $rules
-     * @param array       $findRules    associative array with key => rules to find
-     * @param bool        $strictPerKey if true, the rules for each key present should match strictly
-     * @param bool        $strictKeys   if true, only the keys must be present in the rules, and no more
+     * @param array<string, mixed>|mixed $rules
+     * @param array<string, mixed>       $findRules    associative array with key => rules to find
+     * @param bool                       $strictPerKey if true, the rules for each key present should match strictly
+     * @param bool                       $strictKeys   if true, only the keys must be present in the rules, and no more
      */
     protected function assertHasValidationRules(
-        $rules,
+        mixed $rules,
         array $findRules,
         bool $strictPerKey = false,
-        bool $strictKeys = false
+        bool $strictKeys = false,
     ): void {
-
         foreach ($findRules as $key => $findRule) {
             $this->assertHasValidationRule($rules, $key, $findRule, $strictPerKey);
         }
@@ -291,29 +294,40 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
      * validation rules, for a given key. Does not care whether the format is
      * pipe-separate string or array.
      *
-     * @param array|mixed  $rules
-     * @param string       $key
-     * @param string|array $findRules   full validation rule string ('max:50'), or array of them
-     * @param bool         $strict      only the given rules should be present, no others
+     * @param array<string, mixed>|mixed  $rules
+     * @param string                      $key
+     * @param string|array<string, mixed> $findRules full validation rule string ('max:50'), or array of them
+     * @param bool                        $strict    only the given rules should be present, no others
      */
-    protected function assertHasValidationRule($rules, string $key, $findRules, bool $strict = false): void
+    protected function assertHasValidationRule(mixed $rules, string $key, mixed $findRules, bool $strict = false): void
     {
-        if ( ! is_array($findRules)) {
-            $findRules = [ $findRules ];
+        if (! is_array($findRules)) {
+            $findRules = [$findRules];
         }
 
-        $this->assertIsArray($rules, "Rules should be an array, can not look up value '{$findRules[0]}' for '{$key}'.");
+        $this->assertIsArray(
+            $rules,
+            "Rules should be an array, can not look up value '{$findRules[0]}' for '{$key}'."
+        );
 
-        $this->assertArrayHasKey($key, $rules, "Rules array does not contain key '{$key}' (cannot find rule '{$findRules[0]}').");
+        $this->assertArrayHasKey(
+            $key,
+            $rules,
+            "Rules array does not contain key '{$key}' (cannot find rule '{$findRules[0]}')."
+        );
 
         $rulesForKey = $rules[ $key ];
 
-        if ( ! is_array($rulesForKey)) {
+        if (! is_array($rulesForKey)) {
             $rulesForKey = explode('|', $rulesForKey);
         }
 
         foreach ($findRules as $findRule) {
-            $this->assertContains($findRule, $rulesForKey, "Rules array does not contain rule '{$findRule}' for key '{$key}'.");
+            $this->assertContains(
+                $findRule,
+                $rulesForKey,
+                "Rules array does not contain rule '{$findRule}' for key '{$key}'."
+            );
         }
 
         if ($strict) {
@@ -321,10 +335,9 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
                 count($rulesForKey),
                 count($findRules),
                 "Not strictly the same rules for '{$key}': "
-                    . (count($rulesForKey) - count($findRules)) . ' more present than expected'
-                    . ' (' . implode(', ', array_diff(array_values($rulesForKey), array_values($findRules))) . ').'
+                . (count($rulesForKey) - count($findRules)) . ' more present than expected'
+                . ' (' . implode(', ', array_diff(array_values($rulesForKey), array_values($findRules))) . ').'
             );
         }
     }
-
 }

@@ -15,5 +15,4 @@ class AuthorRules
             'name' => 'string',
         ];
     }
-
 }

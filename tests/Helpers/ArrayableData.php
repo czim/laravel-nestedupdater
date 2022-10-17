@@ -1,28 +1,24 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test\Helpers;
 
 use Illuminate\Contracts\Support\Arrayable;
 
 class ArrayableData implements Arrayable
 {
-
     /**
-     * @var array
+     * @param array<int|string, mixed> $array
      */
-    protected $array;
-
-    /**
-     * @param array $array
-     */
-    public function __construct(array $array)
+    public function __construct(protected array $array)
     {
-        $this->array = $array;
     }
 
     /**
      * Get the instance as an array.
      *
-     * @return array
+     * @return array<int|string, mixed>
      */
     public function toArray(): array
     {

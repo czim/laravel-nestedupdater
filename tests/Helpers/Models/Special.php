@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -21,13 +24,15 @@ class Special extends Model
     public $incrementing = false;
 
     /**
-     * @var array
+     * @var string[]
      */
-    protected $fillable = [ 'special', 'name' ];
+    protected $fillable = [
+        'special',
+        'name',
+    ];
 
     public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
     }
-
 }

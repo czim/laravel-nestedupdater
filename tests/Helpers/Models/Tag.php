@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,9 +16,11 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Tag extends Model
 {
     /**
-     * @var array
+     * @var string[]
      */
-    protected $fillable = [ 'name' ];
+    protected $fillable = [
+        'name',
+    ];
 
     public function posts(): MorphTo
     {
@@ -27,7 +32,9 @@ class Tag extends Model
         return $this->morphTo(Comment::class, 'taggable');
     }
 
-    // for testing per-model rules class/method validation configuration
+    /**
+     * @return array<string, string>
+     */
     public function rules(): array
     {
         return [

@@ -1,6 +1,6 @@
 <?php
-/** @noinspection ReturnTypeCanBeDeclaredInspection */
-/** @noinspection AccessModifierPresentedInspection */
+
+declare(strict_types=1);
 
 namespace Czim\NestedModelUpdater\Test;
 
@@ -19,7 +19,7 @@ class NestingConfigTest extends TestCase
     /**
      * @test
      */
-    function it_returns_whether_an_attribute_key_is_for_a_nested_relation()
+    public function it_returns_whether_an_attribute_key_is_for_a_nested_relation(): void
     {
         $config = new NestingConfig();
 
@@ -71,5 +71,4 @@ class NestingConfigTest extends TestCase
         $info = $config->getRelationInfo('authors', Post::class);
         static::assertFalse($info->isUpdateAllowed());
     }
-
 }

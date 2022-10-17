@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -14,16 +17,20 @@ class Genre extends Model
     use SoftDeletes;
 
     /**
-     * @var array
+     * @var string[]
      */
-    protected $fillable = [ 'name' ];
+    protected $fillable = [
+        'name',
+    ];
 
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
     }
 
-    // for testing the validator configuration
+    /**
+     * @return array<string, string>
+     */
     public function customRulesMethod(): array
     {
         return [

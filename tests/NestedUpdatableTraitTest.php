@@ -1,6 +1,6 @@
 <?php
-/** @noinspection ReturnTypeCanBeDeclaredInspection */
-/** @noinspection AccessModifierPresentedInspection */
+
+declare(strict_types=1);
 
 namespace Czim\NestedModelUpdater\Test;
 
@@ -9,11 +9,10 @@ use Czim\NestedModelUpdater\Test\Helpers\Models\Post;
 
 class NestedUpdatableTraitTest extends TestCase
 {
-
     /**
      * @test
      */
-    function it_allows_a_model_to_be_created_without_any_nested_relations()
+    public function it_allows_a_model_to_be_created_without_any_nested_relations(): void
     {
         $data = [
             'title' => 'created',
@@ -35,7 +34,7 @@ class NestedUpdatableTraitTest extends TestCase
     /**
      * @test
      */
-    function it_allows_a_model_to_be_updated_without_any_nested_relations()
+    public function it_allows_a_model_to_be_updated_without_any_nested_relations(): void
     {
         $post = $this->createPost();
 
@@ -58,7 +57,7 @@ class NestedUpdatableTraitTest extends TestCase
     /**
      * @test
      */
-    function it_creates_a_new_nested_model_related_as_belongs_to()
+    public function it_creates_a_new_nested_model_related_as_belongs_to(): void
     {
         $data = [
             'title' => 'created',
@@ -104,7 +103,7 @@ class NestedUpdatableTraitTest extends TestCase
     /**
      * @test
      */
-    function it_updates_an_existing_nested_model_related_as_belongs_to()
+    public function it_updates_an_existing_nested_model_related_as_belongs_to(): void
     {
         $post    = $this->createPost();
         $comment = $this->createComment($post);
@@ -128,5 +127,4 @@ class NestedUpdatableTraitTest extends TestCase
             'title'   => 'updated comment',
         ]);
     }
-
 }

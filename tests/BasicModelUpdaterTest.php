@@ -1,7 +1,6 @@
 <?php
-/** @noinspection PhpUnhandledExceptionInspection */
-/** @noinspection ReturnTypeCanBeDeclaredInspection */
-/** @noinspection AccessModifierPresentedInspection */
+
+declare(strict_types=1);
 
 namespace Czim\NestedModelUpdater\Test;
 
@@ -16,7 +15,6 @@ use UnexpectedValueException;
 
 class BasicModelUpdaterTest extends TestCase
 {
-
     // ------------------------------------------------------------------------------
     //      Basics
     // ------------------------------------------------------------------------------
@@ -24,7 +22,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_a_model_without_any_nested_relations()
+    public function it_creates_a_model_without_any_nested_relations(): void
     {
         $data = [
             'title' => 'created',
@@ -46,7 +44,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_updates_a_model_without_any_nested_relations()
+    public function it_updates_a_model_without_any_nested_relations(): void
     {
         $post = $this->createPost();
 
@@ -68,7 +66,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_creates_a_new_nested_model_related_as_belongs_to()
+    public function it_creates_a_new_nested_model_related_as_belongs_to(): void
     {
         $post = $this->createPost();
 
@@ -99,7 +97,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_updates_a_new_nested_model_related_as_belongs_to_without_updating_parent()
+    public function it_updates_a_new_nested_model_related_as_belongs_to_without_updating_parent(): void
     {
         $post  = $this->createPost();
         $genre = $this->createGenre('original name');
@@ -138,7 +136,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_only_links_a_related_model_if_no_update_is_allowed()
+    public function it_only_links_a_related_model_if_no_update_is_allowed(): void
     {
         $post  = $this->createPost();
         $genre = $this->createGenre();
@@ -172,7 +170,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_dissociates_a_belongs_to_relation_if_empty_data_is_passed_in()
+    public function it_dissociates_a_belongs_to_relation_if_empty_data_is_passed_in(): void
     {
         $post  = $this->createPost();
         $genre = $this->createGenre();
@@ -195,7 +193,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_attaches_has_many_related_models_that_were_related_to_a_different_model()
+    public function it_attaches_has_many_related_models_that_were_related_to_a_different_model(): void
     {
         $post      = $this->createPost();
         $otherPost = $this->createPost();
@@ -226,7 +224,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_throws_an_exception_when_updating_trashed_models_is_not_allowed()
+    public function it_throws_an_exception_when_updating_trashed_models_is_not_allowed(): void
     {
         $this->app['config']->set('nestedmodelupdater.allow-trashed', false);
         $genre = $this->createGenre();
@@ -242,7 +240,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_updates_a_single_trashed_model_when_updating_trashed_models_is_allowed()
+    public function it_updates_a_single_trashed_model_when_updating_trashed_models_is_allowed(): void
     {
         $this->app['config']->set('nestedmodelupdater.allow-trashed', true);
         $genre = $this->createGenre();
@@ -260,7 +258,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_throws_an_exception_trying_to_updated_nested_trashed_models_when_updating_trashed_models_is_not_allowed()
+    public function it_throws_an_exception_trying_to_updated_nested_trashed_models_when_updating_trashed_models_is_not_allowed(): void
     {
         $this->app['config']->set('nestedmodelupdater.allow-trashed', false);
 
@@ -286,7 +284,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_updates_a_nested_trashed_model_when_updating_trashed_models_is_allowed()
+    public function it_updates_a_nested_trashed_model_when_updating_trashed_models_is_allowed(): void
     {
         $this->app['config']->set('nestedmodelupdater.allow-trashed', true);
 
@@ -319,7 +317,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_force_updates_deleted_at_on_an_existing_model_through_force_update()
+    public function it_force_updates_deleted_at_on_an_existing_model_through_force_update(): void
     {
         $genre = $this->createGenre();
 
@@ -337,7 +335,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_force_updates_deleted_at_on_an_existing_model_through_setting_force_first()
+    public function it_force_updates_deleted_at_on_an_existing_model_through_setting_force_first(): void
     {
         $genre = $this->createGenre();
 
@@ -356,7 +354,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_force_creates_model_with_deleted_at_through_force_create()
+    public function it_force_creates_model_with_deleted_at_through_force_create(): void
     {
         $updater = new ModelUpdater(Genre::class);
         $result  = $updater->forceCreate([
@@ -377,7 +375,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    public function it_force_creates_model_with_deleted_at_through_setting_force_first()
+    public function it_force_creates_model_with_deleted_at_through_setting_force_first(): void
     {
         $updater = new ModelUpdater(Genre::class);
         $updater->force(true);
@@ -403,7 +401,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_normalizes_nested_data_for_null_value()
+    public function it_normalizes_nested_data_for_null_value(): void
     {
         $post = $this->createPost();
         $post->genre()->associate($post);
@@ -425,7 +423,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_normalizes_nested_data_for_scalar_link_value()
+    public function it_normalizes_nested_data_for_scalar_link_value(): void
     {
         $post  = $this->createPost();
         $genre = $this->createGenre('original name');
@@ -446,7 +444,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_normalizes_nested_data_for_arrayable_content()
+    public function it_normalizes_nested_data_for_arrayable_content(): void
     {
         $post  = $this->createPost();
         $genre = $this->createGenre('original name');
@@ -480,7 +478,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_if_nested_relation_data_is_of_incorrect_type()
+    public function it_throws_an_exception_if_nested_relation_data_is_of_incorrect_type(): void
     {
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessageMatches('#genre\)#i');
@@ -498,7 +496,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_if_it_cannot_find_the_top_level_model_by_id()
+    public function it_throws_an_exception_if_it_cannot_find_the_top_level_model_by_id(): void
     {
         $this->expectException(NestedModelNotFoundException::class);
         $this->expectExceptionMessageMatches('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Post#');
@@ -516,7 +514,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_with_nested_key_if_it_cannot_find_a_nested_model_by_id()
+    public function it_throws_an_exception_with_nested_key_if_it_cannot_find_a_nested_model_by_id(): void
     {
         $this->expectException(NestedModelNotFoundException::class);
         $this->expectExceptionMessageMatches('#Czim\\\\NestedModelUpdater\\\\Test\\\\Helpers\\\\Models\\\\Genre.*\(nesting: genre\)#i');
@@ -537,7 +535,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_if_not_allowed_to_create_a_nested_model_record_that_has_no_id()
+    public function it_throws_an_exception_if_not_allowed_to_create_a_nested_model_record_that_has_no_id(): void
     {
         $this->expectException(DisallowedNestedActionException::class);
         $this->expectExceptionMessageMatches('#authors\.0#i');
@@ -546,8 +544,8 @@ class BasicModelUpdaterTest extends TestCase
             'title'   => 'Problem Post',
             'body'    => 'Body',
             'authors' => [
-                [ 'name' => 'New Name' ]
-            ]
+                ['name' => 'New Name'],
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -557,7 +555,7 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_throws_an_exception_if_not_allowed_to_create_an_update_only_nested_model_record()
+    public function it_throws_an_exception_if_not_allowed_to_create_an_update_only_nested_model_record(): void
     {
         $this->expectException(DisallowedNestedActionException::class);
         $this->expectExceptionMessageMatches('#authors\.0#i');
@@ -571,8 +569,8 @@ class BasicModelUpdaterTest extends TestCase
             'title'   => 'Problem Post',
             'body'    => 'Body',
             'authors' => [
-                [ 'name' => 'New Name' ]
-            ]
+                ['name' => 'New Name'],
+            ],
         ];
 
         $updater = new ModelUpdater(Post::class);
@@ -582,13 +580,13 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_rolls_back_changes_if_exception_is_thrown()
+    public function it_rolls_back_changes_if_exception_is_thrown(): void
     {
         $post = $this->createPost();
 
         $data = [
-            'title' => 'this should be',
-            'body'  => 'rolled back',
+            'title'    => 'this should be',
+            'body'     => 'rolled back',
             // comments is a HasMany relation, so the model is
             // updated and persisted before this is parsed
             'comments' => [
@@ -606,7 +604,7 @@ class BasicModelUpdaterTest extends TestCase
             // should never get here
             $this->fail('Exception should have been thrown while attempting update');
 
-        } catch (NestedModelNotFoundException $e) {
+        } catch (NestedModelNotFoundException) {
             // expected
         }
 
@@ -620,13 +618,13 @@ class BasicModelUpdaterTest extends TestCase
     /**
      * @test
      */
-    function it_can_be_configured_not_to_use_database_transactions()
+    public function it_can_be_configured_not_to_use_database_transactions(): void
     {
         $post = $this->createPost();
 
         $data = [
-            'title' => 'this should be',
-            'body'  => 'rolled back',
+            'title'    => 'this should be',
+            'body'     => 'rolled back',
             // comments is a HasMany relation, so the model is
             // updated and persisted before this is parsed
             'comments' => [
@@ -645,7 +643,7 @@ class BasicModelUpdaterTest extends TestCase
             // should never get here
             $this->fail('Exception should have been thrown while attempting update');
 
-        } catch (NestedModelNotFoundException $e) {
+        } catch (NestedModelNotFoundException) {
             // expected
         }
 
@@ -655,5 +653,4 @@ class BasicModelUpdaterTest extends TestCase
             'body'  => 'rolled back',
         ]);
     }
-
 }

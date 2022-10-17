@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Test\Helpers\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,9 +16,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Author extends Model
 {
     /**
-     * @var array
+     * @var string[]
      */
-    protected $fillable = [ 'name', 'gender' ];
+    protected $fillable = [
+        'name',
+        'gender',
+    ];
 
     public function posts(): BelongsToMany
     {
