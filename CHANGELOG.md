@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.0.0] - 2022
+## [3.0.0] - 2022-10-17
 
 Breaking changes: refactored entirely for PHP 8.1.
 Many interfaces and method signatures are updated, strict typing is enforced.
@@ -25,7 +25,7 @@ Fixed an issue with BelongsToMany where saving on the relation causes duplicates
 
 ## [2.0.0] - 2019-09-21
 
-Introduced strict return types and scalar typehints.  
+Introduced strict return types and scalar typehints.
 Added test setup for Laravel 6.0 context.
 
 

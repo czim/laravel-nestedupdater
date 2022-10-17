@@ -42,22 +42,23 @@ $data = [
 - create a new author named 'John' and linking it to comment #18,
 - create a new comment for the post and linking author #512 to it
 
-Any combination of nested creates and updates is supported; the nesting logic follows that of Eloquent relationships and is highly customizable. 
+Any combination of nested creates and updates is supported; the nesting logic follows that of Eloquent relationships and is highly customizable.
 
-Additionally, this package provides support for validating data with nested relations all at once. 
+Additionally, this package provides support for validating data with nested relations all at once.
 
 
 ## Version Compatibility
 
- Laravel         | Package 
-:----------------|:--------
- 5.3 and lower   | 1.0
- 5.4 to 5.6      | 1.4
- 5.7 to 5.8      | 1.5
- 6.0 and up      | 2.0
- 
- ## Change log
- 
+| Laravel       | PHP        | Package |
+|:--------------|------------|:--------|
+| 5.3 and lower |            | 1.0     |
+| 5.4 to 5.6    |            | 1.4     |
+| 5.7 to 5.8    |            | 1.5     |
+| 6.0 and up    | 7.4 and up | 2.0     |
+| 9.0 and up    | 8.1 and up | 3.0     |
+
+## Change log
+
  [View the changelog](CHANGELOG.md).
 
 ## Install
@@ -83,7 +84,7 @@ $ php artisan vendor:publish
 ## Usage
 
 Note that this package will not do any nested updates without setting up at least a
-configuration for the relations that you want to allow nested updates for. 
+configuration for the relations that you want to allow nested updates for.
 Configuration must be set before this can be used at all. See the configuration section below.
 
 
@@ -96,11 +97,11 @@ An easy way to set up a model for processing nested updates is by using the `Nes
 class YourModel extends Model
 {
     use \Czim\NestedModelUpdater\Traits\NestedUpdatable;
-    
+
     // ...
 ```
 
-Any data array passed into `create()` or `update()` calls for that model will be processed for nested data. 
+Any data array passed into `create()` or `update()` calls for that model will be processed for nested data.
 Note that `fill()` (or any other data-related methods on the model) will *not* be affected, and do not process nested data with the model updater.
 
 If you wish to use your own implementation of the `ModelUpdaterInterface`, you may do so by setting a (protected) property `$modelUpdaterClass` with the fully qualitied namespace for the updater.
@@ -111,15 +112,15 @@ This is entirely optional and merely availble for flexibility.
 class YourCustomizedModel extends Model
 {
     use \Czim\NestedModelUpdater\Traits\NestedUpdatable;
-    
+
     /**
      * You can refer to any class, as long as it implements the
      * \Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface.
      *
-     * @var string
+     * @var class-string<\Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface>
      */
     protected $modelUpdaterClass = \Your\UpdaterClass\Here::class;
-    
+
     /**
      * Additionally, optionally, you can set a class to be used
      * for the configuration, if you need to override how relation
@@ -127,11 +128,11 @@ class YourCustomizedModel extends Model
      *
      * This class must implement
      * \Czim\NestedModelUpdater\Contracts\NestingConfigurationInterface
-     * 
-     * @var string
+     *
+     * @var class-string<\Czim\NestedModelUpdater\Contracts\NestingConfigurationInterface>
      */
     protected $modelUpdaterConfigClass = \Your\UpdaterConfigClass::class;
-    
+
 ```
 
 
@@ -141,19 +142,17 @@ Alternatively, you can use the `ModelUpdater` manually, by creating an instance.
 
 ```php
 <?php
-
     // Instantiate the modelupdater
     $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
-    
+
     // Or by using the service container binding (won't work in Laravel 5.4)
     $updater = app(\Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface::class, [ YourModel::class ]);
-    
+
     // Perform a nested data create operation
     $model = $updater->create([ 'some' => 'create', 'data' => 'here' ]);
-    
+
     // Perform a nested data update on an existing model
     $updater->update([ 'some' => 'update', 'data' => 'here' ], $model);
-    
 ```
 
 
@@ -161,7 +160,7 @@ Alternatively, you can use the `ModelUpdater` manually, by creating an instance.
 
 In the `nestedmodelupdater.php` config, configure your relations per model under the `relations` key.
 Add keys of the fully qualified namespace of each model that you want to allow nested updates for.
-Under each, add keys for the attribute names that you want your nested structure to have for each relation's data. 
+Under each, add keys for the attribute names that you want your nested structure to have for each relation's data.
 Finally, for each of those, either add `true` to enable nested updates with all default settings, or override settings in an array.
 
 As a simple example, if you wish to add comments when creating a post, your setup might look like the following.
@@ -195,7 +194,7 @@ The `relations`-configuration to make this work would look like this:
         // with a value of true to allow updates with default settings
         'comments' => true
     ],
-    
+
     App\Models\Comment::class => [
         // this time, the defaults are overruled to only allow linking,
         // not direct updates of authors through nesting
@@ -208,14 +207,14 @@ The `relations`-configuration to make this work would look like this:
 
 Note that any relation not present in the config will be ignored for nesting, and passed as fill data into the main model on which the create or update action is performed.
 
-More [information on relation configuration](CONFIG.md). 
+More [information on relation configuration](CONFIG.md).
 Also check out [the configuration file](https://github.com/czim/laravel-nestedupdater/blob/master/src/config/nestedmodelupdater.php) for further notes.
 
 
 ## Validation
 
 Validation is not automatically performed by the model updater. This package offers nested validation as a separate process,
-that may be implemented as freely as that of the updater itself. 
+that may be implemented as freely as that of the updater itself.
 A `NestedValidator` class may be used to perform validation or return validation rules based on the data provided and the
 relations configuration set. This will reflect update- or link-only rights and rules for records existing on using primary
 keys when updating.
@@ -235,7 +234,7 @@ or make your own configuration option to make this an optional setting.
 
 ## Temporary IDs: Referencing to-be created models in nested data
 
-When creating models through nested updates, it may be necessary to create a single new model once, 
+When creating models through nested updates, it may be necessary to create a single new model once,
 but link it to multiple other parents. Take the following data example:
 
 ```php
@@ -287,7 +286,7 @@ $data = [
 ];
 ```
 
-This would create a single new author with the given name and connect it to both comments. 
+This would create a single new author with the given name and connect it to both comments.
 
 The `_tmp_id` reference must be unique for one to-be created model.
 It may be an integer or a string value, but it *must not* contain a period (`.`).
@@ -297,7 +296,7 @@ To enable it, simply set `allow-temporary-ids` to `true` in the configuration.
 
 There are no deep checks for cyclical references or (fairly unlikely) dependency issues for multiple interrelated temporary ID create operations, so be careful with this or perform in-depth validation manually beforehand.
 
- 
+
 ## Unguarded Attributes
 
 Updates and creates adhere to the `fillable` guards for the relevant models by default.
@@ -315,13 +314,13 @@ or directly by calling `forceUpdate()` or `forceCreate()`.
 <?php
     // Instantiate the modelupdater
     $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
-    
+
     // Perform a nested data create operation, disregarding any fillable guard
     $model = $updater->forceCreate([ 'user_id' => 1, 'some' => 'create', 'data' => 'here' ]);
 ```
 
 
-### Setting specific values for top-level model attributes 
+### Setting specific values for top-level model attributes
 
 It is possible to prepare the model updater to set attributes bypassing the guard for specific
 model attributes, by passing in the values to be set on the top-level model separately.
@@ -335,17 +334,17 @@ Example:
 <?php
     // Instantiate the modelupdater
     $updater = new \Czim\NestedModelUpdater\ModelUpdater(YourModel::class);
-    
+
     // Queue an non-fillable attribute to be stored on the create model
     $updater->setUnguardedAttribute('user_id', 1);
-    
+
     // Perform a nested data create operation
     $model = $updater->create([ 'some' => 'create', 'data' => 'here' ]);
 ```
 
 In this case the `user_id` would be stored directly on the newly created model.
 
-As a safety measure, any previously set unguarded attributes will be cleared automatically after a succesful model update or create operation.
+As a safety measure, any previously set unguarded attributes will be cleared automatically after a successful model update or create operation.
 Set them again for each subsequent update/create to be performed.
 
 It is also possible to set an entire array of unguarded attributes to assign at once:
@@ -383,11 +382,11 @@ $data = [
 ```
 
 Since Laravel's `Arr::get()` and other dot-notation based lookup methods are used,
-nested validation will fail to properly validate data entries with such keys.  
+nested validation will fail to properly validate data entries with such keys.
 
 Note that such associative keys serve no purpose for the model updater itself.
 The best way to avoid problems is to normalize your data so that all plural relation arrays are non-associative.
-Alternatively, replace any `.` in the array's keys with a placeholder. 
+Alternatively, replace any `.` in the array's keys with a placeholder.
 See 'Extending functionality' below for tips.
 
 

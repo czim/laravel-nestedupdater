@@ -29,13 +29,13 @@ Note that 'comments' in the above example refers to the key in the array that co
 
 The options that may be be set are as follows:
 
-- `link-only` (boolean): 
+- `link-only` (boolean):
     Enable this to only allow (re-)linking nested models, but not updating them or creating new (default is `false`)
 - `update-only` (boolean):
     Enable this to only allow updating existing models through nesting, but not creating new (default is `false`)
 - `detach` (boolean):
     Set this to `false` or `true` to control whether records omitted from a set of nested records for the relation
-    are detached from their parent model. If this is `true`, detaching is forced. 
+    are detached from their parent model. If this is `true`, detaching is forced.
     (default is `null`, which defaults to `true` for `BelongsToMany` and `false` for `HasMany` type relations)
 - `delete-detached` (boolean):
     If this is enabled, models that are omitted (and would be detached if `detach` is enabled), will be deleted instead.
@@ -68,7 +68,7 @@ And for validation:
 
 ## Validation configuration
 
-The above relations options for validation overrule the validator defaults. 
+The above relations options for validation overrule the validator defaults.
 The validation defaults are configured in the `nestedmodelupdater.validation` section of the config.
 
 
@@ -78,11 +78,11 @@ The default fallback for rules classes ([see the readme section on validation](V
 Given a model, say `App\Models\Post`, the class name will be constructed as follows:
 
     model-rules-namespace + basename of model class + optional postfix
-    
+
 For example:
-    
-    App\Http\\Requests\Rules\ + Post + Rules = App\Http\\Requests\Rules\PostRules 
- 
+
+    App\Http\\Requests\Rules\ + Post + Rules = App\Http\\Requests\Rules\PostRules
+
 The namespace and postfix may be configured in the `valiation` section:
 
 ```php
@@ -91,8 +91,8 @@ The namespace and postfix may be configured in the `valiation` section:
     'model-rules-postfix'   => 'Rules',
 ```
 
-Note that using this fallback option is entirely optional. 
-`model-rules` and/or `relations` settings may be used to prevent the fallback from ever being used. 
+Note that using this fallback option is entirely optional.
+`model-rules` and/or `relations` settings may be used to prevent the fallback from ever being used.
 
 
 ### Allowing missing rules classes
@@ -118,8 +118,8 @@ This default method may be changed:
 <?php
     // This would default to calling customMethod() instead of rules()
     'model-rules-method' => 'customMethod',
-``` 
-    
+```
+
 ### Model Rules
 
 It is also possible to set rules classes and methods on a per-model basis, in the `validation.model-rules` array.
@@ -127,13 +127,11 @@ These will apply for any validation of the model's data, regardless of its neste
 
 ```php
 <?php
-
     'model-rules' => [
-    
         // If a string value is used, it should be the rules class FQN
         // the default rules method would be used in this case.
         App\Models\Post::class => Your\RulesClass::class,
-        
+
         // If a rules method needs to be defined, use an array for the
         // value and set it as follows. Note that 'class' and 'method'
         // are both optional; the default/fallback will be used for any
@@ -162,4 +160,4 @@ In that case you may decide to use the `delete-detached` option, so the 'detache
 A note on the data returned by `handleNestedSingleUpdateOrCreate()`:
 This will normally always return an instance of `UpdateResult` with a model set (the model updated or created).
 However, if the result has no model set (`null`), this is a valid result, and the updater will not fail when this happens.
-This is done so that, optionally, in an extension of the updater, models may conditionally not be created, or deleted. 
+This is done so that, optionally, in an extension of the updater, models may conditionally not be created, or deleted.
