@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @template TModel of \Illuminate\Database\Eloquent\Model
+ * @template TParent of \Illuminate\Database\Eloquent\Model
  *
- * @extends NestedParserInterface<TModel>
+ * @extends NestedParserInterface<TModel, TParent>
  */
 interface ModelUpdaterInterface extends
     NestedParserInterface,

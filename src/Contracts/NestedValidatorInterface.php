@@ -4,6 +4,12 @@ namespace Czim\NestedModelUpdater\Contracts;
 
 use Illuminate\Contracts\Support\MessageBag;
 
+/**
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ * @template TParent of \Illuminate\Database\Eloquent\Model
+ *
+ * @extends NestedParserInterface<TModel, TParent>
+ */
 interface NestedValidatorInterface extends NestedParserInterface
 {
     /**

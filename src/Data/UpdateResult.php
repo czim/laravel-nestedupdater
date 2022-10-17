@@ -20,7 +20,7 @@ class UpdateResult
 
     /**
      * Wether the operation was successful.
-     * If no model is set, but the operation is succesful, no exceptions should
+     * If no model is set, but the operation is successful, no exceptions should
      * be thrown, the relation should be assumed deliberately discarded.
      *
      * @var bool

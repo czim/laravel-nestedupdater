@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater;
 
 use Czim\NestedModelUpdater\Contracts\NestedParserInterface;
@@ -13,96 +15,99 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Arr;
 use UnexpectedValueException;
 
+/**
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ * @template TParent of \Illuminate\Database\Eloquent\Model
+ *
+ * @implements NestedParserInterface<TModel, TParent>
+ */
 abstract class AbstractNestedParser implements NestedParserInterface
 {
     use TracksTemporaryIds;
 
-    /**
-     * @var NestingConfigInterface
-     */
-    protected $config;
+    protected NestingConfigInterface $config;
 
     /**
      * The FQN for the main model being created or updated
      *
-     * @var string
+     * @var class-string<TModel>
      */
-    protected $modelClass;
+    protected string $modelClass;
 
     /**
-     * Model being updated or created
+     * Model being updated or created.
      *
-     * @var null|Model
+     * @var TModel|null
      */
-    protected $model;
+    protected ?Model $model = null;
 
     /**
-     * If available, the (future) parent model of this record
+     * If available the FQN of the parent model (may be set while parentModel instance is not).
      *
-     * @var null|Model
+     * @var class-string<TParent>|null
      */
-    protected $parentModel;
+    protected ?string $parentModelClass;
 
     /**
-     * If available the FQN of the parent model (may be set while parentModel instance is not)
+     * If available, the (future) parent model of this record.
      *
-     * @var null|string
+     * @var TParent|null
      */
-    protected $parentModelClass;
+    protected ?Model $parentModel = null;
 
     /**
      * If available, the relation attribute on the parent model that may be used to
      * look up the nested config relation info.
      *
-     * @var null|string
+     * @var string|null
      */
-    protected $parentAttribute;
+    protected ?string $parentAttribute;
 
     /**
-     * Dot-notation key, if relevant, representing the record currently updated or created
+     * Dot-notation key, if relevant, representing the record currently updated or created.
      *
-     * @var null|string
+     * @var string|null
      */
-    protected $nestedKey;
-    /**
-     * Information about the nested relationships. If a key in the data array
-     * is present as a key in this array, it should be considered a nested
-     * relation's data.
-     *
-     * @var RelationInfo[]  keyed by nested attribute data key
-     */
-    protected $relationInfo;
+    protected ?string $nestedKey;
 
     /**
-     * The information about the relation on the parent's attribute, based on
-     * parentModel & parentAttribute. Only set if not top-level.
+     * Information about the nested relationships. If a key in the data array is present as a key in this array,
+     * it should be considered a nested relation's data.
      *
-     * @var null|RelationInfo
+     * @var array<string, RelationInfo<TParent>> keyed by nested attribute data key
      */
-    protected $parentRelationInfo;
+    protected array $relationInfo = [];
 
     /**
-     * Whether the relations in the data array have been analyzed
+     * The information about the relation on the parent's attribute, based on parentModel & parentAttribute.
+     * Only set if not top-level.
+     *
+     * @var RelationInfo<TModel>|null
+     */
+    protected ?RelationInfo $parentRelationInfo = null;
+
+    /**
+     * Whether the relations in the data array have been analyzed.
      *
      * @var bool
      */
-    protected $relationsAnalyzed = false;
+    protected bool $relationsAnalyzed = false;
 
     /**
-     * Data passed in for the create or update process
+     * Data passed in for the create or update process.
      *
-     * @var array
+     * @var array<string, mixed>
      */
-    protected $data;
+    protected array $data = [];
 
 
     /**
-     * @param string                      $modelClass       FQN for model
-     * @param null|string                 $parentAttribute  the name of the attribute on the parent's data array
-     * @param null|string                 $nestedKey        dot-notation key for tree data (ex.: 'blog.comments.2.author')
-     * @param null|Model                  $parentModel      the parent model, if this is a recursive/nested call
-     * @param null|NestingConfigInterface $config
-     * @param null|string                 $parentModelClass if the parentModel is not known, but its class is, set this
+     * @param class-string<TModel>                         $modelClass       FQN for model
+     * @param string|null                                  $parentAttribute  the name of the attribute on the parent's data array
+     * @param string|null                                  $nestedKey        dot-notation key for tree data (ex.: 'blog.comments.2.author')
+     * @param TParent|null                                 $parentModel      the parent model, if this is a recursive/nested call
+     * @param NestingConfigInterface<TParent, TModel>|null $config
+     * @param class-string<TParent>|null                   $parentModelClass if the parentModel is not known, but its class is, set this
      */
     public function __construct(
         string $modelClass,
@@ -112,7 +117,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
         NestingConfigInterface $config = null,
         ?string $parentModelClass = null
     ) {
-        if (null === $config) {
+        if ($config === null) {
             /** @var NestingConfigInterface $config */
             $config = app(NestingConfigInterface::class);
         }
@@ -122,21 +127,17 @@ abstract class AbstractNestedParser implements NestedParserInterface
         $this->nestedKey        = $nestedKey;
         $this->parentModel      = $parentModel;
         $this->config           = $config;
-        $this->parentModelClass = $parentModel ? get_class($parentModel) : $parentModelClass;
+        $this->parentModelClass = $parentModel ? $parentModel::class : $parentModelClass;
 
         if ($parentAttribute && $this->parentModelClass) {
-
             $this->parentRelationInfo = $this->config->getRelationInfo($parentAttribute, $this->parentModelClass);
         }
     }
 
     /**
-     * Returns RelationInfo instance for nested data element by dot notation data key.
-     *
-     * @param string $key
-     * @return RelationInfo|false     false if data could not be determined
+     * {@inheritDoc}
      */
-    public function getRelationInfoForDataKeyInDotNotation($key)
+    public function getRelationInfoForDataKeyInDotNotation(string $key): RelationInfo|false
     {
         $explodedKeys   = explode('.', $key);
         $nextLevelKey   = array_shift($explodedKeys);
@@ -151,12 +152,14 @@ abstract class AbstractNestedParser implements NestedParserInterface
         // prepare the next recursive step and pass on the key
         // get the info for the next key, make sure that the info is loaded
 
-        /** @var RelationInfo $info */
-        if ( ! ($info = Arr::get($this->relationInfo, $nextLevelKey))) {
+        /** @var RelationInfo<TModel> $info */
+        $info = Arr::get($this->relationInfo, $nextLevelKey);
+
+        if (! $info) {
             $info = $this->getRelationInfoForKey($nextLevelKey);
         }
 
-        if ( ! $info) {
+        if (! $info) {
             return false;
         }
 
@@ -171,7 +174,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
             $nextLevelKey,
             $this->appendNestedKey($nextLevelKey, $nextLevelIndex),
             $this->model,
-            $this->config
+            $this->config,
         ]);
 
         return $updater->getRelationInfoForDataKeyInDotNotation($remainingKey);
@@ -185,27 +188,25 @@ abstract class AbstractNestedParser implements NestedParserInterface
         $this->relationInfo = [];
 
         foreach ($this->data as $key => $value) {
-
-            if ( ! $this->config->isKeyNestedRelation($key)) {
+            if (! $this->config->isKeyNestedRelation($key)) {
                 continue;
             }
 
-            $this->relationInfo[$key] = $this->getRelationInfoForKey($key);
+            $this->relationInfo[ $key ] = $this->getRelationInfoForKey($key);
         }
 
         $this->relationsAnalyzed = true;
     }
 
     /**
-     * Returns data array containing only the data that should be stored
-     * on the main model being updated/created.
+     * Returns data array containing only the data that should be stored on the main model being updated/created.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     protected function getDirectModelData(): array
     {
         // this only works if the relations have been analyzed
-        if ( ! $this->relationsAnalyzed) {
+        if (! $this->relationsAnalyzed) {
             $this->analyzeNestedRelationsData();
         }
 
@@ -215,9 +216,9 @@ abstract class AbstractNestedParser implements NestedParserInterface
     /**
      * Makes a nested model parser or updater instance, for recursive use.
      *
-     * @param string $class         FQN of updater
-     * @param array  $parameters    parameters for model updater constructor
-     * @return NestedParserInterface
+     * @param class-string<NestedParserInterface> $class      FQN of updater
+     * @param array<int, mixed>                   $parameters parameters for model updater constructor
+     * @return NestedParserInterface<Model, TModel>
      */
     abstract protected function makeNestedParser(string $class, array $parameters): NestedParserInterface;
 
@@ -228,60 +229,60 @@ abstract class AbstractNestedParser implements NestedParserInterface
      * @param null|string|int $index
      * @return string
      */
-    protected function appendNestedKey(string $key, $index = null): string
+    protected function appendNestedKey(string $key, int|string|null $index = null): string
     {
         return ($this->nestedKey ? $this->nestedKey . '.' : '')
-             . $key
-             . (null !== $index ? '.' . $index : '');
+            . $key
+            . ($index !== null ? '.' . $index : '');
     }
 
     /**
      * Returns and stores relation info for a given nested model key.
      *
      * @param string $key
-     * @return RelationInfo
+     * @return RelationInfo<Model>
      */
     protected function getRelationInfoForKey(string $key): RelationInfo
     {
-        $this->relationInfo[$key] = $this->config->getRelationInfo($key, $this->modelClass);
+        $this->relationInfo[ $key ] = $this->config->getRelationInfo($key, $this->modelClass);
 
-        return $this->relationInfo[$key];
+        return $this->relationInfo[ $key ];
     }
 
     /**
      * Returns whether this instance is performing a top-level operation,
      * as opposed to a nested at any recursion depth below it.
      *
-     * @return boolean
+     * @return bool
      */
     protected function isTopLevel(): bool
     {
-        return null === $this->parentAttribute && null === $this->parentRelationInfo;
+        return $this->parentAttribute === null
+            && $this->parentRelationInfo === null;
     }
 
     /**
-     * @param mixed       $id         primary model key or lookup value
-     * @param null|string $attribute  primary model key name or lookup column, if null, uses find() method
-     * @param null|string $modelClass optional, if not looking up the main model
-     * @param null|string $nestedKey  optional, if not looking up the main model
-     * @param bool        $exceptionIfNotFound
-     * @param bool        $withTrashed
+     * @param mixed                    $id         primary model key or lookup value
+     * @param null|string              $attribute  primary model key name or lookup column, if null, uses find() method
+     * @param null|class-string<Model> $modelClass optional, if not looking up the main model
+     * @param null|string              $nestedKey  optional, if not looking up the main model
+     * @param bool                     $exceptionIfNotFound
+     * @param bool                     $withTrashed
      * @return Model|null
      */
     protected function getModelByLookupAttribute(
-        $id,
+        mixed $id,
         ?string $attribute = null,
         ?string $modelClass = null,
         ?string $nestedKey = null,
         bool $exceptionIfNotFound = true,
-        bool $withTrashed = false
+        bool $withTrashed = false,
     ): ?Model {
-
         $class     = $modelClass ?: $this->modelClass;
-        $model     = new $class;
+        $model     = new $class();
         $nestedKey = $nestedKey ?: $this->nestedKey;
 
-        if ( ! ($model instanceof Model)) {
+        if (! $model instanceof Model) {
             throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
         }
 
@@ -295,7 +296,7 @@ abstract class AbstractNestedParser implements NestedParserInterface
         /** @var Model $model */
         $model = $queryBuilder->where($attribute ?? $model->getKeyName(), $id)->first();
 
-        if ( ! $model && $exceptionIfNotFound) {
+        if (! $model && $exceptionIfNotFound) {
             throw (new NestedModelNotFoundException())
                 ->setModel($class)
                 ->setNestedKey($nestedKey);
@@ -305,29 +306,27 @@ abstract class AbstractNestedParser implements NestedParserInterface
     }
 
     /**
-     * @param mixed       $id         primary model key or lookup value
-     * @param null|string $attribute  primary model key name or lookup column, if null, uses find() method
-     * @param null|string $modelClass optional, if not looking up the main model
+     * @param mixed                    $id         primary model key or lookup value
+     * @param null|string              $attribute  primary model key name or lookup column, if null, uses find() method
+     * @param null|class-string<Model> $modelClass optional, if not looking up the main model
      * @return bool
      */
     protected function checkModelExistsByLookupAtribute(
-        $id,
+        mixed $id,
         ?string $attribute = null,
         ?string $modelClass = null
     ): bool {
-
         $class = $modelClass ?: $this->modelClass;
-        $model = new $class;
+        $model = new $class();
 
-        if ( ! ($model instanceof Model)) {
+        if (! $model instanceof Model) {
             throw new UnexpectedValueException("Model class FQN expected, got {$class} instead.");
         }
 
-        /** @var Model|Builder $model */
-        if (null === $attribute) {
-            return null !== $model::find($id);
+        if ($attribute === null) {
+            return null !== $model->query()->find($id);
         }
 
-        return $model::where($attribute, $id)->count() > 0;
+        return $model->query()->where($attribute, $id)->count() > 0;
     }
 }

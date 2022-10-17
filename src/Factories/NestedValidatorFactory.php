@@ -1,21 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Factories;
 
 use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Czim\NestedModelUpdater\NestedValidator;
+use Illuminate\Database\Eloquent\Model;
 use ReflectionClass;
+use Throwable;
 use UnexpectedValueException;
 
 class NestedValidatorFactory implements NestedValidatorFactoryInterface
 {
     /**
-     * Makes a nested model validator instance.
-     *
-     * @param string $class
-     * @param array  $parameters    constructor parameters for validator
-     * @return NestedValidatorInterface
+     * @param class-string<NestedValidatorInterface> $class
+     * @param array<int, mixed>                      $parameters constructor parameters for validator
+     * @return NestedValidatorInterface<Model, Model>
      */
     public function make(string $class, array $parameters = []): NestedValidatorInterface
     {
@@ -23,31 +25,26 @@ class NestedValidatorFactory implements NestedValidatorFactoryInterface
             $class = $this->getDefaultValidatorClass();
         }
 
-        if ( ! count($parameters)) {
-
+        if (! count($parameters)) {
             $validator = app($class);
-
         } else {
-
             try {
                 $reflectionClass = new ReflectionClass($class);
-                $validator = $reflectionClass->newInstanceArgs($parameters);
-
-            } catch (\Exception $e) {
-
-                $validator = $e->getMessage();
+                $validator       = $reflectionClass->newInstanceArgs($parameters);
+            } catch (Throwable $exception) {
+                $validator = $exception->getMessage();
             }
         }
 
-        if ( ! $validator) {
+        if (! $validator) {
             throw new UnexpectedValueException(
                 "Expected NestedValidatorInterface instance, got nothing for '{$class}'"
             );
         }
 
-        if ( ! ($validator instanceof NestedValidatorInterface)) {
+        if (! $validator instanceof NestedValidatorInterface) {
             throw new UnexpectedValueException(
-                'Expected NestedValidatorInterface instance, got ' . get_class($class) . ' instead'
+                'Expected NestedValidatorInterface instance, got ' . get_class($validator) . ' instead'
             );
         }
 
@@ -57,7 +54,7 @@ class NestedValidatorFactory implements NestedValidatorFactoryInterface
     /**
      * Returns the default class to use, if the interface is given as a class.
      *
-     * @return string
+     * @return class-string<NestedValidatorInterface>
      */
     protected function getDefaultValidatorClass(): string
     {

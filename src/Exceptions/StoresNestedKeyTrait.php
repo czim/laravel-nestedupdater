@@ -11,7 +11,7 @@ trait StoresNestedKeyTrait
      *
      * @var string
      */
-    protected $nestedKey;
+    protected string $nestedKey;
 
     /**
      * Set the dot-notation nested key for the affected model.

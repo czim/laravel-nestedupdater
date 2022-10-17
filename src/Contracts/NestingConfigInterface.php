@@ -6,6 +6,7 @@ use Czim\NestedModelUpdater\Data\RelationInfo;
 
 /**
  * @template TParent of \Illuminate\Database\Eloquent\Model
+ * @template TModel of \Illuminate\Database\Eloquent\Model
  */
 interface NestingConfigInterface
 {
@@ -23,7 +24,7 @@ interface NestingConfigInterface
      *
      * @param string                     $key
      * @param null|class-string<TParent> $parentModel the FQN for the parent model
-     * @return RelationInfo
+     * @return RelationInfo<TModel>
      */
     public function getRelationInfo(string $key, ?string $parentModel = null): RelationInfo;
 

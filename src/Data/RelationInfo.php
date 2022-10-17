@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Data;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;

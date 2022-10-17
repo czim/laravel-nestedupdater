@@ -1,24 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Traits;
 
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @mixin \Eloquent
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ *
+ * @mixin Model
  */
 trait NestedUpdatable
 {
     /**
-     * {@inheritdoc}
+     * @param array<string, mixed> $attributes
+     * @return Model|null
      */
     public static function create(array $attributes = [])
     {
-        /** @var NestedUpdatable|\Illuminate\Database\Eloquent\Model $this */
+        /** @var NestedUpdatable&Model $this */
         $model = new static;
 
-        /** @var ModelUpdaterInterface $updater */
+        /** @var ModelUpdaterInterface<TModel, Model> $updater */
         $updater = $model->getModelUpdaterInstance();
 
         $result = $updater->create($attributes);
@@ -27,11 +33,13 @@ trait NestedUpdatable
     }
 
     /**
-     * {@inheritdoc}
+     * @param array<string, mixed> $attributes
+     * @param array<string, mixed> $options
+     * @return bool
      */
     public function update(array $attributes = [], array $options = [])
     {
-        /** @var NestedUpdatable|\Illuminate\Database\Eloquent\Model $this */
+        /** @var NestedUpdatable&Model $this */
         if ( ! $this->exists) {
             return false;
         }
@@ -46,27 +54,23 @@ trait NestedUpdatable
     /**
      * Makes an instance of the ModelUpdater.
      *
-     * @return ModelUpdaterInterface
+     * @return ModelUpdaterInterface<TModel, Model>
      */
     protected function getModelUpdaterInstance(): ModelUpdaterInterface
     {
         $class = (property_exists($this, 'modelUpdaterClass'))
-            ?   $this->modelUpdaterClass
-            :   ModelUpdaterInterface::class;
+            ? $this->modelUpdaterClass
+            : ModelUpdaterInterface::class;
 
         $config = (property_exists($this, 'modelUpdaterConfigClass'))
-            ?   app($this->modelUpdaterConfigClass)
-            :   null;
+            ? app($this->modelUpdaterConfigClass)
+            : null;
 
         return $this->getModelUpdaterFactory()->make($class, [ get_class($this), null, null, null, $config ]);
     }
 
-    /**
-     * @return ModelUpdaterFactoryInterface
-     */
     protected function getModelUpdaterFactory(): ModelUpdaterFactoryInterface
     {
         return app(ModelUpdaterFactoryInterface::class);
     }
-
 }

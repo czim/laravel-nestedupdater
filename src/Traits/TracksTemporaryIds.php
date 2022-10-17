@@ -1,19 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Traits;
 
 use Czim\NestedModelUpdater\Contracts\TemporaryIdsInterface;
 use Czim\NestedModelUpdater\Contracts\TracksTemporaryIdsInterface;
 use Czim\NestedModelUpdater\Exceptions\InvalidNestedDataException;
+use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @see TracksTemporaryIdsInterface
+ */
 trait TracksTemporaryIds
 {
     /**
-     * Information about temporary ids so far analyzed
+     * Information about temporary ids analyzed so far.
      *
      * @var null|TemporaryIdsInterface
      */
-    protected $temporaryIds;
+    protected ?TemporaryIdsInterface $temporaryIds = null;
 
     /**
      * Returns whether temporary ID handling is enabled.
@@ -29,28 +35,20 @@ trait TracksTemporaryIds
      * Sets the container for tracking temporary IDs.
      *
      * @param TemporaryIdsInterface $ids
-     * @return $this|TracksTemporaryIdsInterface
+     * @return $this
      */
-    public function setTemporaryIds(TemporaryIdsInterface $ids): TracksTemporaryIdsInterface
+    public function setTemporaryIds(TemporaryIdsInterface $ids): static
     {
         $this->temporaryIds = $ids;
 
         return $this;
     }
 
-    /**
-     * @return TemporaryIdsInterface|null
-     */
     public function getTemporaryIds(): ?TemporaryIdsInterface
     {
         return $this->temporaryIds;
     }
 
-    /**
-     * Returns whether temporary ID container has been defined.
-     *
-     * @return bool
-     */
     protected function hasTemporaryIds(): bool
     {
         return null !== $this->temporaryIds;
@@ -70,18 +68,17 @@ trait TracksTemporaryIds
      * Checks whether all the temporary ids are correctly set and
      * all of them have data that can be used.
      *
-     * @return $this|TracksTemporaryIdsInterface
+     * @return $this
      * @throws InvalidNestedDataException
      */
-    protected function checkTemporaryIdsUsage(): TracksTemporaryIdsInterface
+    protected function checkTemporaryIdsUsage(): static
     {
         foreach ($this->temporaryIds->getKeys() as $key) {
-
-            if (null === $this->temporaryIds->getDataForId($key)) {
+            if ($this->temporaryIds->getDataForId($key) === null) {
                 throw new InvalidNestedDataException("No create data defined for temporary ID '{$key}'");
             }
 
-            if ( ! $this->temporaryIds->isAllowedToCreateForId($key)) {
+            if (! $this->temporaryIds->isAllowedToCreateForId($key)) {
                 throw new InvalidNestedDataException(
                     "Not allowed to create new model for temporary ID '{$key}' for any referenced nested relation"
                 );
@@ -94,28 +91,29 @@ trait TracksTemporaryIds
     /**
      * Checks whether the attribute keys for the create data of a given temporary ID key.
      *
-     * @param string $key
-     * @param array  $data
-     * @return $this|TracksTemporaryIdsInterface
+     * @param string               $key
+     * @param array<string, mixed> $data
+     * @return $this
      * @throws InvalidNestedDataException
      */
-    protected function checkDataAttributeKeysForTemporaryId(string $key, array $data): TracksTemporaryIdsInterface
+    protected function checkDataAttributeKeysForTemporaryId(string $key, array $data): static
     {
         $modelClass = $this->temporaryIds->getModelClassForId($key);
-        /** @var \Illuminate\Database\Eloquent\Model $model */
-        $model = new $modelClass;
 
-        // if the key is in the creating data, and it is an incrementing key,
-        // there is a mixup, the data should not be for an update
+        /** @var Model $model */
+        $model = new $modelClass();
+
+        // If the key is in the creating data, and it is an incrementing key, there is a mixup,
+        // the data should not be for an update.
         if ($model->incrementing && array_key_exists($model->getKeyName(), $data)) {
             throw new InvalidNestedDataException(
                 "Create data defined for temporary ID '{$key}' must not contain primary key value."
             );
         }
 
-        // if data is already set for the temporary ID, it should be exactly the same
+        // If data is already set for the temporary ID, it should be exactly the same.
         $setData = $this->temporaryIds->getDataForId($key);
-        if (null !== $setData && $data !== $setData) {
+        if ($setData !== null && $data !== $setData) {
             throw new InvalidNestedDataException(
                 "Multiple inconsistent create data definitions given for temporary ID '{$key}'."
             );

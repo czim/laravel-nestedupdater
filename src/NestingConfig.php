@@ -83,9 +83,9 @@ class NestingConfig implements NestingConfigInterface
     /**
      * @param string                     $key
      * @param class-string<TParent>|null $parentModel
-     * @return array<string, mixed>|false
+     * @return array<string, mixed>|bool
      */
-    public function getNestedRelationConfigByKey(string $key, ?string $parentModel = null): array|false
+    public function getNestedRelationConfigByKey(string $key, ?string $parentModel = null): array|bool
     {
         $parentModel = $parentModel ?: $this->parentModel;
 
@@ -175,7 +175,7 @@ class NestingConfig implements NestingConfigInterface
 
         $detach = Arr::get($config, 'detach');
 
-        return null === $detach ? null : (bool) $detach;
+        return $detach === null ? null : (bool) $detach;
     }
 
     /**
@@ -219,6 +219,7 @@ class NestingConfig implements NestingConfigInterface
     {
         return $this->getStringValueForKey($key, 'updater', ModelUpdaterInterface::class, $parentModel);
     }
+
 
     /**
      * Returns a fresh instance of the parent model for the relation.
@@ -324,7 +325,7 @@ class NestingConfig implements NestingConfigInterface
      * @param class-string<TParent>|null $parentModel the FQN for the parent model
      * @return string
      */
-    public function getValidatorClassForKey(string $key, ?string $parentModel = null): string
+    protected function getValidatorClassForKey(string $key, ?string $parentModel = null): string
     {
         return $this->getStringValueForKey($key, 'validator', NestedValidatorInterface::class, $parentModel);
     }
@@ -336,9 +337,9 @@ class NestingConfig implements NestingConfigInterface
      * @param class-string<TParent>|null $parentModel the FQN for the parent model
      * @return string|null
      */
-    public function getRulesClassForKey(string $key, ?string $parentModel = null): ?string
+    protected function getRulesClassForKey(string $key, ?string $parentModel = null): ?string
     {
-        return $this->getStringValueForKey($key, 'rules', null, $parentModel);
+        return $this->getStringValueForKey($key, 'rules', null, $parentModel) ?: null;
     }
 
     /**
@@ -349,8 +350,8 @@ class NestingConfig implements NestingConfigInterface
      * @param class-string<TParent>|null $parentModel the FQN for the parent model
      * @return string|null
      */
-    public function getRulesMethodForKey(string $key, ?string $parentModel = null): ?string
+    protected function getRulesMethodForKey(string $key, ?string $parentModel = null): ?string
     {
-        return $this->getStringValueForKey($key, 'rules-method', null, $parentModel);
+        return $this->getStringValueForKey($key, 'rules-method', null, $parentModel) ?: null;
     }
 }

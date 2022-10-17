@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Czim\NestedModelUpdater\Requests;
 
 use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
@@ -8,20 +10,23 @@ use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
+/**
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ */
 abstract class AbstractNestedDataRequest extends FormRequest
 {
     /**
      * Fully qualified namespace for the NestedValidatorInterface class to use.
      *
-     * @var string
+     * @var class-string<NestedValidatorInterface>
      */
-    protected $validatorClass = NestedValidatorInterface::class;
+    protected string $validatorClass = NestedValidatorInterface::class;
 
 
     /**
      * Returns FQN of model class to validate nested data for (at the top level).
      *
-     * @return string
+     * @return class-string<TModel>
      */
     abstract protected function getNestedModelClass(): string;
 
@@ -41,24 +46,16 @@ abstract class AbstractNestedDataRequest extends FormRequest
     {
         $validator = $this->makeNestedValidator();
 
-
-        if ( ! $this->passesAuthorization()) {
-
+        if (! $this->passesAuthorization()) {
             $this->failedAuthorization();
+        }
 
-        } elseif ( ! $validator->validate($this->all(), $this->isCreating())) {
-
+        if (! $validator->validate($this->all(), $this->isCreating())) {
             $this->failedNestedValidation($validator->messages());
         }
     }
 
-    /**
-     * Handle a failed validation attempt.
-     *
-     * @param MessageBag $errors
-     * @return mixed
-     */
-    protected function failedNestedValidation(MessageBag $errors)
+    protected function failedNestedValidation(MessageBag $errors): never
     {
         throw new HttpResponseException(
             $this->response(
@@ -67,30 +64,22 @@ abstract class AbstractNestedDataRequest extends FormRequest
         );
     }
 
-    /**
-     * Returns the nested validator instance.
-     *
-     * @return NestedValidatorInterface
-     */
     protected function makeNestedValidator(): NestedValidatorInterface
     {
         return $this->getNestedValidatorFactory()
-            ->make($this->getNestedValidatorClass(), [ $this->getNestedModelClass() ]);
+            ->make($this->getNestedValidatorClass(), [$this->getNestedModelClass()]);
     }
 
     /**
      * Returns FQN for the nested validator class to validate the nested data.
      *
-     * @return string
+     * @return class-string<NestedValidatorInterface>
      */
     protected function getNestedValidatorClass(): string
     {
         return $this->validatorClass;
     }
 
-    /**
-     * @return NestedValidatorFactoryInterface
-     */
     protected function getNestedValidatorFactory(): NestedValidatorFactoryInterface
     {
         return app(NestedValidatorFactoryInterface::class);
