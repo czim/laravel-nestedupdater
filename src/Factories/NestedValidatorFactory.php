@@ -16,7 +16,7 @@ class NestedValidatorFactory implements NestedValidatorFactoryInterface
 {
     /**
      * @param class-string<NestedValidatorInterface> $class
-     * @param array<int, mixed>                      $parameters constructor parameters for validator
+     * @param array<int|string, mixed>               $parameters constructor parameters for validator
      * @return NestedValidatorInterface<Model, Model>
      */
     public function make(string $class, array $parameters = []): NestedValidatorInterface
