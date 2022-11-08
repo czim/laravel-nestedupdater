@@ -12,11 +12,17 @@ use ReflectionClass;
 use Throwable;
 use UnexpectedValueException;
 
+/**
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ * @template TParent of \Illuminate\Database\Eloquent\Model
+ *
+ * @implements NestedValidatorFactoryInterface<TModel, TParent>
+ */
 class NestedValidatorFactory implements NestedValidatorFactoryInterface
 {
     /**
-     * @param class-string<NestedValidatorInterface> $class
-     * @param array<int|string, mixed>               $parameters constructor parameters for validator
+     * @param class-string<NestedValidatorInterface<TModel, TParent>> $class
+     * @param array<int|string, mixed>                                $parameters constructor parameters for validator
      * @return NestedValidatorInterface<Model, Model>
      */
     public function make(string $class, array $parameters = []): NestedValidatorInterface
@@ -29,6 +35,7 @@ class NestedValidatorFactory implements NestedValidatorFactoryInterface
             $validator = app($class);
         } else {
             try {
+                /** @var ReflectionClass<NestedValidatorInterface<Model, Model>> $reflectionClass */
                 $reflectionClass = new ReflectionClass($class);
                 $validator       = $reflectionClass->newInstanceArgs($parameters);
             } catch (Throwable $exception) {

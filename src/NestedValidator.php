@@ -446,6 +446,9 @@ class NestedValidator extends AbstractNestedParser implements NestedValidatorInt
         return app(Factory::class);
     }
 
+    /**
+     * @return NestedValidatorFactoryInterface<Model, TModel>
+     */
     protected function getNestedValidatorFactory(): NestedValidatorFactoryInterface
     {
         return app(NestedValidatorFactoryInterface::class);

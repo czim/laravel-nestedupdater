@@ -7,6 +7,7 @@ namespace Czim\NestedModelUpdater\Requests;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\NestedValidatorInterface;
 use Illuminate\Contracts\Support\MessageBag;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
@@ -80,6 +81,9 @@ abstract class AbstractNestedDataRequest extends FormRequest
         return $this->validatorClass;
     }
 
+    /**
+     * @return NestedValidatorFactoryInterface<TModel, Model>
+     */
     protected function getNestedValidatorFactory(): NestedValidatorFactoryInterface
     {
         return app(NestedValidatorFactoryInterface::class);
