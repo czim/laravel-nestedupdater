@@ -39,7 +39,7 @@ trait NestedUpdatable
      */
     public function update(array $attributes = [], array $options = [])
     {
-        /** @var NestedUpdatable&Model $this */
+        /** @var NestedUpdatable<TModel>&Model $this */
         if ( ! $this->exists) {
             return false;
         }
@@ -69,6 +69,9 @@ trait NestedUpdatable
         return $this->getModelUpdaterFactory()->make($class, [ get_class($this), null, null, null, $config ]);
     }
 
+    /**
+     * @return ModelUpdaterFactoryInterface<TModel, Model>
+     */
     protected function getModelUpdaterFactory(): ModelUpdaterFactoryInterface
     {
         return app(ModelUpdaterFactoryInterface::class);

@@ -7,17 +7,22 @@ namespace Czim\NestedModelUpdater\Factories;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterFactoryInterface;
 use Czim\NestedModelUpdater\Contracts\ModelUpdaterInterface;
 use Czim\NestedModelUpdater\ModelUpdater;
-use Illuminate\Database\Eloquent\Model;
 use ReflectionClass;
 use Throwable;
 use UnexpectedValueException;
 
+/**
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ * @template TParent of \Illuminate\Database\Eloquent\Model
+ *
+ * @implements ModelUpdaterFactoryInterface<TModel, TParent>
+ */
 class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
 {
     /**
-     * @param class-string<ModelUpdaterInterface> $class
-     * @param array<int|string, mixed>            $parameters constructor parameters for model updater
-     * @return ModelUpdaterInterface<Model, Model>
+     * @param class-string<ModelUpdaterInterface<TModel, TParent>> $class
+     * @param array<int|string, mixed>                             $parameters constructor parameters for model updater
+     * @return ModelUpdaterInterface<TModel, TParent>
      */
     public function make(string $class, array $parameters = []): ModelUpdaterInterface
     {
@@ -29,6 +34,7 @@ class ModelUpdaterFactory implements ModelUpdaterFactoryInterface
             $updater = app($class);
         } else {
             try {
+                /** @var ReflectionClass<ModelUpdaterInterface<TModel, TParent>> $reflectionClass */
                 $reflectionClass = new ReflectionClass($class);
                 $updater         = $reflectionClass->newInstanceArgs($parameters);
             } catch (Throwable $exception) {

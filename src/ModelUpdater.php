@@ -979,6 +979,9 @@ class ModelUpdater extends AbstractNestedParser implements ModelUpdaterInterface
         return $this->nestedKey === null;
     }
 
+    /**
+     * @return ModelUpdaterFactoryInterface<Model, TModel>
+     */
     protected function getUpdaterFactory(): ModelUpdaterFactoryInterface
     {
         return app(ModelUpdaterFactoryInterface::class);
